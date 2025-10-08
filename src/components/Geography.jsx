@@ -29,6 +29,13 @@ const Geography = () => {
         }
       })
       
+      // Fetch cities analytics
+      const citiesResponse = await fetch('/api/analytics/cities', {
+        headers: {
+          'Authorization': `Bearer ${localStorage.getItem('token')}`
+        }
+      })
+      
       if (countriesResponse.ok) {
         const countriesData = await countriesResponse.json()
         
@@ -36,36 +43,21 @@ const Geography = () => {
         const totalCountries = countriesData.length
         const topCountry = countriesData.length > 0 ? countriesData[0] : null
         
-        // For cities, we'll use a simplified approach since we don't have a separate cities endpoint
-        const cities = []
+        // Fetch cities data from API
+        let cities = []
         let totalCities = 0
+        let topCity = null
         
-        // Generate some city data based on countries (this would ideally come from the API)
-        countriesData.forEach(country => {
-          if (country.country === 'United States') {
-            cities.push(
-              { name: 'New York', country: 'United States', clicks: Math.floor(country.clicks * 0.3), visitors: Math.floor(country.visitors * 0.3), percentage: Math.round(country.percentage * 0.3 * 10) / 10, flag: '🇺🇸' },
-              { name: 'Los Angeles', country: 'United States', clicks: Math.floor(country.clicks * 0.2), visitors: Math.floor(country.visitors * 0.2), percentage: Math.round(country.percentage * 0.2 * 10) / 10, flag: '🇺🇸' }
-            )
-            totalCities += 2
-          } else if (country.country === 'United Kingdom') {
-            cities.push(
-              { name: 'London', country: 'United Kingdom', clicks: Math.floor(country.clicks * 0.6), visitors: Math.floor(country.visitors * 0.6), percentage: Math.round(country.percentage * 0.6 * 10) / 10, flag: '🇬🇧' }
-            )
-            totalCities += 1
-          } else if (country.country === 'Canada') {
-            cities.push(
-              { name: 'Toronto', country: 'Canada', clicks: Math.floor(country.clicks * 0.4), visitors: Math.floor(country.visitors * 0.4), percentage: Math.round(country.percentage * 0.4 * 10) / 10, flag: '🇨🇦' }
-            )
-            totalCities += 1
-          }
-        })
-        
-        const topCity = cities.length > 0 ? cities.reduce((prev, current) => (prev.clicks > current.clicks) ? prev : current) : null
+        if (citiesResponse.ok) {
+          const citiesData = await citiesResponse.json()
+          cities = citiesData.slice(0, 5) // Top 5 cities
+          totalCities = citiesData.length
+          topCity = citiesData.length > 0 ? citiesData[0] : null
+        }
         
         setGeoData({
           countries: countriesData,
-          cities: cities.slice(0, 5) // Top 5 cities
+          cities: cities
         })
         
         setStats({
