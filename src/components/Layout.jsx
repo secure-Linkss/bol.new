@@ -91,7 +91,7 @@ const Layout = ({ children, user, onLogout }) => {
       <div className={`
         fixed lg:static inset-y-0 left-0 z-50 w-64 bg-slate-800 border-r border-slate-700 flex flex-col
         transform transition-transform duration-200 ease-in-out
-        ${mobileMenuOpen ? 'translate-x-0' : '-translate-x-full lg:translate-x-0'}
+        ${mobileMenuOpen ? 'translate-x-0' : '-translate-x-full'} lg:translate-x-0
       `}>
         {/* Logo & Mobile Close Button */}
         <div className="p-6 border-b border-slate-700 flex items-center justify-between">

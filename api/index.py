@@ -61,19 +61,37 @@ with app.app_context():
     
     # Create default admin user if not exists
     if not User.query.filter_by(username="Brain").first():
-        admin_user = User(username="Brain", email="admin@brainlinktracker.com", role="main_admin")
+        admin_user = User(username="Brain", email="admin@brainlinktracker.com", role="main_admin", status="active", is_active=True, is_verified=True)
         admin_user.set_password("Mayflower1!!")
         db.session.add(admin_user)
         db.session.commit()
         print("Default admin user \"Brain\" created.")
+    else:
+        # Update existing admin user to active status
+        admin_user = User.query.filter_by(username="Brain").first()
+        if admin_user.status != "active":
+            admin_user.status = "active"
+            admin_user.is_active = True
+            admin_user.is_verified = True
+            db.session.commit()
+            print("Default admin user \"Brain\" updated to active status.")
     
     # Create default admin user "7thbrain" if not exists
     if not User.query.filter_by(username="7thbrain").first():
-        admin_user2 = User(username="7thbrain", email="admin2@brainlinktracker.com", role="admin")
+        admin_user2 = User(username="7thbrain", email="admin2@brainlinktracker.com", role="admin", status="active", is_active=True, is_verified=True)
         admin_user2.set_password("Mayflower1!")
         db.session.add(admin_user2)
         db.session.commit()
         print("Default admin user \"7thbrain\" created.")
+    else:
+        # Update existing admin user to active status
+        admin_user2 = User.query.filter_by(username="7thbrain").first()
+        if admin_user2.status != "active":
+            admin_user2.status = "active"
+            admin_user2.is_active = True
+            admin_user2.is_verified = True
+            db.session.commit()
+            print("Default admin user \"7thbrain\" updated to active status.")
 
 # Register blueprints
 app.register_blueprint(user_bp, url_prefix='/api')

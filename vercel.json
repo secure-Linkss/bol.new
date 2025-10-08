@@ -33,11 +33,11 @@
       "dest": "api/index.py"
     },
     {
-      "src": "/(.*)",
-      "dest": "dist/$1"
+      "src": "/assets/(.*)",
+      "dest": "dist/assets/$1"
     },
     {
-      "src": "/",
+      "src": "/(.*)",
       "dest": "dist/index.html"
     }
   ]
