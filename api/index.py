@@ -18,6 +18,7 @@ from src.models.audit_log import AuditLog
 from src.models.security import SecuritySettings, BlockedIP, BlockedCountry
 from src.models.support_ticket import SupportTicket
 from src.models.subscription_verification import SubscriptionVerification
+from src.models.notification import Notification
 
 from src.routes.user import user_bp
 from src.routes.auth import auth_bp

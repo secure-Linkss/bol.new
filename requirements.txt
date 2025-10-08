@@ -20,3 +20,17 @@ typing_extensions==4.8.0
 urllib3==2.1.0
 Flask-Migrate==4.0.5
 
+
+
+Flask-Login==0.6.3
+python-telegram-bot==20.8
+gevent==24.2.1
+
+
+
+user-agents==2.2.0
+
+
+
+geoip2==4.8.0
+
