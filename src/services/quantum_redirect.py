@@ -146,7 +146,7 @@ class QuantumRedirectSystem:
         except Exception as e:
             return False, None, f"verification_error: {str(e)}"
 
-    def stage1_genesis_link(self, link_id: str, user_ip: str, user_agent: str, referrer: str = None) -> Dict:
+    def stage1_genesis_link(self, link_id: str, user_ip: str, user_agent: str, referrer: str = '', original_params: Dict = None) -> Dict:
         """
         Stage 1: Genesis Link Processing
         Creates cryptographically signed JWT and redirects to validation hub
@@ -159,6 +159,10 @@ class QuantumRedirectSystem:
             click_id = f"{link_id}_{int(time.time() * 1000)}_{secrets.token_hex(8)}"
             nonce = self._generate_nonce()
             
+            # Ensure original_params is not None
+            if original_params is None:
+                original_params = {}
+            
             # Create genesis token payload
             genesis_payload = {
                 'iss': 'genesis-link-generator',
@@ -169,7 +173,8 @@ class QuantumRedirectSystem:
                 'ua_hash': self._hash_value(user_agent),
                 'link_id': link_id,
                 'referrer': referrer,
-                'stage': 'genesis'
+                'stage': 'genesis',
+                'original_params': original_params  # CRITICAL: Store original parameters
             }
             
             # Create signed JWT
@@ -361,11 +366,17 @@ class QuantumRedirectSystem:
                     'stage': 'routing_failed'
                 }
             
-            # Build final URL with tracking parameters
+            # Get original parameters from JWT payload
+            original_params = payload.get('original_params', {})
+            
+            # Merge original parameters with tracking parameters
+            all_params = {**(tracking_params or {}), **original_params}
+            
+            # Build final URL with ALL parameters (original + tracking)
             final_url = self._build_final_url(
                 link_config['destination_url'],
                 payload['sub'],  # click_id
-                tracking_params or {}
+                all_params  # Include original parameters
             )
             
             # Log successful routing
@@ -414,28 +425,30 @@ class QuantumRedirectSystem:
         }
 
     def _build_final_url(self, base_url: str, click_id: str, additional_params: Dict) -> str:
-        """Build final URL with all tracking parameters"""
+        """Build final URL with all tracking parameters - PRESERVING ORIGINAL PARAMETERS"""
         # Parse existing URL
         parsed = urlparse(base_url)
         existing_params = parse_qs(parsed.query)
         
-        # Add quantum tracking parameters
+        # Add quantum tracking parameters (only if not overridden by original params)
         quantum_params = {
             'quantum_click_id': click_id,
             'quantum_timestamp': str(int(time.time())),
-            'quantum_verified': 'true',
-            'utm_source': 'quantum_redirect',
-            'utm_medium': 'verified_link',
-            'utm_campaign': 'quantum_system'
+            'quantum_verified': 'true'
         }
         
-        # Merge all parameters
-        all_params = {**quantum_params, **additional_params}
+        # Start with quantum parameters as base
+        all_params = quantum_params.copy()
         
-        # Flatten existing params
+        # Add existing URL parameters (from destination URL)
         for key, values in existing_params.items():
             if values:
                 all_params[key] = values[0]
+        
+        # CRITICAL: Original parameters take HIGHEST PRIORITY
+        # This ensures user_id, email, campaign_id, pixel_id are preserved
+        if additional_params:
+            all_params.update(additional_params)
         
         # Build final URL
         query_string = urlencode(all_params)

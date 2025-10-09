@@ -36,6 +36,9 @@ def stage1_genesis_redirect(short_code):
         # Get client information
         client_info = get_client_info()
         
+        # CRITICAL: Capture ALL original URL parameters
+        original_params = dict(request.args)
+        
         # Lookup link in database
         link = Link.query.filter_by(short_code=short_code).first()
         if not link:
@@ -45,12 +48,13 @@ def stage1_genesis_redirect(short_code):
         if link.status != 'active':
             return jsonify({'error': 'Link is not active'}), 403
         
-        # Process through quantum redirect system
+        # Process through quantum redirect system with original parameters
         result = quantum_redirect.stage1_genesis_link(
             link_id=str(link.id),
             user_ip=client_info['ip'],
             user_agent=client_info['user_agent'],
-            referrer=client_info['referrer']
+            referrer=client_info['referrer'],
+            original_params=original_params  # Pass original parameters
         )
         
         if not result['success']:
