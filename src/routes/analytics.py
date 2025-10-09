@@ -364,9 +364,42 @@ def get_analytics_overview_comprehensive():
         
         conversion_rate = (captured_emails / total_clicks * 100) if total_clicks > 0 else 0
         
-        # Placeholder for bounce rate and avg session duration (requires more complex logic/data)
-        bounce_rate = 0 # This would require tracking page exits or time on page
-        avg_session_duration = 0 # This would require session tracking
+        # Calculate bounce rate (sessions with only 1 page view or session_duration < 30 seconds)
+        bounce_sessions = 0
+        total_sessions = 0
+        session_durations = []
+        
+        # Group events by IP address to identify sessions
+        sessions = {}
+        for event in events:
+            if not event.is_bot and event.ip_address:
+                session_key = f"{event.ip_address}_{event.link_id}"
+                if session_key not in sessions:
+                    sessions[session_key] = {
+                        'events': [],
+                        'total_duration': 0,
+                        'page_views': 0
+                    }
+                sessions[session_key]['events'].append(event)
+                if event.session_duration:
+                    sessions[session_key]['total_duration'] += event.session_duration
+                sessions[session_key]['page_views'] += event.page_views or 1
+        
+        # Calculate bounce rate and session durations
+        for session_key, session_data in sessions.items():
+            total_sessions += 1
+            session_duration = session_data['total_duration']
+            page_views = session_data['page_views']
+            
+            # Consider it a bounce if only 1 page view or duration < 30 seconds
+            if page_views <= 1 or session_duration < 30:
+                bounce_sessions += 1
+            
+            if session_duration > 0:
+                session_durations.append(session_duration)
+        
+        bounce_rate = (bounce_sessions / total_sessions * 100) if total_sessions > 0 else 0
+        avg_session_duration = sum(session_durations) / len(session_durations) if session_durations else 0
 
         # --- Top Campaigns --- 
         campaign_stats = {}
@@ -431,12 +464,35 @@ def get_analytics_overview_comprehensive():
             visitors = len(set(e.ip_address for e in day_events if not e.is_bot))
             conversions = len([e for e in day_events if e.captured_email])
             
+            # Calculate daily bounce rate
+            daily_sessions = {}
+            daily_bounce_sessions = 0
+            
+            for event in day_events:
+                if not event.is_bot and event.ip_address:
+                    session_key = f"{event.ip_address}_{event.link_id}"
+                    if session_key not in daily_sessions:
+                        daily_sessions[session_key] = {
+                            'duration': 0,
+                            'page_views': 0
+                        }
+                    if event.session_duration:
+                        daily_sessions[session_key]['duration'] += event.session_duration
+                    daily_sessions[session_key]['page_views'] += event.page_views or 1
+            
+            # Count bounce sessions for this day
+            for session_data in daily_sessions.values():
+                if session_data['page_views'] <= 1 or session_data['duration'] < 30:
+                    daily_bounce_sessions += 1
+            
+            daily_bounce_rate = (daily_bounce_sessions / len(daily_sessions) * 100) if daily_sessions else 0
+            
             performance_data.append({
                 "date": date.strftime("%Y-%m-%d"),
                 "clicks": clicks,
                 "visitors": visitors,
                 "conversions": conversions,
-                "bounceRate": 0 # Placeholder
+                "bounceRate": round(daily_bounce_rate, 1)
             })
         performance_data.reverse() # Oldest first
 
@@ -444,10 +500,10 @@ def get_analytics_overview_comprehensive():
             "totalClicks": total_clicks,
             "uniqueVisitors": unique_visitors,
             "conversionRate": round(conversion_rate, 1),
-            "bounceRate": bounce_rate,
+            "bounceRate": round(bounce_rate, 1),
             "capturedEmails": captured_emails,
             "activeLinks": active_links,
-            "avgSessionDuration": avg_session_duration,
+            "avgSessionDuration": round(avg_session_duration, 1),
             "topCampaigns": top_campaigns,
             "devices": devices,
             "countries": countries,

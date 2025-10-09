@@ -429,3 +429,85 @@ def _create_notification(user_id, title, message, type="info", priority="medium"
         db.session.rollback()
         print(f"Error creating notification: {e}")
 
+
+@track_bp.route("/track/session-duration", methods=["POST"])
+def update_session_duration():
+    """Update session duration for tracking event"""
+    data = request.get_json()
+    unique_id = data.get("unique_id")
+    link_id = data.get("link_id")
+    duration = data.get("duration")  # Duration in seconds
+    page_views = data.get("page_views", 1)
+    
+    if not duration or (not unique_id and not link_id):
+        return jsonify({"success": False, "error": "Missing required parameters"}), 400
+    
+    try:
+        # Find the tracking event
+        if unique_id:
+            event = TrackingEvent.query.filter_by(unique_id=unique_id).first()
+        elif link_id:
+            # Get the most recent event for this link and IP
+            ip_address = get_client_ip()
+            event = TrackingEvent.query.filter_by(
+                link_id=link_id, 
+                ip_address=ip_address
+            ).order_by(TrackingEvent.timestamp.desc()).first()
+        else:
+            return jsonify({"success": False, "error": "No matching tracking event found"}), 404
+
+        if event:
+            # Update session duration and page views
+            event.session_duration = max(event.session_duration or 0, duration)
+            event.page_views = max(event.page_views or 1, page_views)
+            db.session.commit()
+            
+            return jsonify({
+                "success": True, 
+                "message": "Session duration updated",
+                "duration": event.session_duration,
+                "page_views": event.page_views
+            }), 200
+        else:
+            return jsonify({"success": False, "error": "No matching tracking event found"}), 404
+            
+    except Exception as e:
+        db.session.rollback()
+        print(f"Error updating session duration: {e}")
+        return jsonify({"success": False, "error": "Failed to update session duration"}), 500
+
+@track_bp.route("/track/heartbeat", methods=["POST"])
+def session_heartbeat():
+    """Periodic heartbeat to track active sessions"""
+    data = request.get_json()
+    unique_id = data.get("unique_id")
+    link_id = data.get("link_id")
+    current_duration = data.get("duration", 0)
+    
+    if not unique_id and not link_id:
+        return jsonify({"success": False, "error": "Missing unique_id or link_id"}), 400
+    
+    try:
+        # Find the tracking event
+        if unique_id:
+            event = TrackingEvent.query.filter_by(unique_id=unique_id).first()
+        elif link_id:
+            ip_address = get_client_ip()
+            event = TrackingEvent.query.filter_by(
+                link_id=link_id, 
+                ip_address=ip_address
+            ).order_by(TrackingEvent.timestamp.desc()).first()
+        
+        if event:
+            # Update session duration with current time spent
+            event.session_duration = current_duration
+            db.session.commit()
+            
+            return jsonify({"success": True, "duration": event.session_duration}), 200
+        else:
+            return jsonify({"success": False, "error": "No matching tracking event found"}), 404
+            
+    except Exception as e:
+        db.session.rollback()
+        print(f"Error updating heartbeat: {e}")
+        return jsonify({"success": False, "error": "Failed to update heartbeat"}), 500
