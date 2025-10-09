@@ -56,39 +56,7 @@ const Analytics = () => {
   const [countries, setCountries] = useState([])
   const [performanceData, setPerformanceData] = useState([])
 
-  // Sample data for demonstration
-  const samplePerformanceData = [
-    { date: '2024-01-14', clicks: 1200, visitors: 960, conversions: 180, bounceRate: 32 },
-    { date: '2024-01-15', clicks: 1350, visitors: 1080, conversions: 203, bounceRate: 28 },
-    { date: '2024-01-16', clicks: 1100, visitors: 880, conversions: 165, bounceRate: 35 },
-    { date: '2024-01-17', clicks: 1450, visitors: 1160, conversions: 218, bounceRate: 25 },
-    { date: '2024-01-18', clicks: 1600, visitors: 1280, conversions: 240, bounceRate: 22 },
-    { date: '2024-01-19', clicks: 1380, visitors: 1104, conversions: 207, bounceRate: 30 },
-    { date: '2024-01-20', clicks: 1520, visitors: 1216, conversions: 228, bounceRate: 26 }
-  ]
 
-  const sampleDeviceData = [
-    { name: 'Desktop', value: 2845, percentage: 45, color: '#3b82f6' },
-    { name: 'Mobile', value: 2530, percentage: 40, color: '#10b981' },
-    { name: 'Tablet', value: 950, percentage: 15, color: '#f59e0b' }
-  ]
-
-  const sampleCountryData = [
-    { name: 'United States', clicks: 1850, percentage: 29.2, flag: '🇺🇸' },
-    { name: 'United Kingdom', clicks: 1240, percentage: 19.6, flag: '🇬🇧' },
-    { name: 'Canada', clicks: 980, percentage: 15.5, flag: '🇨🇦' },
-    { name: 'Germany', clicks: 760, percentage: 12.0, flag: '🇩🇪' },
-    { name: 'Australia', clicks: 620, percentage: 9.8, flag: '🇦🇺' },
-    { name: 'Others', clicks: 875, percentage: 13.9, flag: '🌍' }
-  ]
-
-  const sampleCampaignData = [
-    { name: 'Summer Sale 2024', clicks: 3240, conversions: 486, rate: 15.0, status: 'active' },
-    { name: 'Product Launch', clicks: 2890, conversions: 404, rate: 14.0, status: 'active' },
-    { name: 'Newsletter Campaign', clicks: 2150, conversions: 280, rate: 13.0, status: 'paused' },
-    { name: 'Social Media Push', clicks: 1980, conversions: 237, rate: 12.0, status: 'active' },
-    { name: 'Email Marketing', clicks: 1750, conversions: 193, rate: 11.0, status: 'completed' }
-  ]
 
   useEffect(() => {
     fetchAnalyticsData()
@@ -97,21 +65,44 @@ const Analytics = () => {
   const fetchAnalyticsData = async () => {
     setLoading(true)
     try {
-      // Use sample data for now
-      setAnalytics({
-        totalClicks: 6325,
-        uniqueVisitors: 5060,
-        conversionRate: 14.2,
-        bounceRate: 28.5,
-        capturedEmails: 898,
-        activeLinks: 45,
-        avgSessionDuration: 3.2
+      const response = await fetch(`/api/analytics/overview?period=${timeRange}`, {
+        headers: {
+          'Authorization': `Bearer ${localStorage.getItem('token')}`
+        }
       })
       
-      setTopCampaigns(sampleCampaignData)
-      setCountries(sampleCountryData)
-      setDevices(sampleDeviceData)
-      setPerformanceData(samplePerformanceData)
+      if (response.ok) {
+        const data = await response.json()
+        setAnalytics({
+          totalClicks: data.totalClicks || 0,
+          uniqueVisitors: data.uniqueVisitors || 0,
+          conversionRate: data.conversionRate || 0,
+          bounceRate: data.bounceRate || 0,
+          capturedEmails: data.capturedEmails || 0,
+          activeLinks: data.activeLinks || 0,
+          avgSessionDuration: data.avgSessionDuration || 0
+        })
+        setTopCampaigns(data.topCampaigns || [])
+        setCountries(data.countries || [])
+        setDevices(data.devices || [])
+        setPerformanceData(data.performanceData || [])
+      } else {
+        console.error('Failed to fetch analytics data')
+        // Optionally, set analytics to default/empty states on failure
+        setAnalytics({
+          totalClicks: 0,
+          uniqueVisitors: 0,
+          conversionRate: 0,
+          bounceRate: 0,
+          capturedEmails: 0,
+          activeLinks: 0,
+          avgSessionDuration: 0
+        })
+        setTopCampaigns([])
+        setCountries([])
+        setDevices([])
+        setPerformanceData([])
+      }
     } catch (error) {
       console.error('Error fetching analytics:', error)
     } finally {

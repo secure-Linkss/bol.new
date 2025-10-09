@@ -99,87 +99,18 @@ const Security = () => {
 
     } catch (error) {
       console.error('Error fetching security data:', error)
-      // Generate live mock data with current timestamps
-      const now = new Date()
-      const currentYear = now.getFullYear()
-      const currentMonth = String(now.getMonth() + 1).padStart(2, '0')
-      const currentDay = String(now.getDate()).padStart(2, '0')
-      
-      const liveBlockedIPs = [
-        { 
-          ip: '192.168.1.100', 
-          reason: 'Suspicious activity', 
-          blockedAt: `${currentYear}-${currentMonth}-${currentDay} ${String(now.getHours()).padStart(2, '0')}:${String(now.getMinutes()).padStart(2, '0')}:00`, 
-          attempts: 25 
-        },
-        { 
-          ip: '10.0.0.50', 
-          reason: 'Bot detected', 
-          blockedAt: `${currentYear}-${currentMonth}-${String(now.getDate() - 1).padStart(2, '0')} 12:15:00`, 
-          attempts: 15 
-        },
-        { 
-          ip: '172.16.0.200', 
-          reason: 'Rate limit exceeded', 
-          blockedAt: `${currentYear}-${currentMonth}-${String(now.getDate() - 1).padStart(2, '0')} 10:45:00`, 
-          attempts: 50 
-        },
-        { 
-          ip: '203.0.113.45', 
-          reason: 'Manual block', 
-          blockedAt: `${currentYear}-${currentMonth}-${String(now.getDate() - 2).padStart(2, '0')} 16:20:00`, 
-          attempts: 8 
-        }
-      ]
-
-      const liveBlockedCountries = [
-        { country: 'China', code: 'CN', reason: 'High bot activity', blockedAt: `${currentYear}-${currentMonth}-${String(now.getDate() - 3).padStart(2, '0')} 09:00:00` },
-        { country: 'Russia', code: 'RU', reason: 'Suspicious traffic', blockedAt: `${currentYear}-${currentMonth}-${String(now.getDate() - 5).padStart(2, '0')} 15:30:00` },
-        { country: 'North Korea', code: 'KP', reason: 'Security policy', blockedAt: `${currentYear}-${currentMonth}-${String(now.getDate() - 7).padStart(2, '0')} 11:00:00` }
-      ]
-
-      const liveSecurityEvents = [
-        {
-          id: 1,
-          type: 'bot_detected',
-          ip: '192.168.1.100',
-          userAgent: 'Mozilla/5.0 (compatible; Googlebot/2.1)',
-          timestamp: `${currentYear}-${currentMonth}-${currentDay} ${String(now.getHours()).padStart(2, '0')}:${String(now.getMinutes()).padStart(2, '0')}:00`,
-          action: 'blocked',
-          severity: 'high'
-        },
-        {
-          id: 2,
-          type: 'rate_limit_exceeded',
-          ip: '172.16.0.200',
-          userAgent: 'curl/7.68.0',
-          timestamp: `${currentYear}-${currentMonth}-${String(now.getDate() - 1).padStart(2, '0')} 12:15:00`,
-          action: 'throttled',
-          severity: 'medium'
-        },
-        {
-          id: 3,
-          type: 'suspicious_activity',
-          ip: '10.0.0.50',
-          userAgent: 'Python-requests/2.25.1',
-          timestamp: `${currentYear}-${currentMonth}-${String(now.getDate() - 1).padStart(2, '0')} 10:45:00`,
-          action: 'flagged',
-          severity: 'medium'
-        },
-        {
-          id: 4,
-          type: 'vpn_detected',
-          ip: '203.0.113.45',
-          userAgent: 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36',
-          timestamp: `${currentYear}-${currentMonth}-${String(now.getDate() - 2).padStart(2, '0')} 09:20:00`,
-          action: 'allowed',
-          severity: 'low'
-        }
-      ]
-
-      setBlockedIPs(liveBlockedIPs)
-      setBlockedCountries(liveBlockedCountries)
-      setSecurityEvents(liveSecurityEvents)
+      // On error, ensure states are reset to empty arrays or initial defaults
+      setSecuritySettings({
+        botProtection: false,
+        ipBlocking: false,
+        rateLimiting: false,
+        geoBlocking: false,
+        vpnDetection: false,
+        suspiciousActivityDetection: false
+      })
+      setBlockedIPs([])
+      setBlockedCountries([])
+      setSecurityEvents([])
     } finally {
       setLoading(false)
     }

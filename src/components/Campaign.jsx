@@ -181,22 +181,47 @@ const Campaign = () => {
     }
   }
 
-  const generatePerformanceData = (campaign) => {
-    // Generate sample performance data for the chart
-    const data = []
-    for (let i = 6; i >= 0; i--) {
-      const date = new Date()
-      date.setDate(date.getDate() - i)
-      const clicks = Math.floor((campaign.clicks || 0) / 7) + Math.floor(Math.random() * 5)
-      const visitors = Math.floor((campaign.visitors || 0) / 7) + Math.floor(Math.random() * 3)
-      
-      data.push({
-        date: date.toLocaleDateString('en-US', { month: 'short', day: 'numeric' }),
-        clicks,
-        visitors
+  const fetchCampaignPerformance = async (campaignId) => {
+    try {
+      const response = await fetch(`/api/analytics/campaign/${campaignId}/performance`, {
+        headers: {
+          'Authorization': `Bearer ${localStorage.getItem('token')}`
+        }
       })
+      if (response.ok) {
+        const data = await response.json()
+        return data.performance_data || []
+      } else {
+        console.error(`Failed to fetch performance data for campaign ${campaignId}`)
+        return []
+      }
+    } catch (error) {
+      console.error(`Error fetching performance data for campaign ${campaignId}:`, error)
+      return []
     }
-    return data
+  }
+
+  const renderPerformanceChart = (campaign) => {
+    const [performanceData, setPerformanceData] = useState([])
+
+    useEffect(() => {
+      if (campaign.id) {
+        fetchCampaignPerformance(campaign.id).then(setPerformanceData)
+      }
+    }, [campaign.id])
+
+    return (
+      <ResponsiveContainer width="100%" height={200}>
+        <LineChart data={performanceData}>
+          <CartesianGrid strokeDasharray="3 3" />
+          <XAxis dataKey="date" />
+          <YAxis />
+          <Tooltip />
+          <Line type="monotone" dataKey="clicks" stroke="#8884d8" strokeWidth={2} />
+          <Line type="monotone" dataKey="visitors" stroke="#82ca9d" strokeWidth={2} />
+        </LineChart>
+      </ResponsiveContainer>
+    )
   }
 
   if (loading) {
@@ -371,16 +396,7 @@ const Campaign = () => {
                       {/* Performance Chart */}
                       <div>
                         <h4 className="font-medium mb-2">7-Day Performance</h4>
-                        <ResponsiveContainer width="100%" height={200}>
-                          <LineChart data={generatePerformanceData(campaign)}>
-                            <CartesianGrid strokeDasharray="3 3" />
-                            <XAxis dataKey="date" />
-                            <YAxis />
-                            <Tooltip />
-                            <Line type="monotone" dataKey="clicks" stroke="#8884d8" strokeWidth={2} />
-                            <Line type="monotone" dataKey="visitors" stroke="#82ca9d" strokeWidth={2} />
-                          </LineChart>
-                        </ResponsiveContainer>
+                        {renderPerformanceChart(campaign)}
                       </div>
                       
                       {/* Campaign Details */}

@@ -65,8 +65,32 @@ const Dashboard = () => {
   };
 
   const handleExport = () => {
-    console.log('Exporting dashboard data...');
-    // TODO: Implement export functionality
+    if (chartData.length === 0) {
+      alert("No data to export.");
+      return;
+    }
+
+    const headers = ["Date", "Clicks", "Visitors", "Emails"];
+    const csv = [headers.join(",")];
+
+    chartData.forEach(item => {
+      const row = [
+        `"${item.date}"`, 
+        `"${item.clicks}"`, 
+        `"${item.visitors}"`, 
+        `"${item.emails}"`
+      ];
+      csv.push(row.join(","));
+    });
+
+    const csvString = csv.join("\n");
+    const blob = new Blob([csvString], { type: "text/csv;charset=utf-8;" });
+    const link = document.createElement("a");
+    link.href = URL.createObjectURL(blob);
+    link.setAttribute("download", "dashboard_performance_data.csv");
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
   };
 
   // Calculate additional stats
