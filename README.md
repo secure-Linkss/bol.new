@@ -6,7 +6,7 @@
 
 ## 🚀 Overview
 
-Brain Link Tracker is a comprehensive SaaS platform for link tracking, URL shortening, and advanced analytics. Built with React, Flask, and Supabase, it provides real-time tracking, geographic analytics, campaign management, and enterprise-grade admin features.
+Brain Link Tracker is a comprehensive SaaS platform for link tracking, URL shortening, and advanced analytics. Built with React, Flask, and Neon PostgreSQL, it provides real-time tracking, geographic analytics, campaign management, and enterprise-grade admin features.
 
 ### ✨ Key Features
 
@@ -38,11 +38,11 @@ Brain Link Tracker is a comprehensive SaaS platform for link tracking, URL short
 - **Flask** - Python web framework
 - **SQLAlchemy** - ORM for database operations
 - **JWT** - Token-based authentication
-- **Supabase** - PostgreSQL database with real-time features
+- **Neon PostgreSQL** - Scalable PostgreSQL database
 
 ### Deployment
 - **Vercel** - Hosting and serverless functions
-- **Supabase** - Managed PostgreSQL database
+- **Neon PostgreSQL** - Managed PostgreSQL database
 - **GitHub** - Version control
 
 ## 📋 Prerequisites
@@ -53,7 +53,7 @@ Before you begin, ensure you have:
 - **Python** 3.9 or higher
 - **npm** or **pnpm**
 - **Vercel Account** (free tier works)
-- **Supabase Account** (free tier works)
+- **Neon PostgreSQL Account** (free tier works)
 - **GitHub Account**
 
 ## 🚀 Quick Start
@@ -84,12 +84,8 @@ cp .env.example .env
 Edit `.env` and add your credentials:
 
 ```env
-# Supabase Configuration
-VITE_SUPABASE_URL=your_supabase_project_url
-VITE_SUPABASE_ANON_KEY=your_supabase_anon_key
-
 # Database Configuration
-DATABASE_URL=your_supabase_database_url
+DATABASE_URL=your_neon_postgresql_connection_string
 
 # Application Secret
 SECRET_KEY=your_secret_key_here
@@ -99,13 +95,14 @@ TELEGRAM_BOT_TOKEN=your_telegram_bot_token
 TELEGRAM_CHAT_ID=your_telegram_chat_id
 ```
 
-### 4. Set Up Supabase Database
+### 4. Set Up Neon PostgreSQL Database
 
-1. Create a new project on [Supabase](https://supabase.com)
-2. Go to SQL Editor in your Supabase Dashboard
-3. Copy the contents of `supabase/migrations/20251007032642_initial_enterprise_schema.sql`
-4. Paste and run in SQL Editor
-5. Verify all tables are created
+1. Create a new project on [Neon](https://neon.tech)
+2. Obtain your connection string (usually starts with `postgresql://`)
+3. Ensure your database has the necessary tables. You can use the provided migration scripts:
+   - `database_migration.sql`
+   - `notification_migration.sql`
+   Run these scripts against your Neon database.
 
 ### 5. Run Development Server
 
@@ -145,13 +142,11 @@ bol.new/
 │   │   ├── AdminPanel.jsx
 │   │   └── ui/              # Reusable UI components
 │   ├── lib/                 # Utility libraries
-│   │   └── supabase.js      # Supabase client config
 │   ├── routes/              # Backend API routes
 │   ├── models/              # Database models
 │   ├── services/            # Business logic
 │   └── App.jsx              # Main React app
-├── supabase/
-│   └── migrations/          # Database migrations
+├── migrations/              # Database migrations (SQL files)
 ├── dist/                    # Production build output
 ├── vercel.json              # Vercel configuration
 ├── package.json             # Node dependencies
@@ -279,7 +274,7 @@ vercel --prod
 
 ## 🔒 Security Features
 
-- **Row Level Security (RLS)**: Enforced at database level
+- **Row Level Security (RLS)**: Enforced at database level (Note: This is typically a PostgreSQL feature, not specific to Supabase RLS)
 - **JWT Authentication**: Secure token-based auth
 - **Password Hashing**: Bcrypt encryption
 - **HTTPS Only**: All traffic encrypted (Vercel default)
@@ -372,7 +367,7 @@ See [PRODUCTION_CHECKLIST.md](./PRODUCTION_CHECKLIST.md) for comprehensive testi
 
 ### Database Connection Issues
 - Verify `DATABASE_URL` is correct
-- Check Supabase project status
+- Check Neon PostgreSQL project status
 - Ensure database migration ran successfully
 
 ### API Not Working
@@ -408,7 +403,7 @@ This project is licensed under the MIT License - see the LICENSE file for detail
 
 ## 🙏 Acknowledgments
 
-- [Supabase](https://supabase.com) - Backend infrastructure
+- [Neon](https://neon.tech) - Scalable PostgreSQL database
 - [Vercel](https://vercel.com) - Hosting platform
 - [Radix UI](https://www.radix-ui.com/) - UI components
 - [Tailwind CSS](https://tailwindcss.com) - Styling framework
@@ -426,7 +421,7 @@ For issues and questions:
 ### Current Version: 1.0.0
 
 ### Recent Updates
-- ✅ Complete Supabase integration
+- ✅ Complete Neon PostgreSQL integration
 - ✅ Interactive Geography map
 - ✅ Mobile-responsive design
 - ✅ Production-ready build
@@ -446,3 +441,4 @@ For issues and questions:
 **Built with ❤️ by the Brain Link Tracker Team**
 
 **Last Updated**: October 2025
+
