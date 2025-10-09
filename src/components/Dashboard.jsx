@@ -93,57 +93,37 @@ const Dashboard = () => {
     document.body.removeChild(link);
   };
 
-  // Calculate additional stats
+  // Calculate additional stats from live data
   const additionalStats = {
-    realVisitors: Math.floor(stats.totalClicks * 0.8) || 2,
-    capturedEmails: Math.floor(stats.totalClicks * 0.15) || 0,
-    activeLinks: Math.floor(stats.totalLinks * 0.9) || 6,
-    conversionRate: stats.totalClicks > 0 ? ((Math.floor(stats.totalClicks * 0.15) / stats.totalClicks) * 100).toFixed(0) : 0,
-    countries: topCountries.length || 2
+    realVisitors: stats.realVisitors || 0,
+    capturedEmails: stats.capturedEmails || 0,
+    activeLinks: stats.activeLinks || 0,
+    conversionRate: stats.conversionRate || 0,
+    countries: topCountries.length || 0
   };
 
-  // Device breakdown data
+  // Device breakdown data - will be populated from API
   const deviceData = [
-    { name: 'Desktop', value: 1858, percentage: 45, color: '#8b5cf6' },
-    { name: 'Mobile', value: 1734, percentage: 42, color: '#06b6d4' },
-    { name: 'Tablet', value: 537, percentage: 13, color: '#10b981' }
+    { name: 'Desktop', value: 0, percentage: 0, color: '#8b5cf6' },
+    { name: 'Mobile', value: 0, percentage: 0, color: '#06b6d4' },
+    { name: 'Tablet', value: 0, percentage: 0, color: '#10b981' }
   ];
 
-  // Performance over time data
-  const performanceData = chartData.length > 0 ? chartData.map((item, index) => ({
-    date: item.date || `Aug ${23 + index}`,
+  // Performance over time data - use live data from API
+  const performanceData = chartData.length > 0 ? chartData.map((item) => ({
+    date: item.date,
     clicks: item.clicks || 0,
-    visitors: Math.floor(item.clicks * 0.8) || 0,
-    emails: Math.floor(item.clicks * 0.15) || 0
-  })) : [
-    { date: 'Aug 23', clicks: 2, visitors: 2, emails: 0 },
-    { date: 'Aug 24', clicks: 3, visitors: 2, emails: 0 },
-    { date: 'Aug 25', clicks: 2, visitors: 2, emails: 0 },
-    { date: 'Aug 26', clicks: 3, visitors: 2, emails: 0 },
-    { date: 'Aug 27', clicks: 2, visitors: 2, emails: 0 },
-    { date: 'Aug 28', clicks: 2, visitors: 2, emails: 0 },
-    { date: 'Aug 29', clicks: 2, visitors: 2, emails: 0 }
-  ];
+    visitors: item.visitors || 0,
+    emails: item.emails || 0
+  })) : [];
 
-  // Sample top countries data
-  const countriesData = topCountries.length > 0 ? topCountries : [
-    { country: 'United States', flag: '🇺🇸', clicks: 2, emails: 0, percentage: 50 },
-    { country: 'Unknown', flag: '🌍', clicks: 2, emails: 0, percentage: 50 }
-  ];
+  // Top countries data - use live data from API
+  const countriesData = topCountries.length > 0 ? topCountries : [];
 
-  // Sample campaign performance data
-  const campaignsData = topCampaigns.length > 0 ? topCampaigns : [
-    { 
-      name: 'Test Campaign', 
-      id: 'puWfWVV5', 
-      status: 'active',
-      clicks: 4, 
-      emails: 0, 
-      conversion: '0%' 
-    }
-  ];
+  // Campaign performance data - use live data from API
+  const campaignsData = topCampaigns.length > 0 ? topCampaigns : [];
 
-  // Sample recent captures data
+  // Recent captures data - use live data from API
   const capturesData = recentCaptures.length > 0 ? recentCaptures.slice(0, 5) : [];
 
   return (

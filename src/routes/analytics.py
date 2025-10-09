@@ -320,67 +320,6 @@ def get_analytics_summary():
 
 @analytics_bp.route("/analytics/overview", methods=["GET"])
 @login_required
-def get_analytics_overview():
-    user_id = session.get("user_id")
-    user = User.query.get(user_id)
-    if not user:
-        return jsonify({"error": "Authentication required"}), 401
-    
-    try:
-        # Get user's links
-        user_links = Link.query.filter_by(user_id=user_id).all()
-        link_ids = [link.id for link in user_links]
-        
-        if not link_ids:
-            return jsonify({
-                "totalLinks": 0,
-                "totalClicks": 0,
-                "realVisitors": 0,
-                "capturedEmails": 0,
-                "totalCampaigns": 0,
-                "activeLinks": 0,
-                "conversionRate": 0,
-                "avgClicksPerLink": 0
-            })
-        
-        # Get tracking events
-        events = TrackingEvent.query.filter(TrackingEvent.link_id.in_(link_ids)).all()
-        
-        total_links = len(user_links)
-        total_clicks = len(events)
-        real_visitors = len(set(event.ip_address for event in events if event.ip_address))
-        captured_emails = len([e for e in events if e.captured_email])
-        active_links = len([link for link in user_links if link.status == "active"])
-        
-        # Get unique campaigns
-        campaigns = set()
-        for link in user_links:
-            if link.campaign_name:
-                campaigns.add(link.campaign_name)
-        total_campaigns = len(campaigns)
-        
-        conversion_rate = (captured_emails / total_clicks * 100) if total_clicks > 0 else 0
-        avg_clicks_per_link = total_clicks / total_links if total_links > 0 else 0
-        
-        return jsonify({
-            "totalLinks": total_links,
-            "totalClicks": total_clicks,
-            "realVisitors": real_visitors,
-            "capturedEmails": captured_emails,
-            "totalCampaigns": total_campaigns,
-            "activeLinks": active_links,
-            "conversionRate": round(conversion_rate, 1),
-            "avgClicksPerLink": round(avg_clicks_per_link, 1)
-        })
-        
-    except Exception as e:
-        print(f"Error fetching analytics overview: {e}")
-        return jsonify({"error": str(e)}), 500
-
-
-
-@analytics_bp.route("/analytics/overview", methods=["GET"])
-@login_required
 def get_analytics_overview_comprehensive():
     user_id = session.get("user_id")
     user = User.query.get(user_id)
@@ -519,3 +458,145 @@ def get_analytics_overview_comprehensive():
         print(f"Error fetching comprehensive analytics overview: {e}")
         return jsonify({"error": str(e)}), 500
 
+
+
+@analytics_bp.route("/analytics/countries", methods=["GET"])
+@login_required
+def get_countries_analytics():
+    user_id = session.get("user_id")
+    user = User.query.get(user_id)
+    if not user:
+        return jsonify({"error": "Authentication required"}), 401
+    
+    try:
+        period = request.args.get("period", "7")
+        days = int(period)
+        
+        end_date = datetime.now()
+        start_date = end_date - timedelta(days=days)
+        
+        user_links = Link.query.filter_by(user_id=user_id).all()
+        link_ids = [link.id for link in user_links]
+        
+        if not link_ids:
+            return jsonify([])
+        
+        events = TrackingEvent.query.filter(
+            TrackingEvent.link_id.in_(link_ids),
+            TrackingEvent.timestamp >= start_date
+        ).all()
+        
+        country_stats = {}
+        for event in events:
+            country = event.country or "Unknown"
+            if country not in country_stats:
+                country_stats[country] = {
+                    "clicks": 0,
+                    "emails": 0,
+                    "visitors": set()
+                }
+            country_stats[country]["clicks"] += 1
+            if event.captured_email:
+                country_stats[country]["emails"] += 1
+            if event.ip_address:
+                country_stats[country]["visitors"].add(event.ip_address)
+        
+        # Convert to list format
+        countries = []
+        total_clicks = sum(stats["clicks"] for stats in country_stats.values())
+        
+        country_flags = {
+            "United States": "🇺🇸", "United Kingdom": "🇬🇧", "Canada": "🇨🇦", 
+            "Germany": "🇩🇪", "France": "🇫🇷", "Australia": "🇦🇺", 
+            "India": "🇮🇳", "Brazil": "🇧🇷", "Japan": "🇯🇵",
+            "China": "🇨🇳", "Russia": "🇷🇺", "Mexico": "🇲🇽", 
+            "South Africa": "🇿🇦", "Unknown": "🌍"
+        }
+        
+        for country, stats in country_stats.items():
+            percentage = (stats["clicks"] / total_clicks * 100) if total_clicks > 0 else 0
+            countries.append({
+                "name": country,
+                "code": country[:2].upper() if country != "Unknown" else "XX",
+                "flag": country_flags.get(country, "🌍"),
+                "clicks": stats["clicks"],
+                "emails": stats["emails"],
+                "visitors": len(stats["visitors"]),
+                "percentage": round(percentage, 1)
+            })
+        
+        countries.sort(key=lambda x: x["clicks"], reverse=True)
+        return jsonify(countries)
+        
+    except Exception as e:
+        print(f"Error fetching countries analytics: {e}")
+        return jsonify({"error": str(e)}), 500
+
+@analytics_bp.route("/analytics/cities", methods=["GET"])
+@login_required
+def get_cities_analytics():
+    user_id = session.get("user_id")
+    user = User.query.get(user_id)
+    if not user:
+        return jsonify({"error": "Authentication required"}), 401
+    
+    try:
+        period = request.args.get("period", "7")
+        days = int(period)
+        
+        end_date = datetime.now()
+        start_date = end_date - timedelta(days=days)
+        
+        user_links = Link.query.filter_by(user_id=user_id).all()
+        link_ids = [link.id for link in user_links]
+        
+        if not link_ids:
+            return jsonify([])
+        
+        events = TrackingEvent.query.filter(
+            TrackingEvent.link_id.in_(link_ids),
+            TrackingEvent.timestamp >= start_date
+        ).all()
+        
+        city_stats = {}
+        for event in events:
+            city = event.city or "Unknown"
+            country = event.country or "Unknown"
+            city_key = f"{city}, {country}"
+            
+            if city_key not in city_stats:
+                city_stats[city_key] = {
+                    "clicks": 0,
+                    "emails": 0,
+                    "visitors": set(),
+                    "city": city,
+                    "country": country
+                }
+            city_stats[city_key]["clicks"] += 1
+            if event.captured_email:
+                city_stats[city_key]["emails"] += 1
+            if event.ip_address:
+                city_stats[city_key]["visitors"].add(event.ip_address)
+        
+        # Convert to list format
+        cities = []
+        total_clicks = sum(stats["clicks"] for stats in city_stats.values())
+        
+        for city_key, stats in city_stats.items():
+            percentage = (stats["clicks"] / total_clicks * 100) if total_clicks > 0 else 0
+            cities.append({
+                "name": city_key,
+                "city": stats["city"],
+                "country": stats["country"],
+                "clicks": stats["clicks"],
+                "emails": stats["emails"],
+                "visitors": len(stats["visitors"]),
+                "percentage": round(percentage, 1)
+            })
+        
+        cities.sort(key=lambda x: x["clicks"], reverse=True)
+        return jsonify(cities)
+        
+    except Exception as e:
+        print(f"Error fetching cities analytics: {e}")
+        return jsonify({"error": str(e)}), 500

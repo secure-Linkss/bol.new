@@ -1,4 +1,4 @@
-from flask import Blueprint, request, jsonify, session
+from flask import Blueprint, request, jsonify, session, make_response
 from werkzeug.security import generate_password_hash
 from functools import wraps
 from src.models import db
@@ -460,6 +460,140 @@ def get_campaign_analytics(current_user):
 @main_admin_required
 def get_audit_logs(current_user):
     """Get all audit logs (Main Admin only)"""
-    logs = AuditLog.query.order_by(AuditLog.timestamp.desc()).all()
+    logs = AuditLog.query.order_by(AuditLog.created_at.desc()).all()
     return jsonify([log.to_dict() for log in logs])
 
+
+@admin_bp.route("/api/admin/dashboard/stats", methods=["GET"])
+@admin_required
+def get_dashboard_stats(current_user):
+    """Get dashboard statistics for admin panel"""
+    try:
+        # User statistics
+        total_users = User.query.count()
+        active_users = User.query.filter_by(is_active=True).count()
+        new_users_today = User.query.filter(
+            User.created_at >= datetime.now().replace(hour=0, minute=0, second=0, microsecond=0)
+        ).count()
+        
+        # Campaign statistics
+        total_campaigns = Campaign.query.count()
+        active_campaigns = Campaign.query.filter_by(status="active").count()
+        
+        # Link statistics
+        total_links = Link.query.count()
+        active_links = Link.query.filter_by(status="active").count()
+        
+        # Recent activity
+        recent_users = User.query.order_by(User.created_at.desc()).limit(5).all()
+        recent_campaigns = Campaign.query.order_by(Campaign.created_at.desc()).limit(5).all()
+        
+        return jsonify({
+            "users": {
+                "total": total_users,
+                "active": active_users,
+                "new_today": new_users_today
+            },
+            "campaigns": {
+                "total": total_campaigns,
+                "active": active_campaigns
+            },
+            "links": {
+                "total": total_links,
+                "active": active_links
+            },
+            "recent_activity": {
+                "users": [user.to_dict() for user in recent_users],
+                "campaigns": [campaign.to_dict() for campaign in recent_campaigns]
+            }
+        })
+        
+    except Exception as e:
+        print(f"Error fetching dashboard stats: {e}")
+        return jsonify({"error": str(e)}), 500
+
+@admin_bp.route("/api/admin/audit-logs/export", methods=["GET"])
+@main_admin_required
+def export_audit_logs(current_user):
+    """Export audit logs as CSV (Main Admin only)"""
+    try:
+        logs = AuditLog.query.order_by(AuditLog.created_at.desc()).all()
+        
+        # Create CSV content
+        csv_content = "ID,Actor ID,Action,Target ID,Target Type,Created At\n"
+        for log in logs:
+            csv_content += f"{log.id},{log.actor_id},{log.action},{log.target_id or ''},{log.target_type or ''},{log.created_at}\n"
+        
+        response = make_response(csv_content)
+        response.headers['Content-Type'] = 'text/csv'
+        response.headers['Content-Disposition'] = 'attachment; filename=audit_logs.csv'
+        return response
+        
+    except Exception as e:
+        print(f"Error exporting audit logs: {e}")
+        return jsonify({"error": str(e)}), 500
+
+@admin_bp.route("/api/admin/users/<int:user_id>/delete", methods=["POST"])
+@admin_required
+def delete_user_endpoint(current_user, user_id):
+    """Delete a user (Admin can only delete members, Main Admin can delete anyone except themselves)"""
+    try:
+        user_to_delete = User.query.get_or_404(user_id)
+        
+        # Prevent self-deletion
+        if user_to_delete.id == current_user.id:
+            return jsonify({"error": "Cannot delete yourself"}), 400
+        
+        # Admin can only delete members
+        if current_user.role == "admin" and user_to_delete.role != "member":
+            return jsonify({"error": "Access denied"}), 403
+        
+        # Log the action
+        log_admin_action(current_user.id, f"Deleted user {user_to_delete.username}", user_to_delete.id, "user")
+        
+        # Delete the user
+        db.session.delete(user_to_delete)
+        db.session.commit()
+        
+        return jsonify({"message": "User deleted successfully"})
+        
+    except Exception as e:
+        print(f"Error deleting user: {e}")
+        return jsonify({"error": str(e)}), 500
+
+@admin_bp.route("/api/admin/system/delete-all", methods=["POST"])
+@main_admin_required
+def delete_all_system_data(current_user):
+    """Delete all system data except main admin users (Main Admin only)"""
+    try:
+        data = request.get_json()
+        if not data or data.get('confirm') != 'DELETE_ALL_DATA':
+            return jsonify({"error": "Confirmation required"}), 400
+        
+        # Delete all tracking events
+        from src.models.tracking_event import TrackingEvent
+        TrackingEvent.query.delete()
+        
+        # Delete all links
+        Link.query.delete()
+        
+        # Delete all campaigns
+        Campaign.query.delete()
+        
+        # Delete all audit logs except this action
+        AuditLog.query.delete()
+        
+        # Delete all non-main-admin users
+        User.query.filter(User.role != "main_admin").delete()
+        
+        # Log this critical action
+        log_admin_action(current_user.id, "DELETED ALL SYSTEM DATA", None, "system")
+        
+        db.session.commit()
+        
+        return jsonify({"message": "All system data deleted successfully"})
+        
+    except Exception as e:
+        print(f"Error deleting system data: {e}")
+        db.session.rollback()
+        return jsonify({"error": str(e)}), 500
