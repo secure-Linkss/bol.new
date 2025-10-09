@@ -17,6 +17,7 @@ from src.routes.analytics import analytics_bp
 from src.routes.campaigns import campaigns_bp
 from src.routes.notifications import notifications_bp
 from src.routes.admin import admin_bp
+from src.routes.security import security_bp
 
 app = Flask(__name__, static_folder=os.path.join(os.path.dirname(__file__), '..', 'src', 'static'))
 app.config['SECRET_KEY'] = os.environ.get('SECRET_KEY', 'ej5B3Amppi4gjpbC65te6rJuvJzgVCWW_xfB-ZLR1TE')
@@ -34,6 +35,7 @@ app.register_blueprint(admin_bp)
 app.register_blueprint(track_bp)
 app.register_blueprint(events_bp)
 app.register_blueprint(notifications_bp, url_prefix='/api')
+app.register_blueprint(security_bp)
 
 # Database configuration - use SQLite for testing
 database_url = os.environ.get('DATABASE_URL')

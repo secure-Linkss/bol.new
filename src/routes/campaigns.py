@@ -1,11 +1,12 @@
-from flask import Blueprint, request, jsonify, session
+from flask import Blueprint, request, jsonify, session, g
 from src.models.campaign import Campaign
 from src.models.link import Link
 from src.models.tracking_event import TrackingEvent
 from src.models.user import User, db
+from src.services.campaign_intelligence import campaign_intel
 from sqlalchemy import func
 from functools import wraps
-from datetime import datetime
+from datetime import datetime, timedelta
 
 campaigns_bp = Blueprint('campaigns', __name__)
 
@@ -14,6 +15,11 @@ def login_required(f):
     def decorated_function(*args, **kwargs):
         if 'user_id' not in session:
             return jsonify({'error': 'Authentication required'}), 401
+        
+        user = User.query.get(session['user_id'])
+        if not user:
+            return jsonify({'error': 'User not found'}), 401
+        g.user = user
         return f(*args, **kwargs)
     return decorated_function
 
@@ -220,3 +226,222 @@ def delete_campaign(campaign_name):
         print(f"Error deleting campaign: {e}")
         return jsonify({'error': str(e)}), 500
 
+
+@campaigns_bp.route("/api/campaigns/intelligence/<string:campaign_name>", methods=["GET"])
+@login_required
+def get_campaign_intelligence(campaign_name):
+    """Get advanced campaign intelligence analysis"""
+    try:
+        # Get campaign links
+        links = Link.query.filter_by(campaign_name=campaign_name, user_id=g.user.id).all()
+        if not links:
+            return jsonify({"error": "Campaign not found"}), 404
+        
+        # Collect all events for this campaign
+        events_data = []
+        total_clicks = 0
+        total_conversions = 0
+        unique_visitors = set()
+        
+        for link in links:
+            link_events = TrackingEvent.query.filter_by(link_id=link.id).all()
+            for event in link_events:
+                total_clicks += 1
+                if event.captured_email:
+                    total_conversions += 1
+                if event.ip_address:
+                    unique_visitors.add(event.ip_address)
+                
+                events_data.append({
+                    'timestamp': event.timestamp.isoformat() if event.timestamp else None,
+                    'ip_address': event.ip_address,
+                    'country': event.country,
+                    'city': event.city,
+                    'device_type': event.device_type,
+                    'browser': event.browser,
+                    'os': event.os,
+                    'captured_email': event.captured_email,
+                    'session_duration': event.session_duration,
+                    'referrer': event.referrer
+                })
+        
+        # Prepare campaign data for analysis
+        campaign_data = {
+            'campaign_name': campaign_name,
+            'metrics': {
+                'clicks': total_clicks,
+                'conversions': total_conversions,
+                'unique_visitors': len(unique_visitors),
+                'impressions': total_clicks * 1.2  # Estimated impressions
+            },
+            'events': events_data
+        }
+        
+        # Perform advanced analysis
+        intelligence_analysis = campaign_intel.analyze_campaign_performance(campaign_data)
+        
+        return jsonify({
+            'success': True,
+            'campaign_intelligence': intelligence_analysis,
+            'campaign_summary': {
+                'name': campaign_name,
+                'total_clicks': total_clicks,
+                'total_conversions': total_conversions,
+                'conversion_rate': (total_conversions / total_clicks * 100) if total_clicks > 0 else 0,
+                'unique_visitors': len(unique_visitors)
+            }
+        })
+        
+    except Exception as e:
+        print(f"Error getting campaign intelligence: {e}")
+        return jsonify({'error': str(e)}), 500
+
+@campaigns_bp.route("/api/campaigns/optimization-recommendations", methods=["GET"])
+@login_required
+def get_optimization_recommendations():
+    """Get optimization recommendations for all campaigns"""
+    try:
+        # Get all unique campaign names for the user
+        campaign_names = db.session.query(Link.campaign_name).filter(
+            Link.user_id == g.user.id,
+            Link.campaign_name.isnot(None),
+            Link.campaign_name != ''
+        ).distinct().all()
+        
+        recommendations = []
+        
+        for (campaign_name,) in campaign_names:
+            # Get campaign performance data
+            links = Link.query.filter_by(campaign_name=campaign_name, user_id=g.user.id).all()
+            
+            events_data = []
+            total_clicks = 0
+            total_conversions = 0
+            
+            for link in links:
+                link_events = TrackingEvent.query.filter_by(link_id=link.id).all()
+                for event in link_events:
+                    total_clicks += 1
+                    if event.captured_email:
+                        total_conversions += 1
+                    
+                    events_data.append({
+                        'timestamp': event.timestamp.isoformat() if event.timestamp else None,
+                        'country': event.country,
+                        'device_type': event.device_type,
+                        'browser': event.browser,
+                        'captured_email': event.captured_email,
+                        'session_duration': event.session_duration,
+                        'ip_address': event.ip_address
+                    })
+            
+            if total_clicks >= 10:  # Only analyze campaigns with sufficient data
+                campaign_data = {
+                    'campaign_name': campaign_name,
+                    'metrics': {
+                        'clicks': total_clicks,
+                        'conversions': total_conversions,
+                        'unique_visitors': len(set(e.get('ip_address', '') for e in events_data if e.get('ip_address')))
+                    },
+                    'events': events_data
+                }
+                
+                # Get optimization opportunities
+                analysis = campaign_intel.analyze_campaign_performance(campaign_data)
+                
+                if analysis['optimization_opportunities']:
+                    recommendations.append({
+                        'campaign_name': campaign_name,
+                        'performance_score': analysis['performance_score'],
+                        'opportunities': analysis['optimization_opportunities'][:3],  # Top 3
+                        'ab_test_recommendations': analysis['ab_test_recommendations'][:2]  # Top 2
+                    })
+        
+        # Sort by performance score (lowest first - most need optimization)
+        recommendations.sort(key=lambda x: x['performance_score'])
+        
+        return jsonify({
+            'success': True,
+            'recommendations': recommendations[:10]  # Top 10 campaigns needing optimization
+        })
+        
+    except Exception as e:
+        print(f"Error getting optimization recommendations: {e}")
+        return jsonify({'error': str(e)}), 500
+
+@campaigns_bp.route("/api/campaigns/performance-predictions", methods=["GET"])
+@login_required
+def get_performance_predictions():
+    """Get performance predictions for all campaigns"""
+    try:
+        # Get all unique campaign names for the user
+        campaign_names = db.session.query(Link.campaign_name).filter(
+            Link.user_id == g.user.id,
+            Link.campaign_name.isnot(None),
+            Link.campaign_name != ''
+        ).distinct().all()
+        
+        predictions = []
+        
+        for (campaign_name,) in campaign_names:
+            # Get recent campaign data (last 30 days)
+            thirty_days_ago = datetime.now() - timedelta(days=30)
+            
+            links = Link.query.filter_by(campaign_name=campaign_name, user_id=g.user.id).all()
+            
+            events_data = []
+            total_clicks = 0
+            total_conversions = 0
+            
+            for link in links:
+                link_events = TrackingEvent.query.filter(
+                    TrackingEvent.link_id == link.id,
+                    TrackingEvent.timestamp >= thirty_days_ago
+                ).all()
+                
+                for event in link_events:
+                    total_clicks += 1
+                    if event.captured_email:
+                        total_conversions += 1
+                    
+                    events_data.append({
+                        'timestamp': event.timestamp.isoformat() if event.timestamp else None,
+                        'country': event.country,
+                        'device_type': event.device_type,
+                        'captured_email': event.captured_email,
+                        'ip_address': event.ip_address
+                    })
+            
+            if total_clicks >= 20:  # Need sufficient data for predictions
+                campaign_data = {
+                    'campaign_name': campaign_name,
+                    'metrics': {
+                        'clicks': total_clicks,
+                        'conversions': total_conversions,
+                        'unique_visitors': len(set(e.get('ip_address', '') for e in events_data if e.get('ip_address')))
+                    },
+                    'events': events_data
+                }
+                
+                # Get predictions
+                analysis = campaign_intel.analyze_campaign_performance(campaign_data)
+                
+                predictions.append({
+                    'campaign_name': campaign_name,
+                    'current_performance': {
+                        'clicks': total_clicks,
+                        'conversions': total_conversions,
+                        'conversion_rate': (total_conversions / total_clicks * 100) if total_clicks > 0 else 0
+                    },
+                    'predictions': analysis['predictive_metrics'],
+                    'risk_assessment': analysis['risk_assessment']
+                })
+        
+        return jsonify({
+            'success': True,
+            'predictions': predictions
+        })
+        
+    except Exception as e:
+        print(f"Error getting performance predictions: {e}")
+        return jsonify({'error': str(e)}), 500

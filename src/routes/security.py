@@ -1,10 +1,11 @@
-from flask import Blueprint, request, jsonify, g, session
+from flask import Blueprint, request, jsonify, session, g
 from datetime import datetime, timedelta
 import json
 from src.models.user import User, db
 from src.models.security import SecuritySettings, BlockedIP, BlockedCountry
 from src.models.link import Link
 from src.models.tracking_event import TrackingEvent
+from src.services.threat_intelligence import threat_intel
 from functools import wraps
 
 security_bp = Blueprint("security", __name__)
@@ -271,3 +272,214 @@ def get_notifications():
         return jsonify({"error": "Failed to fetch notifications"}), 500
 
 
+
+@security_bp.route("/api/security/threat-analysis", methods=["POST"])
+@require_auth
+def analyze_threat():
+    """Advanced threat analysis endpoint"""
+    try:
+        request_data = request.get_json()
+        
+        # Enhance request data with additional context
+        enhanced_data = {
+            **request_data,
+            'timestamp': datetime.now().timestamp(),
+            'headers': dict(request.headers),
+            'remote_addr': request.remote_addr,
+            'user_agent': request.headers.get('User-Agent', ''),
+        }
+        
+        # Perform advanced threat analysis
+        analysis_result = threat_intel.analyze_threat_level(enhanced_data)
+        
+        # Log the analysis result
+        print(f"Threat Analysis Result: {analysis_result}")
+        
+        return jsonify({
+            'success': True,
+            'analysis': analysis_result,
+            'timestamp': datetime.now().isoformat()
+        })
+        
+    except Exception as e:
+        print(f"Error in threat analysis: {e}")
+        return jsonify({'error': str(e)}), 500
+
+@security_bp.route("/api/security/honeypot-config", methods=["GET"])
+@require_auth
+def get_honeypot_config():
+    """Get honeypot trap configuration"""
+    try:
+        honeypot_config = threat_intel.generate_honeypot_traps()
+        
+        return jsonify({
+            'success': True,
+            'honeypot_config': honeypot_config
+        })
+        
+    except Exception as e:
+        print(f"Error getting honeypot config: {e}")
+        return jsonify({'error': str(e)}), 500
+
+@security_bp.route("/api/security/fingerprint-analysis", methods=["POST"])
+@require_auth
+def analyze_fingerprint():
+    """Analyze browser fingerprint entropy and uniqueness"""
+    try:
+        fingerprint_data = request.get_json()
+        
+        # Calculate fingerprint entropy
+        entropy = threat_intel.analyze_fingerprint_entropy(fingerprint_data)
+        
+        # Determine if fingerprint is suspicious
+        is_suspicious = entropy < 3.0  # Low entropy indicates bot-like behavior
+        
+        return jsonify({
+            'success': True,
+            'entropy': entropy,
+            'is_suspicious': is_suspicious,
+            'risk_level': 'high' if is_suspicious else 'low'
+        })
+        
+    except Exception as e:
+        print(f"Error in fingerprint analysis: {e}")
+        return jsonify({'error': str(e)}), 500
+
+@security_bp.route("/api/security/advanced-events", methods=["GET"])
+@require_auth
+def get_advanced_security_events():
+    """Get advanced security events with threat intelligence"""
+    try:
+        # Get recent tracking events
+        recent_events = TrackingEvent.query.filter(
+            TrackingEvent.timestamp >= datetime.now() - timedelta(days=7)
+        ).order_by(TrackingEvent.timestamp.desc()).limit(100).all()
+        
+        enhanced_events = []
+        for event in recent_events:
+            # Prepare data for threat analysis
+            event_data = {
+                'ip_address': event.ip_address,
+                'user_agent': event.user_agent,
+                'country': event.country,
+                'device_type': event.device_type,
+                'browser': event.browser,
+                'isp': event.isp,
+                'organization': event.organization,
+                'timestamp': event.timestamp.timestamp() if event.timestamp else 0,
+                'session_duration': event.session_duration or 0,
+                'is_bot': event.is_bot
+            }
+            
+            # Perform threat analysis
+            threat_analysis = threat_intel.analyze_threat_level(event_data)
+            
+            # Combine event data with threat analysis
+            enhanced_event = {
+                'id': event.id,
+                'timestamp': event.timestamp.isoformat() if event.timestamp else None,
+                'ip_address': event.ip_address,
+                'country': event.country,
+                'city': event.city,
+                'device_type': event.device_type,
+                'browser': event.browser,
+                'threat_score': threat_analysis['total_threat_score'],
+                'risk_level': threat_analysis['risk_level'],
+                'recommended_action': threat_analysis['recommended_action'],
+                'threat_indicators': threat_analysis['threat_indicators'],
+                'is_bot': event.is_bot
+            }
+            
+            enhanced_events.append(enhanced_event)
+        
+        return jsonify({
+            'success': True,
+            'events': enhanced_events,
+            'total_events': len(enhanced_events)
+        })
+        
+    except Exception as e:
+        print(f"Error getting advanced security events: {e}")
+        return jsonify({'error': str(e)}), 500
+
+@security_bp.route("/api/security/threat-dashboard", methods=["GET"])
+@require_auth
+def get_threat_dashboard():
+    """Get comprehensive threat intelligence dashboard data"""
+    try:
+        # Get recent events for analysis
+        recent_events = TrackingEvent.query.filter(
+            TrackingEvent.timestamp >= datetime.now() - timedelta(days=1)
+        ).all()
+        
+        # Analyze threat patterns
+        threat_stats = {
+            'total_requests': len(recent_events),
+            'blocked_requests': 0,
+            'high_risk_requests': 0,
+            'bot_requests': sum(1 for e in recent_events if e.is_bot),
+            'unique_ips': len(set(e.ip_address for e in recent_events if e.ip_address)),
+            'top_threat_countries': [],
+            'threat_score_distribution': {'low': 0, 'medium': 0, 'high': 0, 'critical': 0},
+            'hourly_threat_pattern': [0] * 24
+        }
+        
+        country_threats = {}
+        
+        for event in recent_events:
+            # Analyze each event
+            event_data = {
+                'ip_address': event.ip_address,
+                'user_agent': event.user_agent,
+                'country': event.country,
+                'device_type': event.device_type,
+                'browser': event.browser,
+                'timestamp': event.timestamp.timestamp() if event.timestamp else 0
+            }
+            
+            threat_analysis = threat_intel.analyze_threat_level(event_data)
+            risk_level = threat_analysis['risk_level']
+            
+            # Update statistics
+            if threat_analysis['recommended_action'] == 'block':
+                threat_stats['blocked_requests'] += 1
+            
+            if risk_level in ['high', 'critical']:
+                threat_stats['high_risk_requests'] += 1
+            
+            if risk_level in threat_stats['threat_score_distribution']:
+                threat_stats['threat_score_distribution'][risk_level] += 1
+            
+            # Track country threats
+            if event.country:
+                if event.country not in country_threats:
+                    country_threats[event.country] = {'count': 0, 'avg_threat_score': 0}
+                country_threats[event.country]['count'] += 1
+                country_threats[event.country]['avg_threat_score'] += threat_analysis['total_threat_score']
+            
+            # Hourly pattern
+            if event.timestamp:
+                hour = event.timestamp.hour
+                threat_stats['hourly_threat_pattern'][hour] += 1
+        
+        # Calculate average threat scores for countries
+        for country_data in country_threats.values():
+            if country_data['count'] > 0:
+                country_data['avg_threat_score'] /= country_data['count']
+        
+        # Get top threat countries
+        threat_stats['top_threat_countries'] = sorted(
+            [{'country': k, **v} for k, v in country_threats.items()],
+            key=lambda x: x['avg_threat_score'],
+            reverse=True
+        )[:10]
+        
+        return jsonify({
+            'success': True,
+            'threat_stats': threat_stats,
+            'last_updated': datetime.now().isoformat()
+        })
+        
+    except Exception as e:
+        print(f"Error getting threat dashboard: {e}")
+        return jsonify({'error': str(e)}), 500

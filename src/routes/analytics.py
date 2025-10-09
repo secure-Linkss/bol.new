@@ -920,3 +920,254 @@ def get_cities_analytics():
     except Exception as e:
         print(f"Error fetching cities analytics: {e}")
         return jsonify({"error": str(e)}), 500
+
+# Import geospatial intelligence system
+from src.services.geospatial_intelligence import geo_intel
+
+@analytics_bp.route("/analytics/geospatial-intelligence", methods=["GET"])
+@login_required
+def get_geospatial_intelligence():
+    """Get advanced geospatial intelligence analysis"""
+    from flask import session as flask_session
+    user_id = flask_session.get("user_id")
+    user = User.query.get(user_id)
+    if not user:
+        return jsonify({"error": "Authentication required"}), 401
+
+    try:
+        period = request.args.get("period", "30")  # Default to 30 days
+        
+        # Get user's tracking events
+        user_links = Link.query.filter_by(user_id=user.id).all()
+        link_ids = [link.id for link in user_links]
+        
+        if not link_ids:
+            return jsonify({
+                "geographic_clusters": [],
+                "performance_heatmap": {},
+                "timezone_analysis": {},
+                "demographic_insights": {},
+                "market_opportunities": [],
+                "travel_patterns": {},
+                "economic_correlations": {},
+                "predictive_expansion": {}
+            })
+        
+        # Get events for the specified period
+        days_ago = int(period)
+        start_date = datetime.now() - timedelta(days=days_ago)
+        
+        events = TrackingEvent.query.filter(
+            TrackingEvent.link_id.in_(link_ids),
+            TrackingEvent.timestamp >= start_date
+        ).all()
+        
+        # Prepare events data for analysis
+        events_data = []
+        for event in events:
+            events_data.append({
+                'timestamp': event.timestamp.isoformat() if event.timestamp else None,
+                'ip_address': event.ip_address,
+                'country': event.country,
+                'city': event.city,
+                'device_type': event.device_type,
+                'browser': event.browser,
+                'os': event.os,
+                'captured_email': event.captured_email,
+                'session_duration': event.session_duration,
+                'referrer': event.referrer,
+                'is_bot': event.is_bot
+            })
+        
+        # Perform geospatial intelligence analysis
+        geo_analysis = geo_intel.analyze_geographic_intelligence(events_data)
+        
+        return jsonify({
+            'success': True,
+            'period_days': days_ago,
+            'total_events_analyzed': len(events_data),
+            **geo_analysis
+        })
+        
+    except Exception as e:
+        print(f"Error in geospatial intelligence analysis: {e}")
+        return jsonify({"error": str(e)}), 500
+
+@analytics_bp.route("/analytics/market-opportunities", methods=["GET"])
+@login_required
+def get_market_opportunities():
+    """Get market expansion opportunities"""
+    from flask import session as flask_session
+    user_id = flask_session.get("user_id")
+    user = User.query.get(user_id)
+    if not user:
+        return jsonify({"error": "Authentication required"}), 401
+
+    try:
+        # Get user's tracking events from last 90 days for better market analysis
+        user_links = Link.query.filter_by(user_id=user.id).all()
+        link_ids = [link.id for link in user_links]
+        
+        if not link_ids:
+            return jsonify({
+                "market_opportunities": [],
+                "expansion_recommendations": [],
+                "risk_assessment": {}
+            })
+        
+        start_date = datetime.now() - timedelta(days=90)
+        events = TrackingEvent.query.filter(
+            TrackingEvent.link_id.in_(link_ids),
+            TrackingEvent.timestamp >= start_date
+        ).all()
+        
+        # Prepare events data
+        events_data = []
+        for event in events:
+            events_data.append({
+                'country': event.country,
+                'city': event.city,
+                'device_type': event.device_type,
+                'captured_email': event.captured_email,
+                'session_duration': event.session_duration,
+                'is_bot': event.is_bot
+            })
+        
+        # Get market opportunities
+        geo_analysis = geo_intel.analyze_geographic_intelligence(events_data)
+        
+        return jsonify({
+            'success': True,
+            'market_opportunities': geo_analysis['market_opportunities'],
+            'expansion_recommendations': geo_analysis['predictive_expansion'],
+            'economic_correlations': geo_analysis['economic_correlations']
+        })
+        
+    except Exception as e:
+        print(f"Error getting market opportunities: {e}")
+        return jsonify({"error": str(e)}), 500
+
+@analytics_bp.route("/analytics/geographic-heatmap", methods=["GET"])
+@login_required
+def get_geographic_heatmap():
+    """Get geographic performance heatmap data"""
+    from flask import session as flask_session
+    user_id = flask_session.get("user_id")
+    user = User.query.get(user_id)
+    if not user:
+        return jsonify({"error": "Authentication required"}), 401
+
+    try:
+        period = request.args.get("period", "30")
+        days_ago = int(period)
+        start_date = datetime.now() - timedelta(days=days_ago)
+        
+        # Get user's tracking events
+        user_links = Link.query.filter_by(user_id=user.id).all()
+        link_ids = [link.id for link in user_links]
+        
+        if not link_ids:
+            return jsonify({
+                "heatmap_data": {},
+                "intensity_levels": {},
+                "geographic_clusters": []
+            })
+        
+        events = TrackingEvent.query.filter(
+            TrackingEvent.link_id.in_(link_ids),
+            TrackingEvent.timestamp >= start_date
+        ).all()
+        
+        # Prepare events data
+        events_data = []
+        for event in events:
+            events_data.append({
+                'country': event.country,
+                'city': event.city,
+                'captured_email': event.captured_email,
+                'session_duration': event.session_duration,
+                'ip_address': event.ip_address,
+                'is_bot': event.is_bot
+            })
+        
+        # Generate heatmap data
+        geo_analysis = geo_intel.analyze_geographic_intelligence(events_data)
+        
+        return jsonify({
+            'success': True,
+            'heatmap_data': geo_analysis['performance_heatmap'],
+            'geographic_clusters': geo_analysis['geographic_clusters'],
+            'period_days': days_ago
+        })
+        
+    except Exception as e:
+        print(f"Error getting geographic heatmap: {e}")
+        return jsonify({"error": str(e)}), 500
+
+@analytics_bp.route("/analytics/timezone-optimization", methods=["GET"])
+@login_required
+def get_timezone_optimization():
+    """Get timezone-based optimization recommendations"""
+    from flask import session as flask_session
+    user_id = flask_session.get("user_id")
+    user = User.query.get(user_id)
+    if not user:
+        return jsonify({"error": "Authentication required"}), 401
+
+    try:
+        period = request.args.get("period", "30")
+        days_ago = int(period)
+        start_date = datetime.now() - timedelta(days=days_ago)
+        
+        # Get user's tracking events
+        user_links = Link.query.filter_by(user_id=user.id).all()
+        link_ids = [link.id for link in user_links]
+        
+        if not link_ids:
+            return jsonify({
+                "timezone_analysis": {},
+                "optimization_recommendations": []
+            })
+        
+        events = TrackingEvent.query.filter(
+            TrackingEvent.link_id.in_(link_ids),
+            TrackingEvent.timestamp >= start_date
+        ).all()
+        
+        # Prepare events data
+        events_data = []
+        for event in events:
+            events_data.append({
+                'timestamp': event.timestamp.isoformat() if event.timestamp else None,
+                'country': event.country,
+                'captured_email': event.captured_email,
+                'is_bot': event.is_bot
+            })
+        
+        # Get timezone analysis
+        geo_analysis = geo_intel.analyze_geographic_intelligence(events_data)
+        
+        # Generate optimization recommendations
+        timezone_analysis = geo_analysis['timezone_analysis']
+        recommendations = []
+        
+        if 'country_peak_hours' in timezone_analysis:
+            for country, peak_hours in timezone_analysis['country_peak_hours'].items():
+                if peak_hours:
+                    best_hour = peak_hours[0]
+                    recommendations.append({
+                        'country': country,
+                        'recommended_hour': best_hour['hour'],
+                        'expected_performance': best_hour['performance_score'],
+                        'action': f"Schedule campaigns for {best_hour['hour']:02d}:00 local time in {country}"
+                    })
+        
+        return jsonify({
+            'success': True,
+            'timezone_analysis': timezone_analysis,
+            'optimization_recommendations': recommendations[:10]  # Top 10
+        })
+        
+    except Exception as e:
+        print(f"Error getting timezone optimization: {e}")
+        return jsonify({"error": str(e)}), 500
