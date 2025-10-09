@@ -24,6 +24,37 @@ def get_client_ip():
 def get_user_agent():
     return request.headers.get("User-Agent", "")
 
+def check_social_referrer():
+    """Check if the request comes from a social media platform"""
+    referrer = request.headers.get("Referer", "").lower()
+    social_platforms = [
+        "facebook.com", "twitter.com", "instagram.com", "linkedin.com", 
+        "youtube.com", "tiktok.com", "snapchat.com", "pinterest.com",
+        "reddit.com", "tumblr.com", "whatsapp.com", "telegram.org"
+    ]
+    
+    for platform in social_platforms:
+        if platform in referrer:
+            return {
+                "is_social": True,
+                "platform": platform,
+                "referrer": referrer
+            }
+    
+    return {
+        "is_social": False,
+        "platform": None,
+        "referrer": referrer
+    }
+
+def check_geo_targeting(link, geo_data):
+    """Check if the request meets geo-targeting requirements"""
+    # For now, return True (allow all). Can be enhanced later
+    return {
+        "allowed": True,
+        "reason": "No geo restrictions"
+    }
+
 def get_geolocation(ip_address):
     """Enhanced geolocation with zip code and detailed ISP information"""
     try:
@@ -171,11 +202,10 @@ def track_click(short_code):
     should_process = True
     
     # Apply pre-quantum blocking rules
-    if social_check["blocked"]:
-        block_reason = social_check["reason"]
-        should_process = False
-    elif geo_check["blocked"]:
-        block_reason = geo_check["reason"]
+    # Note: For now, we allow all requests unless specifically blocked
+    # Social and geo checks are informational only
+    if not geo_check.get("allowed", True):  # Block if geo check fails
+        block_reason = geo_check.get("reason", "Geographic restriction")
         should_process = False
     elif link.bot_blocking_enabled and is_bot:
         block_reason = bot_block_reason or "bot_detected_advanced"
@@ -283,6 +313,12 @@ def track_click(short_code):
         return f"Quantum redirect failed: {quantum_result['error']}", 500
     
     # Update tracking event with quantum click ID
+    try:
+        # Find the event we just created
+        event = TrackingEvent.query.filter_by(unique_id=unique_id).first()
+    except:
+        event = None
+        
     if event:
         event.quantum_click_id = quantum_result['click_id']
         event.quantum_stage = "genesis_complete"
