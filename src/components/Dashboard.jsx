@@ -206,9 +206,9 @@ const Dashboard = () => {
       </div>
 
       {/* Compact Metric Cards Grid - 8 cards in one row */}
-      <div className="grid grid-cols-2 sm:grid-cols-4 lg:grid-cols-8 gap-3">
+      <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 lg:grid-cols-8 gap-3">
         <Card className="hover:shadow-md transition-all cursor-pointer border-l-4 border-l-blue-500 bg-gradient-to-br from-blue-50/50 to-transparent dark:from-blue-950/20">
-          <CardContent className="p-4">
+          <CardContent className="p-3">
             <div className="flex flex-col gap-1">
               <div className="flex items-center justify-between">
                 <p className="text-xs font-medium text-muted-foreground uppercase">Total Links</p>
@@ -220,7 +220,7 @@ const Dashboard = () => {
         </Card>
 
         <Card className="hover:shadow-md transition-all cursor-pointer border-l-4 border-l-green-500 bg-gradient-to-br from-green-50/50 to-transparent dark:from-green-950/20">
-          <CardContent className="p-4">
+          <CardContent className="p-3">
             <div className="flex flex-col gap-1">
               <div className="flex items-center justify-between">
                 <p className="text-xs font-medium text-muted-foreground uppercase">Total Clicks</p>
@@ -232,7 +232,7 @@ const Dashboard = () => {
         </Card>
 
         <Card className="hover:shadow-md transition-all cursor-pointer border-l-4 border-l-purple-500 bg-gradient-to-br from-purple-50/50 to-transparent dark:from-purple-950/20">
-          <CardContent className="p-4">
+          <CardContent className="p-3">
             <div className="flex flex-col gap-1">
               <div className="flex items-center justify-between">
                 <p className="text-xs font-medium text-muted-foreground uppercase">Real Visitors</p>
@@ -244,7 +244,7 @@ const Dashboard = () => {
         </Card>
 
         <Card className="hover:shadow-md transition-all cursor-pointer border-l-4 border-l-orange-500 bg-gradient-to-br from-orange-50/50 to-transparent dark:from-orange-950/20">
-          <CardContent className="p-4">
+          <CardContent className="p-3">
             <div className="flex flex-col gap-1">
               <div className="flex items-center justify-between">
                 <p className="text-xs font-medium text-muted-foreground uppercase">Captured Emails</p>
@@ -256,7 +256,7 @@ const Dashboard = () => {
         </Card>
 
         <Card className="hover:shadow-md transition-all cursor-pointer border-l-4 border-l-emerald-500 bg-gradient-to-br from-emerald-50/50 to-transparent dark:from-emerald-950/20">
-          <CardContent className="p-4">
+          <CardContent className="p-3">
             <div className="flex flex-col gap-1">
               <div className="flex items-center justify-between">
                 <p className="text-xs font-medium text-muted-foreground uppercase">Active Links</p>
@@ -268,7 +268,7 @@ const Dashboard = () => {
         </Card>
 
         <Card className="hover:shadow-md transition-all cursor-pointer border-l-4 border-l-yellow-500 bg-gradient-to-br from-yellow-50/50 to-transparent dark:from-yellow-950/20">
-          <CardContent className="p-4">
+          <CardContent className="p-3">
             <div className="flex flex-col gap-1">
               <div className="flex items-center justify-between">
                 <p className="text-xs font-medium text-muted-foreground uppercase">Conversion Rate</p>
@@ -280,7 +280,7 @@ const Dashboard = () => {
         </Card>
 
         <Card className="hover:shadow-md transition-all cursor-pointer border-l-4 border-l-indigo-500 bg-gradient-to-br from-indigo-50/50 to-transparent dark:from-indigo-950/20">
-          <CardContent className="p-4">
+          <CardContent className="p-3">
             <div className="flex flex-col gap-1">
               <div className="flex items-center justify-between">
                 <p className="text-xs font-medium text-muted-foreground uppercase">Avg Clicks/Link</p>
@@ -292,13 +292,37 @@ const Dashboard = () => {
         </Card>
 
         <Card className="hover:shadow-md transition-all cursor-pointer border-l-4 border-l-cyan-500 bg-gradient-to-br from-cyan-50/50 to-transparent dark:from-cyan-950/20">
-          <CardContent className="p-4">
+          <CardContent className="p-3">
             <div className="flex flex-col gap-1">
               <div className="flex items-center justify-between">
                 <p className="text-xs font-medium text-muted-foreground uppercase">Countries</p>
                 <Globe className="h-4 w-4 text-cyan-500" />
               </div>
               <p className="text-2xl font-bold">{additionalStats.countries}</p>
+            </div>
+          </CardContent>
+        </Card>
+
+        <Card className="hover:shadow-md transition-all cursor-pointer border-l-4 border-l-pink-500 bg-gradient-to-br from-pink-50/50 to-transparent dark:from-pink-950/20">
+          <CardContent className="p-3">
+            <div className="flex flex-col gap-1">
+              <div className="flex items-center justify-between">
+                <p className="text-xs font-medium text-muted-foreground uppercase">Total Users</p>
+                <Users className="h-4 w-4 text-pink-500" />
+              </div>
+              <p className="text-2xl font-bold">{stats.totalUsers || 1}</p>
+            </div>
+          </CardContent>
+        </Card>
+
+        <Card className="hover:shadow-md transition-all cursor-pointer border-l-4 border-l-red-500 bg-gradient-to-br from-red-50/50 to-transparent dark:from-red-950/20">
+          <CardContent className="p-3">
+            <div className="flex flex-col gap-1">
+              <div className="flex items-center justify-between">
+                <p className="text-xs font-medium text-muted-foreground uppercase">Total Campaigns</p>
+                <BarChartIcon className="h-4 w-4 text-red-500" />
+              </div>
+              <p className="text-2xl font-bold">{stats.totalLinks || 6}</p>
             </div>
           </CardContent>
         </Card>

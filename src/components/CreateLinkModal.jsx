@@ -82,7 +82,7 @@ const CreateLinkModal = ({ isOpen, onClose, onLinkCreated }) => {
           </div>
         )}
 
-        <form onSubmit={handleSubmit} className="space-y-4">
+        <form onSubmit={handleSubmit} className="space-y-2">
           <div>
             <label className="block text-sm font-medium text-gray-700 mb-1">
               Original URL *

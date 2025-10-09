@@ -37,7 +37,8 @@ import {
   Wifi,
   ExternalLink,
   Copy,
-  Trash2
+  Trash2,
+  FileText
 } from 'lucide-react'
 
 const LiveActivity = () => {
@@ -132,6 +133,51 @@ const LiveActivity = () => {
     }
   }
 
+  const exportToCsv = () => {
+    if (filteredEvents.length === 0) {
+      alert("No events to export.")
+      return
+    }
+
+    const headers = [
+      "Timestamp", "Unique ID", "Link ID", "IP Address", "Device", "City", "Region", "Zip Code", "Country",
+      "Status", "User Agent", "Browser", "OS", "ISP", "Email Captured", "Conversion Value", "Session Duration"
+    ]
+    const csv = [headers.join(",")]
+
+    filteredEvents.forEach(event => {
+      const row = [
+        `"${event.timestamp}"`, // Enclose in quotes to handle commas
+        `"${event.uniqueId}"`, 
+        `"${event.linkId}"`, 
+        `"${event.ip}"`, 
+        `"${event.device}"`, 
+        `"${event.city}"`, 
+        `"${event.region}"`, 
+        `"${event.zipCode}"`, 
+        `"${event.country}"`, 
+        `"${event.status}"`, 
+        `"${event.userAgent || ''}"`, 
+        `"${event.browser || ''}"`, 
+        `"${event.os || ''}"`, 
+        `"${event.isp || ''}"`, 
+        `"${event.emailCaptured || ''}"`, 
+        `"${event.conversionValue || 0}"`, 
+        `"${event.sessionDuration || ''}"`
+      ]
+      csv.push(row.join(","))
+    })
+
+    const csvString = csv.join("\n")
+    const blob = new Blob([csvString], { type: "text/csv;charset=utf-8;" })
+    const link = document.createElement("a")
+    link.href = URL.createObjectURL(blob)
+    link.setAttribute("download", "live_activity_events.csv")
+    document.body.appendChild(link)
+    link.click()
+    document.body.removeChild(link)
+  }
+
   const deleteEvent = async (eventId) => {
     if (window.confirm('Are you sure you want to delete this event?')) {
       try {
@@ -198,6 +244,15 @@ const LiveActivity = () => {
           >
             <RefreshCw className="h-4 w-4 mr-1" />
             Refresh
+          </Button>
+          <Button
+            onClick={exportToCsv}
+            variant="outline"
+            size="sm"
+            className="border-primary text-primary hover:bg-primary hover:text-primary-foreground"
+          >
+            <FileText className="h-4 w-4 mr-1" />
+            Export CSV
           </Button>
         </div>
       </div>
@@ -329,9 +384,11 @@ const LiveActivity = () => {
                       
                       <TableCell className="text-foreground">
                         <div className="text-sm max-w-48">
-                          <div className="font-medium">{event.browser}</div>
-                          <div className="text-xs text-muted-foreground truncate" title={event.userAgent}>
-                            {event.os}
+                          <div className="font-medium">
+                            {event.userAgent && event.userAgent !== 'Unknown' ? 
+                              <span className="truncate" title={event.userAgent}>{event.userAgent}</span> : 
+                              `${event.browser || 'Unknown Browser'} / ${event.os || 'Unknown OS'}`
+                            }
                           </div>
                         </div>
                       </TableCell>
