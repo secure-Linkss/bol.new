@@ -87,18 +87,68 @@ const Layout = ({ children, user, onLogout }) => {
         />
       )}
 
-      {/* Sidebar */}
+      {/* Desktop Sidebar - Always visible on desktop */}
+      <div className="hidden lg:flex w-64 bg-slate-800 border-r border-slate-700 flex-col">
+        {/* Logo */}
+        <div className="p-6 border-b border-slate-700">
+          <Logo size="md" />
+        </div>
+
+        {/* Navigation */}
+        <nav className="flex-1 p-4 space-y-2 overflow-y-auto">
+          {menuItems.map((item) => {
+            if (item.adminOnly && (!user || (user.role !== "admin" && user.role !== "main_admin"))) {
+              return null
+            }
+
+            const Icon = item.icon
+            return (
+              <Button
+                key={item.path}
+                variant={isActive(item.path) ? "secondary" : "ghost"}
+                className={`w-full justify-start text-left h-10 ${
+                  isActive(item.path) 
+                    ? 'bg-blue-600 text-white hover:bg-blue-700' 
+                    : 'text-slate-300 hover:text-white hover:bg-slate-700'
+                }`}
+                onClick={() => navigate(item.path)}
+              >
+                <Icon className="mr-3 h-4 w-4" />
+                {item.label}
+                {item.badge && (
+                  <Badge 
+                    variant="secondary" 
+                    className="ml-auto bg-slate-600 text-slate-200 text-xs"
+                  >
+                    {item.badge}
+                  </Badge>
+                )}
+                {item.notificationCount && notificationCount > 0 && (
+                  <Badge 
+                    variant="destructive" 
+                    className="ml-auto text-xs"
+                  >
+                    {notificationCount}
+                  </Badge>
+                )}
+              </Button>
+            )
+          })}
+        </nav>
+      </div>
+
+      {/* Mobile Sidebar */}
       <div className={`
-        fixed lg:static inset-y-0 left-0 z-50 w-64 bg-slate-800 border-r border-slate-700 flex flex-col
+        lg:hidden fixed inset-y-0 left-0 z-50 w-64 bg-slate-800 border-r border-slate-700 flex flex-col
         transform transition-transform duration-200 ease-in-out
-        ${mobileMenuOpen ? 'translate-x-0' : '-translate-x-full'} lg:translate-x-0
+        ${mobileMenuOpen ? 'translate-x-0' : '-translate-x-full'}
       `}>
         {/* Logo & Mobile Close Button */}
         <div className="p-6 border-b border-slate-700 flex items-center justify-between">
           <Logo size="md" />
           <button
             onClick={() => setMobileMenuOpen(false)}
-            className="lg:hidden text-slate-400 hover:text-white"
+            className="text-slate-400 hover:text-white"
           >
             <X className="h-6 w-6" />
           </button>
@@ -146,18 +196,47 @@ const Layout = ({ children, user, onLogout }) => {
 
       {/* Main Content */}
       <div className="flex-1 flex flex-col">
-        {/* Header */}
-        <header className="bg-slate-800 border-b border-slate-700 px-4 lg:px-6 py-4 flex items-center justify-between">
-          {/* Mobile Menu Button */}
+        {/* Mobile Header */}
+        <header className="lg:hidden bg-slate-800 border-b border-slate-700 px-4 py-3 flex items-center justify-between">
           <button
             onClick={() => setMobileMenuOpen(true)}
-            className="lg:hidden text-slate-400 hover:text-white mr-4"
+            className="text-slate-400 hover:text-white"
           >
             <Menu className="h-6 w-6" />
           </button>
+          
+          <Logo size="sm" />
+          
+          <div className="flex items-center gap-2">
+            <Badge variant="outline" className="border-blue-500 text-blue-400 bg-slate-700 text-xs">
+              A1
+            </Badge>
+            {user && (
+              <DropdownMenu>
+                <DropdownMenuTrigger asChild>
+                  <Button variant="ghost" size="sm" className="text-slate-400 hover:text-white p-1">
+                    <Avatar className="h-6 w-6">
+                      <AvatarFallback className="bg-blue-600 text-white text-xs">
+                        {user.email?.charAt(0).toUpperCase() || 'A'}
+                      </AvatarFallback>
+                    </Avatar>
+                  </Button>
+                </DropdownMenuTrigger>
+                <DropdownMenuContent align="end" className="bg-slate-800 border-slate-700">
+                  <DropdownMenuItem onClick={onLogout} className="text-slate-300 hover:text-white">
+                    <LogOut className="mr-2 h-4 w-4" />
+                    Logout
+                  </DropdownMenuItem>
+                </DropdownMenuContent>
+              </DropdownMenu>
+            )}
+          </div>
+        </header>
 
-          <div className="flex items-center gap-2 lg:gap-4">
-            <Badge variant="outline" className="border-blue-500 text-blue-400 bg-slate-700 hidden sm:flex">
+        {/* Desktop Header */}
+        <header className="hidden lg:flex bg-slate-800 border-b border-slate-700 px-6 py-4 items-center justify-between">
+          <div className="flex items-center gap-4">
+            <Badge variant="outline" className="border-blue-500 text-blue-400 bg-slate-700">
               <User className="h-3 w-3 mr-1" />
               A1
             </Badge>
@@ -178,7 +257,7 @@ const Layout = ({ children, user, onLogout }) => {
             )}
           </div>
 
-          <div className="flex items-center gap-2 lg:gap-4">
+          <div className="flex items-center gap-4">
             {/* Notifications */}
             <DropdownMenu>
               <DropdownMenuTrigger asChild>
@@ -201,18 +280,13 @@ const Layout = ({ children, user, onLogout }) => {
                       notifications.slice(0, 3).map((notification, index) => (
                         <div key={notification.id || index} className="p-3 bg-slate-700 rounded-lg">
                           <p className="text-slate-300 text-sm">{notification.message}</p>
-                          <p className="text-slate-500 text-xs mt-1">{notification.timeAgo}</p>
+                          <p className="text-slate-500 text-xs mt-1">{notification.timestamp}</p>
                         </div>
                       ))
                     ) : (
-                      <div className="p-3 bg-slate-700 rounded-lg">
-                        <p className="text-slate-300 text-sm">No new notifications</p>
-                      </div>
+                      <p className="text-slate-400 text-sm">No new notifications</p>
                     )}
                   </div>
-                  <Button variant="ghost" className="w-full mt-3 text-blue-400 hover:text-blue-300">
-                    View All Notifications
-                  </Button>
                 </div>
               </DropdownMenuContent>
             </DropdownMenu>
@@ -243,7 +317,7 @@ const Layout = ({ children, user, onLogout }) => {
         </header>
 
         {/* Page Content */}
-        <main className="flex-1 overflow-auto bg-slate-900">
+        <main className="flex-1 overflow-auto bg-slate-900 p-4 lg:p-6">
           {children}
         </main>
       </div>
@@ -252,4 +326,3 @@ const Layout = ({ children, user, onLogout }) => {
 }
 
 export default Layout
-

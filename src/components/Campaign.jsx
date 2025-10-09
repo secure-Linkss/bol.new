@@ -3,6 +3,11 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from './ui/
 import { Button } from './ui/button'
 import { Badge } from './ui/badge'
 import { Progress } from './ui/progress'
+import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle, DialogTrigger } from './ui/dialog'
+import { Input } from './ui/input'
+import { Label } from './ui/label'
+import { Textarea } from './ui/textarea'
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from './ui/select'
 import { 
   BarChart, 
   Bar, 
@@ -41,6 +46,14 @@ const Campaign = () => {
     realVisitors: 0,
     botsBlocked: 0,
     activeCampaigns: 0
+  })
+  const [showCreateDialog, setShowCreateDialog] = useState(false)
+  const [newCampaign, setNewCampaign] = useState({
+    name: '',
+    description: '',
+    targetUrl: '',
+    previewUrl: '',
+    expiration: 'never'
   })
 
   useEffect(() => {
@@ -89,9 +102,11 @@ const Campaign = () => {
     setExpandedCampaign(expandedCampaign === campaignId ? null : campaignId);
   };
 
-  const handleCreateCampaign = async () => {
-    const campaignName = prompt('Enter campaign name:')
-    if (!campaignName || !campaignName.trim()) {
+  const handleCreateCampaign = async (e) => {
+    e.preventDefault()
+    
+    if (!newCampaign.name.trim() || !newCampaign.targetUrl.trim()) {
+      alert('Please fill in all required fields')
       return
     }
     
@@ -102,13 +117,26 @@ const Campaign = () => {
           'Content-Type': 'application/json'
         },
         body: JSON.stringify({
-          original_url: 'https://example.com',
-          campaign_name: campaignName.trim(),
-          title: campaignName.trim()
+          original_url: newCampaign.targetUrl.trim(),
+          preview_url: newCampaign.previewUrl.trim() || null,
+          campaign_name: newCampaign.name.trim(),
+          title: newCampaign.name.trim(),
+          description: newCampaign.description.trim() || null,
+          expiration: newCampaign.expiration
         })
       })
       
       if (response.ok) {
+        // Reset form and close dialog
+        setNewCampaign({
+          name: '',
+          description: '',
+          targetUrl: '',
+          previewUrl: '',
+          expiration: 'never'
+        })
+        setShowCreateDialog(false)
+        
         // Refresh campaigns list
         await fetchCampaigns()
         alert('Campaign created successfully!')
@@ -236,20 +264,110 @@ const Campaign = () => {
   return (
     <div className="space-y-6">
       {/* Header */}
-      <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
+      <div className="flex items-center justify-between mb-6">
         <div>
-          <h1 className="text-3xl font-bold tracking-tight">Campaigns</h1>
-          <p className="text-muted-foreground">
-            Manage and monitor your tracking campaigns
-          </p>
+          <h2 className="text-2xl font-bold">Campaigns</h2>
+          <p className="text-muted-foreground">Manage and monitor your tracking campaigns</p>
+        </div>
+        <Dialog open={showCreateDialog} onOpenChange={setShowCreateDialog}>
+            <DialogTrigger asChild>
+              <Button>
+                <Plus className="h-4 w-4 mr-2" />
+                Create Campaign
+              </Button>
+            </DialogTrigger>
+            <DialogContent className="sm:max-w-[450px]">
+              <DialogHeader>
+                <DialogTitle>Create New Campaign</DialogTitle>
+                <DialogDescription>
+                  Set up a new tracking campaign with custom parameters and settings.
+                </DialogDescription>
+              </DialogHeader>
+              <form onSubmit={handleCreateCampaign} className="space-y-4">
+                <div className="space-y-3">
+                  <div className="space-y-2">
+                    <Label htmlFor="campaign-name">Campaign Name *</Label>
+                    <Input
+                      id="campaign-name"
+                      placeholder="Enter campaign name"
+                      value={newCampaign.name}
+                      onChange={(e) => setNewCampaign({...newCampaign, name: e.target.value})}
+                      required
+                    />
+                  </div>
+                  
+                  <div className="space-y-2">
+                    <Label htmlFor="target-url">Target URL *</Label>
+                    <Input
+                      id="target-url"
+                      type="url"
+                      placeholder="https://example.com"
+                      value={newCampaign.targetUrl}
+                      onChange={(e) => setNewCampaign({...newCampaign, targetUrl: e.target.value})}
+                      required
+                    />
+                  </div>
+                  
+                  <div className="space-y-2">
+                    <Label htmlFor="preview-url">Preview URL (Optional)</Label>
+                    <Input
+                      id="preview-url"
+                      type="url"
+                      placeholder="https://preview.example.com"
+                      value={newCampaign.previewUrl}
+                      onChange={(e) => setNewCampaign({...newCampaign, previewUrl: e.target.value})}
+                    />
+                  </div>
+                  
+                  <div className="space-y-2">
+                    <Label htmlFor="description">Description (Optional)</Label>
+                    <Textarea
+                      id="description"
+                      placeholder="Describe your campaign..."
+                      value={newCampaign.description}
+                      onChange={(e) => setNewCampaign({...newCampaign, description: e.target.value})}
+                      rows={3}
+                    />
+                  </div>
+                  
+                  <div className="space-y-2">
+                    <Label htmlFor="expiration">Link Expiration</Label>
+                    <Select 
+                      value={newCampaign.expiration} 
+                      onValueChange={(value) => setNewCampaign({...newCampaign, expiration: value})}
+                    >
+                      <SelectTrigger>
+                        <SelectValue placeholder="Select expiration" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="never">Never Expires</SelectItem>
+                        <SelectItem value="5h">5 Hours</SelectItem>
+                        <SelectItem value="10h">10 Hours</SelectItem>
+                        <SelectItem value="24h">24 Hours</SelectItem>
+                        <SelectItem value="48h">48 Hours</SelectItem>
+                        <SelectItem value="72h">72 Hours</SelectItem>
+                        <SelectItem value="7d">Weekly</SelectItem>
+                        <SelectItem value="30d">Monthly</SelectItem>
+                        <SelectItem value="365d">Yearly</SelectItem>
+                      </SelectContent>
+                    </Select>
+                  </div>
+                </div>
+                
+                <DialogFooter>
+                  <Button type="button" variant="outline" onClick={() => setShowCreateDialog(false)}>
+                    Cancel
+                  </Button>
+                  <Button type="submit">
+                    <Plus className="h-4 w-4 mr-2" />
+                    Create Campaign
+                  </Button>
+                </DialogFooter>
+              </form>
+            </DialogContent>
+          </Dialog>
         </div>
         
-        <Button onClick={handleCreateCampaign}>
-          <Plus className="h-4 w-4 mr-2" />
-          Create Campaign
-        </Button>
-      </div>
-
       {/* Analytics Overview */}
       <div className="grid gap-4 md:grid-cols-4">
         <Card>
@@ -456,7 +574,7 @@ const Campaign = () => {
                 <p className="text-muted-foreground mb-4">
                   Create your first campaign to start tracking links
                 </p>
-                <Button onClick={handleCreateCampaign}>
+                <Button onClick={() => setShowCreateDialog(true)}>
                   <Plus className="h-4 w-4 mr-2" />
                   Create Your First Campaign
                 </Button>
