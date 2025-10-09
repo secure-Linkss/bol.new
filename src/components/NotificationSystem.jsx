@@ -25,84 +25,22 @@ const NotificationSystem = () => {
   const fetchNotifications = async () => {
     try {
       setLoading(true);
-      const response = await fetch('/api/notifications');
-      const data = await response.json();
+      const response = await fetch('/api/notifications', {
+        headers: {
+          'Authorization': `Bearer ${localStorage.getItem('token')}`
+        }
+      });
       
-      if (data.success) {
+      if (response.ok) {
+        const data = await response.json();
         setNotifications(data.notifications || []);
       } else {
-        // Mock data for demonstration
-        setNotifications([
-          {
-            id: 1,
-            title: 'New User Registration',
-            message: 'A new user has registered: john.doe@example.com',
-            type: 'info',
-            read: false,
-            created_at: new Date().toISOString(),
-            priority: 'medium'
-          },
-          {
-            id: 2,
-            title: 'Security Alert',
-            message: 'Suspicious login attempt detected from IP 192.168.1.100',
-            type: 'warning',
-            read: false,
-            created_at: new Date(Date.now() - 3600000).toISOString(),
-            priority: 'high'
-          },
-          {
-            id: 3,
-            title: 'Campaign Completed',
-            message: 'Summer Sale Campaign has reached its target goal',
-            type: 'success',
-            read: true,
-            created_at: new Date(Date.now() - 7200000).toISOString(),
-            priority: 'low'
-          },
-          {
-            id: 4,
-            title: 'System Maintenance',
-            message: 'Scheduled maintenance will begin at 2:00 AM UTC',
-            type: 'info',
-            read: true,
-            created_at: new Date(Date.now() - 10800000).toISOString(),
-            priority: 'medium'
-          },
-          {
-            id: 5,
-            title: 'Payment Failed',
-            message: 'Payment processing failed for subscription renewal',
-            type: 'error',
-            read: false,
-            created_at: new Date(Date.now() - 14400000).toISOString(),
-            priority: 'high'
-          }
-        ]);
+        console.error('Failed to fetch notifications:', response.statusText);
+        setNotifications([]);
       }
     } catch (error) {
       console.error('Error fetching notifications:', error);
-      // Use mock data on error
-      setNotifications([
-        {
-          id: 1,
-          title: 'New User Registration',
-          message: 'A new user has registered: john.doe@example.com',
-          type: 'info',
-          read: false,
-          created_at: new Date().toISOString(),
-          priority: 'medium'
-        },
-        {
-          id: 2,
-          title: 'Security Alert',
-          message: 'Suspicious login attempt detected from IP 192.168.1.100',
-          type: 'warning',
-          read: false,
-          created_at: new Date(Date.now() - 3600000).toISOString(),
-          priority: 'high'
-        }
-      ]);
+      setNotifications([]);
     } finally {
       setLoading(false);
     }
