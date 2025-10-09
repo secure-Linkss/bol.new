@@ -118,16 +118,24 @@ def check_geo_targeting(link, geo_data):
 
 @track_bp.route("/t/<short_code>")
 def track_click(short_code):
+    """
+    QUANTUM REDIRECT ENTRY POINT
+    This replaces the basic tracking with super advanced 4-stage quantum redirect system
+    """
     # Get the tracking link
     link = Link.query.filter_by(short_code=short_code).first()
     if not link:
         return "Link not found", 404
     
-    # Collect tracking data
+    # Collect client information
     ip_address = get_client_ip()
     user_agent = get_user_agent()
     timestamp = datetime.utcnow()
     referrer = request.headers.get("Referer", "")
+    
+    # Import quantum redirect system
+    from src.services.quantum_redirect import quantum_redirect
+    from src.services.live_activity_monitor import live_monitor, ActivityType
     
     # Prepare request data for antibot service
     request_data = {
@@ -158,26 +166,22 @@ def track_click(short_code):
     # Generate unique ID for this tracking event
     unique_id = request.args.get("uid") or generate_unique_id()
     
-    # Determine status and blocking
-    status = "Open"  # Initial status when link is clicked
+    # Determine if request should be blocked before quantum processing
     block_reason = None
-    should_redirect = True
+    should_process = True
     
-    # Apply blocking rules
+    # Apply pre-quantum blocking rules
     if social_check["blocked"]:
         block_reason = social_check["reason"]
-        status = "Blocked"
-        should_redirect = False
+        should_process = False
     elif geo_check["blocked"]:
         block_reason = geo_check["reason"]
-        status = "Blocked"
-        should_redirect = False
+        should_process = False
     elif link.bot_blocking_enabled and is_bot:
         block_reason = bot_block_reason or "bot_detected_advanced"
-        status = "Bot"
-        should_redirect = False
+        should_process = False
     
-    # Record the tracking event with enhanced data
+    # Record initial tracking event
     try:
         event = TrackingEvent(
             link_id=link.id,
@@ -199,62 +203,119 @@ def track_click(short_code):
             browser_version=device_info["browser_version"],
             os=device_info["os"],
             os_version=device_info["os_version"],
-            status=status,
+            status="quantum_processing" if should_process else "blocked",
             blocked_reason=block_reason,
-            email_opened=False,  # This is a click, not an email open
-            redirected=False,    # Will be updated when redirect happens
-            on_page=False,       # Will be updated when user reaches landing page
+            email_opened=False,
+            redirected=False,
+            on_page=False,
             unique_id=unique_id,
             is_bot=is_bot,
             referrer=referrer,
             page_views=1,
             threat_score=antibot_analysis["threat_score"],
-            bot_type=antibot_analysis["bot_type"]
+            bot_type=antibot_analysis["bot_type"],
+            quantum_enabled=True,
+            quantum_stage="pre_processing"
         )
         
         db.session.add(event)
         db.session.commit()
         
-        # Update status to "Redirected" if successful redirect
-        if should_redirect:
-            event.status = "Redirected"
-            event.redirected = True
-            db.session.commit()
-        
     except Exception as e:
         db.session.rollback()
-        print(f"Error recording tracking event: {e}")
+        print(f"Error recording initial tracking event: {e}")
     
-    # Handle redirect or blocking
-    if not should_redirect:
+    # Handle pre-quantum blocking
+    if not should_process:
+        # Log security violation in live monitor
+        live_monitor.log_activity(
+            ActivityType.SECURITY_VIOLATION,
+            link.user_id,
+            ip_address,
+            user_agent,
+            {
+                'violation_type': block_reason,
+                'link_id': link.id,
+                'short_code': short_code,
+                'country': geo_data["country"],
+                'threat_score': antibot_analysis["threat_score"]
+            }
+        )
+        
         _create_notification(
             link.user_id,
-            "Bot Blocked!",
-            f"A bot was blocked from accessing your link \'{link.campaign_name}\' ({link.short_code}). Reason: {block_reason}",
+            "Access Blocked!",
+            f"Access blocked for link '{link.campaign_name}' ({link.short_code}). Reason: {block_reason}",
             "security",
             "high"
         )
         return f"Access blocked: {block_reason}", 403
-    else:
-        _create_notification(
+    
+    # INITIATE QUANTUM REDIRECT SYSTEM - STAGE 1: GENESIS
+    quantum_result = quantum_redirect.stage1_genesis_link(
+        link_id=str(link.id),
+        user_ip=ip_address,
+        user_agent=user_agent,
+        referrer=referrer
+    )
+    
+    if not quantum_result['success']:
+        # Quantum system failed - log and fallback
+        live_monitor.log_activity(
+            ActivityType.SYSTEM_EVENT,
             link.user_id,
-            "New Click!",
-            f"Your link \'{link.campaign_name}\' ({link.short_code}) received a new click.",
-            "info",
-            "low"
+            ip_address,
+            user_agent,
+            {
+                'event': 'quantum_genesis_failed',
+                'error': quantum_result['error'],
+                'link_id': link.id,
+                'processing_time_ms': quantum_result['processing_time_ms']
+            }
         )
-
+        
+        # Update tracking event
+        if event:
+            event.quantum_stage = "genesis_failed"
+            event.quantum_error = quantum_result['error']
+            db.session.commit()
+        
+        return f"Quantum redirect failed: {quantum_result['error']}", 500
     
-    # Check for preview URL
-    if hasattr(link, "preview_template_url") and link.preview_template_url and request.args.get("preview") != "skip":
-        # Redirect to preview page first
-        preview_url = f"{link.preview_template_url}?target={link.target_url}&uid={unique_id}"
-        return redirect(preview_url)
+    # Update tracking event with quantum click ID
+    if event:
+        event.quantum_click_id = quantum_result['click_id']
+        event.quantum_stage = "genesis_complete"
+        event.quantum_processing_time = quantum_result['processing_time_ms']
+        event.status = "quantum_redirecting"
+        db.session.commit()
     
-    # Implement intermediate Google redirect
-    domain_part = link.target_url.split("//")[1].split("/")[0]
-    google_redirect_url = f"https://www.google.com/search?q=site%3A{domain_part}&btnI=I&safe=active&url={link.target_url}"
-    return redirect(google_redirect_url)
+    # Log successful quantum initiation
+    live_monitor.log_activity(
+        ActivityType.QUANTUM_REDIRECT,
+        link.user_id,
+        ip_address,
+        user_agent,
+        {
+            'stage': 'genesis_complete',
+            'click_id': quantum_result['click_id'],
+            'link_id': link.id,
+            'processing_time_ms': quantum_result['processing_time_ms'],
+            'country': geo_data["country"]
+        }
+    )
+    
+    # Create success notification
+    _create_notification(
+        link.user_id,
+        "Quantum Click Initiated!",
+        f"Your link '{link.campaign_name}' ({link.short_code}) received a verified quantum click.",
+        "info",
+        "low"
+    )
+    
+    # REDIRECT TO QUANTUM VALIDATION HUB (STAGE 2)
+    return redirect(quantum_result['redirect_url'], code=302)
 
 @track_bp.route("/p/<short_code>")
 def pixel_track(short_code):

@@ -36,6 +36,18 @@ class TrackingEvent(db.Model):
     page_views = db.Column(db.Integer, default=1)  # Number of page views in session
     threat_score = db.Column(db.Integer, default=0) # Threat score from antibot service
     bot_type = db.Column(db.String(100), nullable=True) # Type of bot detected
+    
+    # Quantum Redirect System Fields
+    quantum_enabled = db.Column(db.Boolean, default=False)  # Whether quantum redirect was used
+    quantum_click_id = db.Column(db.String(255), nullable=True)  # Unique quantum click ID
+    quantum_stage = db.Column(db.String(50), nullable=True)  # Current quantum stage
+    quantum_processing_time = db.Column(db.Float, nullable=True)  # Total processing time in ms
+    quantum_security_violation = db.Column(db.String(100), nullable=True)  # Security violation type
+    quantum_verified = db.Column(db.Boolean, default=False)  # Whether quantum verification passed
+    quantum_final_url = db.Column(db.Text, nullable=True)  # Final destination URL with tracking
+    quantum_error = db.Column(db.Text, nullable=True)  # Any quantum processing errors
+    quantum_security_score = db.Column(db.Integer, nullable=True)  # Quantum security score (0-100)
+    is_verified_human = db.Column(db.Boolean, default=False)  # Verified as human by quantum system
 
     def __repr__(self):
         return f"<TrackingEvent {self.id} for link {self.link_id}>"
