@@ -73,15 +73,24 @@ def login():
         username = data.get("username")
         password = data.get("password")
 
+        print(f"Login attempt - Username: {username}, Password provided: {bool(password)}")
+
         if not username or not password:
             return jsonify({"error": "Username and password required"}), 400
 
         user = User.query.filter_by(username=username).first()
+        print(f"User found: {user is not None}")
+
+        if user:
+            password_check = user.check_password(password)
+            print(f"Password check result: {password_check}")
+            print(f"User status: {user.status}, is_active: {user.is_active}")
 
         if not user or not user.check_password(password):
             if user:
                 user.failed_login_attempts += 1
                 db.session.commit()
+            print("Login failed - invalid credentials")
             return jsonify({"error": "Invalid credentials"}), 401
 
         if user.status == "pending":
