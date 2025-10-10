@@ -1,10 +1,15 @@
 {
   "version": 2,
+  "buildCommand": "npm run build",
+  "outputDirectory": "dist",
   "builds": [
     {
       "src": "package.json",
       "use": "@vercel/static-build",
-      "config": { "distDir": "dist" }
+      "config": { 
+        "distDir": "dist",
+        "buildCommand": "npm run build"
+      }
     },
     {
       "src": "api/index.py",
@@ -48,4 +53,3 @@
     "SHORTIO_DOMAIN": "Secure-links.short.gy"
   }
 }
-
