@@ -14,6 +14,16 @@ links_bp = Blueprint("links", __name__)
 def login_required(f):
     @wraps(f)
     def decorated_function(*args, **kwargs):
+        # Try token authentication first
+        auth_header = request.headers.get("Authorization")
+        if auth_header and auth_header.startswith("Bearer "):
+            token = auth_header.split(" ")[1]
+            user = User.verify_token(token)
+            if user:
+                session["user_id"] = user.id
+                return f(*args, **kwargs)
+        
+        # Fall back to session authentication
         if "user_id" not in session:
             return jsonify({"error": "Authentication required"}), 401
         return f(*args, **kwargs)
