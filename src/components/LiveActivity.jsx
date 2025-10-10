@@ -372,7 +372,7 @@ const LiveActivity = () => {
                               {event.city || 'Unknown'}, {event.region || 'Unknown'}
                             </div>
                             <div className="text-xs text-muted-foreground">
-                              {event.zipCode || event.postalCode || 'N/A'}, {event.country || 'Unknown'}
+                              {event.country || 'Unknown'} {(event.zipCode || event.postalCode) ? `• ${event.zipCode || event.postalCode}` : ''}
                             </div>
                           </div>
                         </div>

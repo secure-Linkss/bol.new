@@ -1,4 +1,5 @@
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useRef } from 'react'
+import InteractiveMap from './InteractiveMap'
 
 const Geography = () => {
   const [timeRange, setTimeRange] = useState('7d')
@@ -220,81 +221,9 @@ const Geography = () => {
           </div>
         </div>
         
-        {/* Simplified World Map Visualization */}
-        <div className="bg-slate-900 rounded-lg p-8 min-h-[400px] relative overflow-hidden">
-          <div className="absolute inset-0 bg-gradient-to-br from-blue-900/20 to-purple-900/20"></div>
-          
-          {/* Map Legend */}
-          <div className="absolute top-4 right-4 bg-slate-800/90 rounded-lg p-3 border border-slate-600">
-            <h4 className="text-sm font-semibold text-white mb-2">Traffic Intensity</h4>
-            <div className="space-y-1">
-              <div className="flex items-center gap-2">
-                <div className="w-3 h-3 bg-red-500 rounded"></div>
-                <span className="text-xs text-slate-300">High (1000+)</span>
-              </div>
-              <div className="flex items-center gap-2">
-                <div className="w-3 h-3 bg-yellow-500 rounded"></div>
-                <span className="text-xs text-slate-300">Medium (500-999)</span>
-              </div>
-              <div className="flex items-center gap-2">
-                <div className="w-3 h-3 bg-green-500 rounded"></div>
-                <span className="text-xs text-slate-300">Low (1-499)</span>
-              </div>
-            </div>
-          </div>
-          
-          {/* Interactive Country Markers */}
-          <div className="relative h-full flex items-center justify-center">
-            {geoData.countries.length === 0 ? (
-              <div className="text-center">
-                <p className="text-slate-400 text-lg">No geographic data available</p>
-                <p className="text-slate-500">Data will appear as users visit your links</p>
-              </div>
-            ) : (
-              <div className="grid grid-cols-4 gap-8 text-center">
-                {geoData.countries.slice(0, 8).map((country, index) => (
-                  <div 
-                    key={country.code}
-                    className="cursor-pointer transform hover:scale-110 transition-all duration-200"
-                    onClick={() => setSelectedCountry(country)}
-                  >
-                    <div className={`w-16 h-16 rounded-full flex items-center justify-center text-2xl mb-2 ${
-                      country.clicks > 2000 ? 'bg-red-500/30 border-2 border-red-500' :
-                      country.clicks > 1000 ? 'bg-yellow-500/30 border-2 border-yellow-500' :
-                      'bg-green-500/30 border-2 border-green-500'
-                    }`}>
-                      {country.flag}
-                    </div>
-                    <p className="text-xs text-white font-medium">{country.code}</p>
-                    <p className="text-xs text-slate-400">{country.clicks.toLocaleString()}</p>
-                  </div>
-                ))}
-              </div>
-            )}
-          </div>
-          
-          {/* Selected Country Details */}
-          {selectedCountry && (
-            <div className="absolute bottom-4 left-4 bg-slate-800/95 rounded-lg p-4 border border-slate-600 min-w-[300px]">
-              <div className="flex items-center gap-3 mb-3">
-                <span className="text-2xl">{selectedCountry.flag}</span>
-                <div>
-                  <h4 className="text-lg font-bold text-white">{selectedCountry.country}</h4>
-                  <p className="text-sm text-slate-400">{selectedCountry.percentage}% of total traffic</p>
-                </div>
-              </div>
-              <div className="grid grid-cols-2 gap-4">
-                <div>
-                  <p className="text-xs text-slate-400">Total Clicks</p>
-                  <p className="text-lg font-bold text-blue-400">{selectedCountry.clicks.toLocaleString()}</p>
-                </div>
-                <div>
-                  <p className="text-xs text-slate-400">Unique Visitors</p>
-                  <p className="text-lg font-bold text-green-400">{selectedCountry.visitors.toLocaleString()}</p>
-                </div>
-              </div>
-            </div>
-          )}
+        {/* Interactive World Map */}
+        <div className="bg-slate-900 rounded-lg min-h-[500px] relative overflow-hidden">
+          <InteractiveMap geoData={geoData} />
         </div>
       </div>
 

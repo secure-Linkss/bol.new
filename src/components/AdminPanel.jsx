@@ -359,40 +359,42 @@ const AdminPanel = () => {
 
         {/* Tabs */}
         <Tabs value={activeTab} onValueChange={setActiveTab} className="space-y-6">
-          <TabsList className="bg-slate-800 border-slate-700 p-1 grid grid-cols-2 md:grid-cols-4 lg:grid-cols-8 gap-1">
-            <TabsTrigger value="dashboard" className="data-[state=active]:bg-slate-700 flex items-center justify-center px-2 py-2 text-xs md:text-sm">
-              <LayoutDashboard className="h-4 w-4 md:mr-2" />
-              <span className="hidden md:inline">Dashboard</span>
-            </TabsTrigger>
-            <TabsTrigger value="users" className="data-[state=active]:bg-slate-700 flex items-center justify-center px-2 py-2 text-xs md:text-sm">
-              <Users className="h-4 w-4 md:mr-2" />
-              <span className="hidden md:inline">Users</span>
-            </TabsTrigger>
-            <TabsTrigger value="campaigns" className="data-[state=active]:bg-slate-700 flex items-center justify-center px-2 py-2 text-xs md:text-sm">
-              <FolderKanban className="h-4 w-4 md:mr-2" />
-              <span className="hidden md:inline">Campaigns</span>
-            </TabsTrigger>
-            <TabsTrigger value="security" className="data-[state=active]:bg-slate-700 flex items-center justify-center px-2 py-2 text-xs md:text-sm">
-              <Shield className="h-4 w-4 md:mr-2" />
-              <span className="hidden md:inline">Security</span>
-            </TabsTrigger>
-            <TabsTrigger value="subscriptions" className="data-[state=active]:bg-slate-700 flex items-center justify-center px-2 py-2 text-xs md:text-sm">
-              <CreditCard className="h-4 w-4 md:mr-2" />
-              <span className="hidden md:inline">Subscriptions</span>
-            </TabsTrigger>
-            <TabsTrigger value="support" className="data-[state=active]:bg-slate-700 flex items-center justify-center px-2 py-2 text-xs md:text-sm">
-              <MessageSquare className="h-4 w-4 md:mr-2" />
-              <span className="hidden md:inline">Support</span>
-            </TabsTrigger>
-            <TabsTrigger value="audit" className="data-[state=active]:bg-slate-700 flex items-center justify-center px-2 py-2 text-xs md:text-sm">
-              <FileText className="h-4 w-4 md:mr-2" />
-              <span className="hidden md:inline">Audit</span>
-            </TabsTrigger>
-            <TabsTrigger value="settings" className="data-[state=active]:bg-slate-700 flex items-center justify-center px-2 py-2 text-xs md:text-sm">
-              <Settings className="h-4 w-4 md:mr-2" />
-              <span className="hidden md:inline">Settings</span>
-            </TabsTrigger>
-          </TabsList>
+          <div className="overflow-x-auto">
+            <TabsList className="bg-slate-800 border-slate-700 p-1 flex w-max min-w-full gap-1">
+              <TabsTrigger value="dashboard" className="data-[state=active]:bg-slate-700 flex items-center justify-center px-3 py-2 text-xs md:text-sm whitespace-nowrap">
+                <LayoutDashboard className="h-4 w-4 mr-1 md:mr-2" />
+                <span className="hidden sm:inline">Dashboard</span>
+              </TabsTrigger>
+              <TabsTrigger value="users" className="data-[state=active]:bg-slate-700 flex items-center justify-center px-3 py-2 text-xs md:text-sm whitespace-nowrap">
+                <Users className="h-4 w-4 mr-1 md:mr-2" />
+                <span className="hidden sm:inline">Users</span>
+              </TabsTrigger>
+              <TabsTrigger value="campaigns" className="data-[state=active]:bg-slate-700 flex items-center justify-center px-3 py-2 text-xs md:text-sm whitespace-nowrap">
+                <FolderKanban className="h-4 w-4 mr-1 md:mr-2" />
+                <span className="hidden sm:inline">Campaigns</span>
+              </TabsTrigger>
+              <TabsTrigger value="security" className="data-[state=active]:bg-slate-700 flex items-center justify-center px-3 py-2 text-xs md:text-sm whitespace-nowrap">
+                <Shield className="h-4 w-4 mr-1 md:mr-2" />
+                <span className="hidden sm:inline">Security</span>
+              </TabsTrigger>
+              <TabsTrigger value="subscriptions" className="data-[state=active]:bg-slate-700 flex items-center justify-center px-3 py-2 text-xs md:text-sm whitespace-nowrap">
+                <CreditCard className="h-4 w-4 mr-1 md:mr-2" />
+                <span className="hidden sm:inline">Subscriptions</span>
+              </TabsTrigger>
+              <TabsTrigger value="support" className="data-[state=active]:bg-slate-700 flex items-center justify-center px-3 py-2 text-xs md:text-sm whitespace-nowrap">
+                <MessageSquare className="h-4 w-4 mr-1 md:mr-2" />
+                <span className="hidden sm:inline">Support</span>
+              </TabsTrigger>
+              <TabsTrigger value="audit" className="data-[state=active]:bg-slate-700 flex items-center justify-center px-3 py-2 text-xs md:text-sm whitespace-nowrap">
+                <FileText className="h-4 w-4 mr-1 md:mr-2" />
+                <span className="hidden sm:inline">Audit</span>
+              </TabsTrigger>
+              <TabsTrigger value="settings" className="data-[state=active]:bg-slate-700 flex items-center justify-center px-3 py-2 text-xs md:text-sm whitespace-nowrap">
+                <Settings className="h-4 w-4 mr-1 md:mr-2" />
+                <span className="hidden sm:inline">Settings</span>
+              </TabsTrigger>
+            </TabsList>
+          </div>
 
           {/* Dashboard Tab */}
           <TabsContent value="dashboard" className="space-y-6">
