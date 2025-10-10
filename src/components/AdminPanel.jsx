@@ -359,39 +359,47 @@ const AdminPanel = () => {
 
         {/* Tabs */}
         <Tabs value={activeTab} onValueChange={setActiveTab} className="space-y-6">
-          <div className="overflow-x-auto">
-            <TabsList className="bg-slate-800 border-slate-700 p-1 flex w-max min-w-full gap-1">
-              <TabsTrigger value="dashboard" className="data-[state=active]:bg-slate-700 flex items-center justify-center px-3 py-2 text-xs md:text-sm whitespace-nowrap">
+          <div className="overflow-x-auto scrollbar-hide">
+            <TabsList className="bg-slate-800 border-slate-700 p-1 flex w-max min-w-full gap-1 md:grid md:grid-cols-8 md:w-full">
+              <TabsTrigger value="dashboard" className="data-[state=active]:bg-slate-700 flex items-center justify-center px-2 py-2 text-xs md:text-sm whitespace-nowrap min-w-[80px] md:min-w-0">
                 <LayoutDashboard className="h-4 w-4 mr-1 md:mr-2" />
                 <span className="hidden sm:inline">Dashboard</span>
+                <span className="sm:hidden">Dash</span>
               </TabsTrigger>
-              <TabsTrigger value="users" className="data-[state=active]:bg-slate-700 flex items-center justify-center px-3 py-2 text-xs md:text-sm whitespace-nowrap">
+              <TabsTrigger value="users" className="data-[state=active]:bg-slate-700 flex items-center justify-center px-2 py-2 text-xs md:text-sm whitespace-nowrap min-w-[80px] md:min-w-0">
                 <Users className="h-4 w-4 mr-1 md:mr-2" />
                 <span className="hidden sm:inline">Users</span>
+                <span className="sm:hidden">Users</span>
               </TabsTrigger>
-              <TabsTrigger value="campaigns" className="data-[state=active]:bg-slate-700 flex items-center justify-center px-3 py-2 text-xs md:text-sm whitespace-nowrap">
+              <TabsTrigger value="campaigns" className="data-[state=active]:bg-slate-700 flex items-center justify-center px-2 py-2 text-xs md:text-sm whitespace-nowrap min-w-[80px] md:min-w-0">
                 <FolderKanban className="h-4 w-4 mr-1 md:mr-2" />
                 <span className="hidden sm:inline">Campaigns</span>
+                <span className="sm:hidden">Camp</span>
               </TabsTrigger>
-              <TabsTrigger value="security" className="data-[state=active]:bg-slate-700 flex items-center justify-center px-3 py-2 text-xs md:text-sm whitespace-nowrap">
+              <TabsTrigger value="security" className="data-[state=active]:bg-slate-700 flex items-center justify-center px-2 py-2 text-xs md:text-sm whitespace-nowrap min-w-[80px] md:min-w-0">
                 <Shield className="h-4 w-4 mr-1 md:mr-2" />
                 <span className="hidden sm:inline">Security</span>
+                <span className="sm:hidden">Sec</span>
               </TabsTrigger>
-              <TabsTrigger value="subscriptions" className="data-[state=active]:bg-slate-700 flex items-center justify-center px-3 py-2 text-xs md:text-sm whitespace-nowrap">
+              <TabsTrigger value="subscriptions" className="data-[state=active]:bg-slate-700 flex items-center justify-center px-2 py-2 text-xs md:text-sm whitespace-nowrap min-w-[80px] md:min-w-0">
                 <CreditCard className="h-4 w-4 mr-1 md:mr-2" />
                 <span className="hidden sm:inline">Subscriptions</span>
+                <span className="sm:hidden">Subs</span>
               </TabsTrigger>
-              <TabsTrigger value="support" className="data-[state=active]:bg-slate-700 flex items-center justify-center px-3 py-2 text-xs md:text-sm whitespace-nowrap">
+              <TabsTrigger value="support" className="data-[state=active]:bg-slate-700 flex items-center justify-center px-2 py-2 text-xs md:text-sm whitespace-nowrap min-w-[80px] md:min-w-0">
                 <MessageSquare className="h-4 w-4 mr-1 md:mr-2" />
                 <span className="hidden sm:inline">Support</span>
+                <span className="sm:hidden">Supp</span>
               </TabsTrigger>
-              <TabsTrigger value="audit" className="data-[state=active]:bg-slate-700 flex items-center justify-center px-3 py-2 text-xs md:text-sm whitespace-nowrap">
+              <TabsTrigger value="audit" className="data-[state=active]:bg-slate-700 flex items-center justify-center px-2 py-2 text-xs md:text-sm whitespace-nowrap min-w-[80px] md:min-w-0">
                 <FileText className="h-4 w-4 mr-1 md:mr-2" />
                 <span className="hidden sm:inline">Audit</span>
+                <span className="sm:hidden">Audit</span>
               </TabsTrigger>
-              <TabsTrigger value="settings" className="data-[state=active]:bg-slate-700 flex items-center justify-center px-3 py-2 text-xs md:text-sm whitespace-nowrap">
+              <TabsTrigger value="settings" className="data-[state=active]:bg-slate-700 flex items-center justify-center px-2 py-2 text-xs md:text-sm whitespace-nowrap min-w-[80px] md:min-w-0">
                 <Settings className="h-4 w-4 mr-1 md:mr-2" />
                 <span className="hidden sm:inline">Settings</span>
+                <span className="sm:hidden">Set</span>
               </TabsTrigger>
             </TabsList>
           </div>

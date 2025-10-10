@@ -219,7 +219,7 @@ const Dashboard = () => {
       </div>
 
       {/* Compact Metric Cards Grid - Perfect 8-Grid Layout */}
-      <div className="grid grid-cols-2 sm:grid-cols-4 lg:grid-cols-8 gap-4 mb-8">
+      <div className="grid grid-cols-2 sm:grid-cols-4 lg:grid-cols-8 gap-3 mb-8">
         <Card className="hover:shadow-md transition-all cursor-pointer border-l-4 border-l-blue-500 bg-gradient-to-br from-blue-50/50 to-transparent dark:from-blue-950/20">
           <CardContent className="p-3">
             <div className="flex flex-col gap-1">
