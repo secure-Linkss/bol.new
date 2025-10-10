@@ -129,72 +129,81 @@ const Dashboard = () => {
   return (
     <div className="space-y-6">
       {/* Header */}
-      <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
-        <div>
-          <h1 className="text-3xl font-bold tracking-tight">Advanced Analytics Dashboard</h1>
-          <p className="text-sm text-muted-foreground mt-1">
-            Comprehensive tracking and performance metrics
-          </p>
-        </div>
-        <div className="flex items-center gap-2 flex-wrap">
+      <div className="mb-8">
+        <h1 className="text-3xl font-bold text-white mb-2">Advanced Analytics Dashboard</h1>
+        <p className="text-slate-400">Comprehensive tracking and performance metrics</p>
+      </div>
+
+      {/* Controls - Mobile Optimized */}
+      <div className="space-y-4 mb-8">
+        {/* Top Row - Filter and Search */}
+        <div className="flex flex-col sm:flex-row gap-4">
           <Select defaultValue="all">
-            <SelectTrigger className="w-[100px] h-9">
+            <SelectTrigger className="w-full sm:w-[180px] bg-slate-800 border-slate-700 text-white">
               <SelectValue placeholder="All" />
             </SelectTrigger>
-            <SelectContent>
+            <SelectContent className="bg-slate-800 border-slate-700">
               <SelectItem value="all">All</SelectItem>
+              <SelectItem value="campaigns">Campaigns</SelectItem>
+              <SelectItem value="links">Links</SelectItem>
             </SelectContent>
           </Select>
-          <div className="relative">
-            <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-            <input 
-              placeholder="Search campaigns, emails, tracking..." 
-              value={searchQuery}
-              onChange={(e) => setSearchQuery(e.target.value)}
-              className="w-64 h-9 pl-9 pr-3 text-sm border rounded-md bg-background focus:outline-none focus:ring-2 focus:ring-primary"
-            />
+          
+          <div className="flex-1">
+            <div className="relative">
+              <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-slate-400 h-4 w-4" />
+              <input
+                type="text"
+                placeholder="Search campaigns, emails, tracking..."
+                value={searchQuery}
+                onChange={(e) => setSearchQuery(e.target.value)}
+                className="w-full pl-10 pr-4 py-2 bg-slate-800 border border-slate-700 rounded-md text-white placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-blue-500"
+              />
+            </div>
           </div>
-          <div className="flex gap-1">
-            <Button 
-              size="sm" 
-              variant={period === '24h' ? 'default' : 'outline'} 
-              className="h-9 px-3"
-              onClick={() => handlePeriodChange('24h')}
-            >
-              24h
-            </Button>
-            <Button 
-              size="sm" 
-              variant={period === '7d' ? 'default' : 'outline'} 
-              className={`h-9 px-3 ${period === '7d' ? 'bg-blue-600 hover:bg-blue-700' : ''}`}
-              onClick={() => handlePeriodChange('7d')}
-            >
-              7d
-            </Button>
-            <Button 
-              size="sm" 
-              variant={period === '30d' ? 'default' : 'outline'} 
-              className="h-9 px-3"
-              onClick={() => handlePeriodChange('30d')}
-            >
-              30d
-            </Button>
-            <Button 
-              size="sm" 
-              variant={period === '90d' ? 'default' : 'outline'} 
-              className="h-9 px-3"
-              onClick={() => handlePeriodChange('90d')}
-            >
-              90d
-            </Button>
-          </div>
-          <Button 
-            size="sm" 
-            variant="outline" 
-            className="h-9 px-3"
-            onClick={handleRefresh}
+        </div>
+        
+        {/* Bottom Row - Time Period and Action Buttons */}
+        <div className="flex flex-wrap gap-2 justify-center sm:justify-start">
+          <Button
+            variant={period === '24h' ? 'default' : 'outline'}
+            size="sm"
+            onClick={() => handlePeriodChange('24h')}
+            className={period === '24h' ? 'bg-blue-600 hover:bg-blue-700' : 'border-slate-600 text-slate-300 hover:bg-slate-700'}
           >
-            <RefreshCw className="h-4 w-4 mr-1" />
+            24h
+          </Button>
+          <Button
+            variant={period === '7d' ? 'default' : 'outline'}
+            size="sm"
+            onClick={() => handlePeriodChange('7d')}
+            className={period === '7d' ? 'bg-blue-600 hover:bg-blue-700' : 'border-slate-600 text-slate-300 hover:bg-slate-700'}
+          >
+            7d
+          </Button>
+          <Button
+            variant={period === '30d' ? 'default' : 'outline'}
+            size="sm"
+            onClick={() => handlePeriodChange('30d')}
+            className={period === '30d' ? 'bg-blue-600 hover:bg-blue-700' : 'border-slate-600 text-slate-300 hover:bg-slate-700'}
+          >
+            30d
+          </Button>
+          <Button
+            variant={period === '90d' ? 'default' : 'outline'}
+            size="sm"
+            onClick={() => handlePeriodChange('90d')}
+            className={period === '90d' ? 'bg-blue-600 hover:bg-blue-700' : 'border-slate-600 text-slate-300 hover:bg-slate-700'}
+          >
+            90d
+          </Button>
+          <Button
+            onClick={handleRefresh}
+            size="sm"
+            variant="outline"
+            className="border-slate-600 text-slate-300 hover:bg-slate-700"
+          >
+            <RefreshCw className="h-4 w-4 mr-2" />
             Refresh
           </Button>
           <Button 
@@ -209,8 +218,8 @@ const Dashboard = () => {
         </div>
       </div>
 
-      {/* Compact Metric Cards Grid - Responsive layout */}
-      <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-7 gap-3">
+      {/* Compact Metric Cards Grid - Perfect 8-Grid Layout */}
+      <div className="grid grid-cols-2 sm:grid-cols-4 lg:grid-cols-8 gap-4 mb-8">
         <Card className="hover:shadow-md transition-all cursor-pointer border-l-4 border-l-blue-500 bg-gradient-to-br from-blue-50/50 to-transparent dark:from-blue-950/20">
           <CardContent className="p-3">
             <div className="flex flex-col gap-1">

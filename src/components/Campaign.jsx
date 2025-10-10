@@ -269,10 +269,64 @@ const Campaign = () => {
   return (
     <div className="space-y-6">
       {/* Header */}
+      <div className="mb-8">
+        <h1 className="text-3xl font-bold text-white mb-2">Campaign Management</h1>
+        <p className="text-slate-400">Create and manage your tracking campaigns</p>
+      </div>
+
+      {/* Campaign Metric Cards - 3-Grid Layout */}
+      <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
+        <Card className="bg-gradient-to-br from-green-500/10 to-green-600/5 border-green-500/20 hover:shadow-lg transition-all">
+          <CardContent className="p-6">
+            <div className="flex items-center justify-between">
+              <div>
+                <p className="text-sm font-medium text-slate-400 mb-1">Active Campaigns</p>
+                <p className="text-3xl font-bold text-white">{analytics.activeCampaigns}</p>
+                <p className="text-xs text-green-400 mt-1">Currently running</p>
+              </div>
+              <div className="p-3 bg-green-500/20 rounded-full">
+                <Target className="h-6 w-6 text-green-400" />
+              </div>
+            </div>
+          </CardContent>
+        </Card>
+
+        <Card className="bg-gradient-to-br from-blue-500/10 to-blue-600/5 border-blue-500/20 hover:shadow-lg transition-all">
+          <CardContent className="p-6">
+            <div className="flex items-center justify-between">
+              <div>
+                <p className="text-sm font-medium text-slate-400 mb-1">Total Clicks</p>
+                <p className="text-3xl font-bold text-white">{analytics.totalClicks.toLocaleString()}</p>
+                <p className="text-xs text-green-400 mt-1">Across all campaigns</p>
+              </div>
+              <div className="p-3 bg-blue-500/20 rounded-full">
+                <MousePointer className="h-6 w-6 text-blue-400" />
+              </div>
+            </div>
+          </CardContent>
+        </Card>
+
+        <Card className="bg-gradient-to-br from-purple-500/10 to-purple-600/5 border-purple-500/20 hover:shadow-lg transition-all">
+          <CardContent className="p-6">
+            <div className="flex items-center justify-between">
+              <div>
+                <p className="text-sm font-medium text-slate-400 mb-1">Real Visitors</p>
+                <p className="text-3xl font-bold text-white">{analytics.realVisitors.toLocaleString()}</p>
+                <p className="text-xs text-green-400 mt-1">Bots blocked: {analytics.botsBlocked}</p>
+              </div>
+              <div className="p-3 bg-purple-500/20 rounded-full">
+                <Users className="h-6 w-6 text-purple-400" />
+              </div>
+            </div>
+          </CardContent>
+        </Card>
+      </div>
+
+      {/* Create Campaign Section */}
       <div className="flex items-center justify-between mb-6">
         <div>
-          <h2 className="text-2xl font-bold">Campaigns</h2>
-          <p className="text-muted-foreground">Manage and monitor your tracking campaigns</p>
+          <h2 className="text-xl font-semibold text-white">Your Campaigns</h2>
+          <p className="text-slate-400 text-sm">Manage and monitor your tracking links</p>
         </div>
         <Dialog open={showCreateDialog} onOpenChange={setShowCreateDialog}>
             <DialogTrigger asChild>

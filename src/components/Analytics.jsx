@@ -112,36 +112,83 @@ const Analytics = () => {
 
   return (
     <div className="space-y-6">
-      {/* Header */}
-      <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
-        <div>
-          <h1 className="text-2xl font-bold tracking-tight">Advanced Analytics</h1>
-          <p className="text-sm text-muted-foreground">
-            Comprehensive performance insights and detailed metrics
-          </p>
-        </div>
-        <div className="flex items-center gap-2">
-          <Select value={timeRange} onValueChange={setTimeRange}>
-            <SelectTrigger className="w-32 h-8 text-xs">
-              <SelectValue />
-            </SelectTrigger>
-            <SelectContent>
-              <SelectItem value="1">Last 24h</SelectItem>
-              <SelectItem value="7">Last 7 days</SelectItem>
-              <SelectItem value="30">Last 30 days</SelectItem>
-              <SelectItem value="90">Last 90 days</SelectItem>
-            </SelectContent>
-          </Select>
-          <Button size="sm" variant="outline" className="h-8 px-3 text-xs">
-            <RefreshCw className="h-3 w-3 mr-1" />
+      <div className="mb-8">
+        <h1 className="text-3xl font-bold text-white mb-2">Advanced Analytics</h1>
+        <p className="text-slate-400">Detailed performance insights and metrics</p>
+      </div>
+
+      {/* Controls */}
+      <div className="flex flex-col sm:flex-row gap-4 mb-8">
+        <Select value={timeRange} onValueChange={setTimeRange}>
+          <SelectTrigger className="w-full sm:w-[180px] bg-slate-800 border-slate-700 text-white">
+            <SelectValue placeholder="Select time range" />
+          </SelectTrigger>
+          <SelectContent className="bg-slate-800 border-slate-700">
+            <SelectItem value="1">Last 24 hours</SelectItem>
+            <SelectItem value="7">Last 7 days</SelectItem>
+            <SelectItem value="30">Last 30 days</SelectItem>
+            <SelectItem value="90">Last 90 days</SelectItem>
+          </SelectContent>
+        </Select>
+        <div className="flex gap-2">
+          <Button variant="outline" size="sm" onClick={handleRefresh} className="border-slate-600 text-slate-300 hover:bg-slate-700">
+            <RefreshCw className="h-4 w-4 mr-2" />
             Refresh
           </Button>
-          <Button size="sm" variant="outline" className="h-8 px-3 text-xs">
-            <Download className="h-3 w-3 mr-1" />
+          <Button variant="outline" size="sm" onClick={handleExport} className="border-slate-600 text-slate-300 hover:bg-slate-700">
+            <Download className="h-4 w-4 mr-2" />
             Export
           </Button>
         </div>
       </div>
+
+      {/* Analytics Metric Cards - 3-Grid Layout */}
+      <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
+        <Card className="bg-gradient-to-br from-blue-500/10 to-blue-600/5 border-blue-500/20 hover:shadow-lg transition-all">
+          <CardContent className="p-6">
+            <div className="flex items-center justify-between">
+              <div>
+                <p className="text-sm font-medium text-slate-400 mb-1">Total Clicks</p>
+                <p className="text-3xl font-bold text-white">{analytics.totalClicks.toLocaleString()}</p>
+                <p className="text-xs text-green-400 mt-1">+12% from last period</p>
+              </div>
+              <div className="p-3 bg-blue-500/20 rounded-full">
+                <MousePointer className="h-6 w-6 text-blue-400" />
+              </div>
+            </div>
+          </CardContent>
+        </Card>
+
+        <Card className="bg-gradient-to-br from-green-500/10 to-green-600/5 border-green-500/20 hover:shadow-lg transition-all">
+          <CardContent className="p-6">
+            <div className="flex items-center justify-between">
+              <div>
+                <p className="text-sm font-medium text-slate-400 mb-1">Unique Visitors</p>
+                <p className="text-3xl font-bold text-white">{analytics.uniqueVisitors.toLocaleString()}</p>
+                <p className="text-xs text-green-400 mt-1">+8% from last period</p>
+              </div>
+              <div className="p-3 bg-green-500/20 rounded-full">
+                <Users className="h-6 w-6 text-green-400" />
+              </div>
+            </div>
+          </CardContent>
+        </Card>
+
+        <Card className="bg-gradient-to-br from-purple-500/10 to-purple-600/5 border-purple-500/20 hover:shadow-lg transition-all">
+          <CardContent className="p-6">
+            <div className="flex items-center justify-between">
+              <div>
+                <p className="text-sm font-medium text-slate-400 mb-1">Conversion Rate</p>
+                <p className="text-3xl font-bold text-white">{analytics.conversionRate}%</p>
+                <p className="text-xs text-green-400 mt-1">+2.3% from last period</p>
+              </div>
+              <div className="p-3 bg-purple-500/20 rounded-full">
+                <TrendingUp className="h-6 w-6 text-purple-400" />
+              </div>
+            </div>
+          </CardContent>
+        </Card>
+        </div>
 
       {/* Compact Metric Cards - 7 cards in one row */}
       <div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-7 gap-3">
