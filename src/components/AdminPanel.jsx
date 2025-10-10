@@ -72,6 +72,14 @@ const AdminPanel = () => {
   const [selectedUser, setSelectedUser] = useState(null)
   const [error, setError] = useState(null)
   const [success, setSuccess] = useState(null)
+  const [showCreateUserDialog, setShowCreateUserDialog] = useState(false)
+  const [newUser, setNewUser] = useState({
+    username: '',
+    email: '',
+    password: '',
+    role: 'member',
+    status: 'active'
+  })
 
   useEffect(() => {
     loadDashboardStats()
@@ -246,6 +254,42 @@ const AdminPanel = () => {
       }
     } catch (error) {
       setError('Error deleting system data')
+    }
+  }
+
+  const createUser = async () => {
+    if (!newUser.username || !newUser.email || !newUser.password) {
+      setError('Please fill in all required fields')
+      return
+    }
+
+    try {
+      const response = await fetch('/api/admin/users', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${localStorage.getItem('token')}`
+        },
+        body: JSON.stringify(newUser)
+      })
+
+      if (response.ok) {
+        setSuccess('User created successfully')
+        setShowCreateUserDialog(false)
+        setNewUser({
+          username: '',
+          email: '',
+          password: '',
+          role: 'member',
+          status: 'active'
+        })
+        loadUsers()
+      } else {
+        const data = await response.json()
+        setError(data.error || 'Failed to create user')
+      }
+    } catch (error) {
+      setError('Error creating user')
     }
   }
 
@@ -450,10 +494,16 @@ const AdminPanel = () => {
               <CardHeader>
                 <div className="flex items-center justify-between">
                   <CardTitle className="text-white">User Management</CardTitle>
-                  <Button onClick={loadUsers} size="sm" variant="outline" className="border-slate-600">
-                    <RefreshCw className="h-4 w-4 mr-2" />
-                    Refresh
-                  </Button>
+                  <div className="flex gap-2">
+                    <Button onClick={() => setShowCreateUserDialog(true)} size="sm" variant="default" className="bg-blue-600 hover:bg-blue-700">
+                      <Users className="h-4 w-4 mr-2" />
+                      Create User
+                    </Button>
+                    <Button onClick={loadUsers} size="sm" variant="outline" className="border-slate-600">
+                      <RefreshCw className="h-4 w-4 mr-2" />
+                      Refresh
+                    </Button>
+                  </div>
                 </div>
               </CardHeader>
               <CardContent>
@@ -677,6 +727,98 @@ const AdminPanel = () => {
                 className="bg-red-600 hover:bg-red-700"
               >
                 Delete All Data
+              </Button>
+            </DialogFooter>
+          </DialogContent>
+        </Dialog>
+
+        {/* Create User Dialog */}
+        <Dialog open={showCreateUserDialog} onOpenChange={setShowCreateUserDialog}>
+          <DialogContent className="bg-slate-800 border-slate-700">
+            <DialogHeader>
+              <DialogTitle className="text-white">Create New User</DialogTitle>
+              <DialogDescription className="text-slate-400">
+                Add a new user to the system with specified role and permissions.
+              </DialogDescription>
+            </DialogHeader>
+            <div className="space-y-4 py-4">
+              <div className="space-y-2">
+                <Label htmlFor="username" className="text-white">Username</Label>
+                <Input
+                  id="username"
+                  value={newUser.username}
+                  onChange={(e) => setNewUser({...newUser, username: e.target.value})}
+                  placeholder="Enter username"
+                  className="bg-slate-700 border-slate-600 text-white"
+                />
+              </div>
+              <div className="space-y-2">
+                <Label htmlFor="email" className="text-white">Email</Label>
+                <Input
+                  id="email"
+                  type="email"
+                  value={newUser.email}
+                  onChange={(e) => setNewUser({...newUser, email: e.target.value})}
+                  placeholder="Enter email address"
+                  className="bg-slate-700 border-slate-600 text-white"
+                />
+              </div>
+              <div className="space-y-2">
+                <Label htmlFor="password" className="text-white">Password</Label>
+                <Input
+                  id="password"
+                  type="password"
+                  value={newUser.password}
+                  onChange={(e) => setNewUser({...newUser, password: e.target.value})}
+                  placeholder="Enter password"
+                  className="bg-slate-700 border-slate-600 text-white"
+                />
+              </div>
+              <div className="space-y-2">
+                <Label htmlFor="role" className="text-white">Role</Label>
+                <Select value={newUser.role} onValueChange={(value) => setNewUser({...newUser, role: value})}>
+                  <SelectTrigger className="bg-slate-700 border-slate-600 text-white">
+                    <SelectValue placeholder="Select role" />
+                  </SelectTrigger>
+                  <SelectContent className="bg-slate-700 border-slate-600">
+                    <SelectItem value="member">Member</SelectItem>
+                    <SelectItem value="admin">Admin</SelectItem>
+                    <SelectItem value="main_admin">Main Admin</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
+              <div className="space-y-2">
+                <Label htmlFor="status" className="text-white">Status</Label>
+                <Select value={newUser.status} onValueChange={(value) => setNewUser({...newUser, status: value})}>
+                  <SelectTrigger className="bg-slate-700 border-slate-600 text-white">
+                    <SelectValue placeholder="Select status" />
+                  </SelectTrigger>
+                  <SelectContent className="bg-slate-700 border-slate-600">
+                    <SelectItem value="active">Active</SelectItem>
+                    <SelectItem value="pending">Pending</SelectItem>
+                    <SelectItem value="suspended">Suspended</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
+            </div>
+            <DialogFooter>
+              <Button variant="outline" onClick={() => {
+                setShowCreateUserDialog(false)
+                setNewUser({
+                  username: '',
+                  email: '',
+                  password: '',
+                  role: 'member',
+                  status: 'active'
+                })
+              }} className="border-slate-600">
+                Cancel
+              </Button>
+              <Button
+                onClick={createUser}
+                className="bg-blue-600 hover:bg-blue-700"
+              >
+                Create User
               </Button>
             </DialogFooter>
           </DialogContent>

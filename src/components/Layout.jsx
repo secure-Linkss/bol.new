@@ -195,12 +195,12 @@ const Layout = ({ children, user, onLogout }) => {
       </div>
 
       {/* Main Content */}
-      <div className="flex-1 flex flex-col">
+      <div className="flex-1 flex flex-col lg:ml-0">
         {/* Mobile Header */}
         <header className="lg:hidden bg-slate-800 border-b border-slate-700 px-4 py-3 flex items-center justify-between">
           <button
             onClick={() => setMobileMenuOpen(true)}
-            className="text-slate-400 hover:text-white"
+            className="text-slate-400 hover:text-white p-2 rounded-md hover:bg-slate-700 transition-colors"
           >
             <Menu className="h-6 w-6" />
           </button>
@@ -208,22 +208,23 @@ const Layout = ({ children, user, onLogout }) => {
           <Logo size="sm" />
           
           <div className="flex items-center gap-2">
-            <Badge variant="outline" className="border-blue-500 text-blue-400 bg-slate-700 text-xs">
-              A1
+            <Badge variant="outline" className="border-blue-500 text-blue-400 bg-slate-700 text-xs px-2 py-1">
+              {user?.role === 'main_admin' ? 'Main Admin' :
+               user?.role === 'admin' ? 'Admin' : 'Member'}
             </Badge>
             {user && (
               <DropdownMenu>
                 <DropdownMenuTrigger asChild>
-                  <Button variant="ghost" size="sm" className="text-slate-400 hover:text-white p-1">
-                    <Avatar className="h-6 w-6">
+                  <Button variant="ghost" size="sm" className="text-slate-400 hover:text-white p-2 rounded-md hover:bg-slate-700">
+                    <Avatar className="h-7 w-7">
                       <AvatarFallback className="bg-blue-600 text-white text-xs">
                         {user.email?.charAt(0).toUpperCase() || 'A'}
                       </AvatarFallback>
                     </Avatar>
                   </Button>
                 </DropdownMenuTrigger>
-                <DropdownMenuContent align="end" className="bg-slate-800 border-slate-700">
-                  <DropdownMenuItem onClick={onLogout} className="text-slate-300 hover:text-white">
+                <DropdownMenuContent align="end" className="bg-slate-800 border-slate-700 w-48">
+                  <DropdownMenuItem onClick={onLogout} className="text-slate-300 hover:text-white hover:bg-slate-700 cursor-pointer">
                     <LogOut className="mr-2 h-4 w-4" />
                     Logout
                   </DropdownMenuItem>

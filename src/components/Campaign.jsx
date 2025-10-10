@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react'
+import { toast } from 'sonner'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from './ui/card'
 import { Button } from './ui/button'
 import { Badge } from './ui/badge'
@@ -106,7 +107,7 @@ const Campaign = () => {
     e.preventDefault()
     
     if (!newCampaign.name.trim() || !newCampaign.targetUrl.trim()) {
-      alert('Please fill in all required fields')
+      toast.error('Please fill in all required fields')
       return
     }
     
@@ -139,14 +140,14 @@ const Campaign = () => {
         
         // Refresh campaigns list
         await fetchCampaigns()
-        alert('Campaign created successfully!')
+        toast.success('Campaign created successfully!')
       } else {
         const errorData = await response.json()
-        alert(errorData.error || 'Failed to create campaign')
+        toast.error(errorData.error || 'Failed to create campaign')
       }
     } catch (error) {
       console.error('Error creating campaign:', error)
-      alert('Failed to create campaign')
+      toast.error('Failed to create campaign')
     }
   }
 
@@ -162,13 +163,13 @@ const Campaign = () => {
       
       if (response.ok) {
         await fetchCampaigns()
-        alert('Campaign deleted successfully!')
+        toast.success('Campaign deleted successfully!')
       } else {
-        alert('Failed to delete campaign')
+        toast.error('Failed to delete campaign')
       }
     } catch (error) {
       console.error('Error deleting campaign:', error)
-      alert('Failed to delete campaign')
+      toast.error('Failed to delete campaign')
     }
   }
 
@@ -187,12 +188,13 @@ const Campaign = () => {
       
       if (response.ok) {
         await fetchCampaigns()
+        toast.success('Campaign status updated successfully!')
       } else {
-        alert('Failed to update campaign status')
+        toast.error('Failed to update campaign status')
       }
     } catch (error) {
       console.error('Error updating campaign:', error)
-      alert('Failed to update campaign')
+      toast.error('Failed to update campaign')
     }
   }
 
