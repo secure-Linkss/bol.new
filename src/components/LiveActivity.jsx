@@ -368,9 +368,11 @@ const LiveActivity = () => {
                         <div className="flex items-center gap-2">
                           <MapPin className="h-4 w-4 text-green-400" />
                           <div className="text-sm">
-                            <div className="font-medium">{event.city}, {event.region}</div>
+                            <div className="font-medium">
+                              {event.city || 'Unknown'}, {event.region || 'Unknown'}
+                            </div>
                             <div className="text-xs text-muted-foreground">
-                              {event.zipCode}, {event.country}
+                              {event.zipCode || event.postalCode || 'N/A'}, {event.country || 'Unknown'}
                             </div>
                           </div>
                         </div>

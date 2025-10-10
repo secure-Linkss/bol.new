@@ -269,14 +269,14 @@ const LinkShortener = () => {
                 Create Link
               </Button>
             </DialogTrigger>
-            <DialogContent className="sm:max-w-[425px]">
+            <DialogContent className="sm:max-w-[450px] mx-auto">
               <DialogHeader>
-                <DialogTitle>Create New Link</DialogTitle>
-                <DialogDescription>
-                  Create a new shortened tracking link for your campaign.
+                <DialogTitle className="text-center">Create New Shortened Link</DialogTitle>
+                <DialogDescription className="text-center">
+                  Generate a shortened tracking link with custom parameters and analytics.
                 </DialogDescription>
               </DialogHeader>
-              <form onSubmit={handleFormSubmit} className="space-y-4">
+              <form onSubmit={handleFormSubmit} className="space-y-4 mt-4">
                 <div className="space-y-2">
                   <Label htmlFor="originalUrl">Original URL *</Label>
                   <Input

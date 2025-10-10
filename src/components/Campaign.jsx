@@ -151,11 +151,9 @@ const Campaign = () => {
     }
   }
 
+  const [deleteDialog, setDeleteDialog] = useState({ open: false, campaignId: null })
+
   const handleDeleteCampaign = async (campaignId) => {
-    if (!confirm('Are you sure you want to delete this campaign?')) {
-      return
-    }
-    
     try {
       const response = await fetch(`/api/links/${campaignId}`, {
         method: 'DELETE'
@@ -164,6 +162,7 @@ const Campaign = () => {
       if (response.ok) {
         await fetchCampaigns()
         toast.success('Campaign deleted successfully!')
+        setDeleteDialog({ open: false, campaignId: null })
       } else {
         toast.error('Failed to delete campaign')
       }
@@ -171,6 +170,10 @@ const Campaign = () => {
       console.error('Error deleting campaign:', error)
       toast.error('Failed to delete campaign')
     }
+  }
+
+  const openDeleteDialog = (campaignId) => {
+    setDeleteDialog({ open: true, campaignId })
   }
 
   const handleToggleCampaign = async (campaignId, currentStatus) => {
@@ -481,7 +484,7 @@ const Campaign = () => {
                       <Button
                         variant="outline"
                         size="sm"
-                        onClick={() => handleDeleteCampaign(campaign.id)}
+                        onClick={() => openDeleteDialog(campaign.id)}
                       >
                         <Trash2 className="h-4 w-4" />
                       </Button>
@@ -585,6 +588,26 @@ const Campaign = () => {
           </div>
         </CardContent>
       </Card>
+
+      {/* Delete Confirmation Dialog */}
+      <Dialog open={deleteDialog.open} onOpenChange={(open) => setDeleteDialog({ open, campaignId: null })}>
+        <DialogContent className="sm:max-w-[400px]">
+          <DialogHeader>
+            <DialogTitle>Delete Campaign</DialogTitle>
+            <DialogDescription>
+              Are you sure you want to delete this campaign? This action cannot be undone.
+            </DialogDescription>
+          </DialogHeader>
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setDeleteDialog({ open: false, campaignId: null })}>
+              Cancel
+            </Button>
+            <Button variant="destructive" onClick={() => handleDeleteCampaign(deleteDialog.campaignId)}>
+              Delete Campaign
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </div>
   )
 }

@@ -359,38 +359,38 @@ const AdminPanel = () => {
 
         {/* Tabs */}
         <Tabs value={activeTab} onValueChange={setActiveTab} className="space-y-6">
-          <TabsList className="bg-slate-800 border-slate-700 p-1 grid grid-cols-8 gap-1">
-            <TabsTrigger value="dashboard" className="data-[state=active]:bg-slate-700">
-              <LayoutDashboard className="h-4 w-4 mr-2" />
-              Dashboard
+          <TabsList className="bg-slate-800 border-slate-700 p-1 grid grid-cols-2 md:grid-cols-4 lg:grid-cols-8 gap-1">
+            <TabsTrigger value="dashboard" className="data-[state=active]:bg-slate-700 flex items-center justify-center px-2 py-2 text-xs md:text-sm">
+              <LayoutDashboard className="h-4 w-4 md:mr-2" />
+              <span className="hidden md:inline">Dashboard</span>
             </TabsTrigger>
-            <TabsTrigger value="users" className="data-[state=active]:bg-slate-700">
-              <Users className="h-4 w-4 mr-2" />
-              Users
+            <TabsTrigger value="users" className="data-[state=active]:bg-slate-700 flex items-center justify-center px-2 py-2 text-xs md:text-sm">
+              <Users className="h-4 w-4 md:mr-2" />
+              <span className="hidden md:inline">Users</span>
             </TabsTrigger>
-            <TabsTrigger value="campaigns" className="data-[state=active]:bg-slate-700">
-              <FolderKanban className="h-4 w-4 mr-2" />
-              Campaigns
+            <TabsTrigger value="campaigns" className="data-[state=active]:bg-slate-700 flex items-center justify-center px-2 py-2 text-xs md:text-sm">
+              <FolderKanban className="h-4 w-4 md:mr-2" />
+              <span className="hidden md:inline">Campaigns</span>
             </TabsTrigger>
-            <TabsTrigger value="security" className="data-[state=active]:bg-slate-700">
-              <Shield className="h-4 w-4 mr-2" />
-              Security
+            <TabsTrigger value="security" className="data-[state=active]:bg-slate-700 flex items-center justify-center px-2 py-2 text-xs md:text-sm">
+              <Shield className="h-4 w-4 md:mr-2" />
+              <span className="hidden md:inline">Security</span>
             </TabsTrigger>
-            <TabsTrigger value="subscriptions" className="data-[state=active]:bg-slate-700">
-              <CreditCard className="h-4 w-4 mr-2" />
-              Subscriptions
+            <TabsTrigger value="subscriptions" className="data-[state=active]:bg-slate-700 flex items-center justify-center px-2 py-2 text-xs md:text-sm">
+              <CreditCard className="h-4 w-4 md:mr-2" />
+              <span className="hidden md:inline">Subscriptions</span>
             </TabsTrigger>
-            <TabsTrigger value="support" className="data-[state=active]:bg-slate-700">
-              <MessageSquare className="h-4 w-4 mr-2" />
-              Support
+            <TabsTrigger value="support" className="data-[state=active]:bg-slate-700 flex items-center justify-center px-2 py-2 text-xs md:text-sm">
+              <MessageSquare className="h-4 w-4 md:mr-2" />
+              <span className="hidden md:inline">Support</span>
             </TabsTrigger>
-            <TabsTrigger value="audit" className="data-[state=active]:bg-slate-700">
-              <FileText className="h-4 w-4 mr-2" />
-              Audit Logs
+            <TabsTrigger value="audit" className="data-[state=active]:bg-slate-700 flex items-center justify-center px-2 py-2 text-xs md:text-sm">
+              <FileText className="h-4 w-4 md:mr-2" />
+              <span className="hidden md:inline">Audit</span>
             </TabsTrigger>
-            <TabsTrigger value="settings" className="data-[state=active]:bg-slate-700">
-              <Settings className="h-4 w-4 mr-2" />
-              Settings
+            <TabsTrigger value="settings" className="data-[state=active]:bg-slate-700 flex items-center justify-center px-2 py-2 text-xs md:text-sm">
+              <Settings className="h-4 w-4 md:mr-2" />
+              <span className="hidden md:inline">Settings</span>
             </TabsTrigger>
           </TabsList>
 
@@ -507,31 +507,56 @@ const AdminPanel = () => {
                 </div>
               </CardHeader>
               <CardContent>
-                <div className="overflow-x-auto">
-                  <Table>
-                    <TableHeader>
-                      <TableRow>
-                        <TableHead className="text-slate-300">ID</TableHead>
-                        <TableHead className="text-slate-300">Username</TableHead>
-                        <TableHead className="text-slate-300">Email</TableHead>
-                        <TableHead className="text-slate-300">Role</TableHead>
-                        <TableHead className="text-slate-300">Status</TableHead>
-                        <TableHead className="text-slate-300">Plan</TableHead>
-                        <TableHead className="text-slate-300">Created</TableHead>
-                        <TableHead className="text-slate-300">Actions</TableHead>
-                      </TableRow>
-                    </TableHeader>
-                    <TableBody>
-                      {users.map(user => (
-                        <TableRow key={user.id}>
-                          <TableCell className="text-slate-300">{user.id}</TableCell>
-                          <TableCell className="text-white font-medium">{user.username}</TableCell>
-                          <TableCell className="text-slate-300">{user.email}</TableCell>
-                          <TableCell>{getRoleBadge(user.role)}</TableCell>
-                          <TableCell>{getStatusBadge(user.status || 'active')}</TableCell>
-                          <TableCell className="text-slate-300">{user.plan_type}</TableCell>
-                          <TableCell className="text-slate-300">{new Date(user.created_at).toLocaleDateString()}</TableCell>
-                          <TableCell>
+                {loading ? (
+                  <div className="text-center py-8">
+                    <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600 mx-auto"></div>
+                    <p className="text-slate-400 mt-2">Loading users...</p>
+                  </div>
+                ) : users.length === 0 ? (
+                  <div className="text-center py-8">
+                    <p className="text-slate-400">No users found.</p>
+                  </div>
+                ) : (
+                  <div className="overflow-x-auto">
+                    <Table>
+                      <TableHeader>
+                        <TableRow className="border-slate-700">
+                          <TableHead className="text-slate-300">USER</TableHead>
+                          <TableHead className="text-slate-300">ROLE</TableHead>
+                          <TableHead className="text-slate-300">STATUS</TableHead>
+                          <TableHead className="text-slate-300">CAMPAIGNS</TableHead>
+                          <TableHead className="text-slate-300">LAST LOGIN</TableHead>
+                          <TableHead className="text-slate-300">ACTIONS</TableHead>
+                        </TableRow>
+                      </TableHeader>
+                      <TableBody>
+                        {users.map(user => (
+                          <TableRow key={user.id} className="border-slate-700 hover:bg-slate-700/50">
+                            <TableCell className="text-white">
+                              <div className="flex items-center gap-3">
+                                <div className="w-8 h-8 bg-blue-600 rounded-full flex items-center justify-center">
+                                  <span className="text-white text-sm font-medium">
+                                    {user.username?.charAt(0)?.toUpperCase() || 'U'}
+                                  </span>
+                                </div>
+                                <div>
+                                  <div className="font-medium">{user.username}</div>
+                                  <div className="text-sm text-slate-400">{user.email}</div>
+                                </div>
+                              </div>
+                            </TableCell>
+                            <TableCell>{getRoleBadge(user.role)}</TableCell>
+                            <TableCell>{getStatusBadge(user.status || 'active')}</TableCell>
+                            <TableCell className="text-slate-300">
+                              <div className="text-center">
+                                <div className="text-lg font-semibold">{user.campaign_count || 0}</div>
+                                <div className="text-xs text-slate-400">campaigns</div>
+                              </div>
+                            </TableCell>
+                            <TableCell className="text-slate-300">
+                              {user.last_login ? new Date(user.last_login).toLocaleDateString() : 'Never'}
+                            </TableCell>
+                            <TableCell>
                             <DropdownMenu>
                               <DropdownMenuTrigger asChild>
                                 <Button variant="ghost" className="h-8 w-8 p-0">
@@ -559,13 +584,14 @@ const AdminPanel = () => {
                                   Delete
                                 </DropdownMenuItem>
                               </DropdownMenuContent>
-                            </DropdownMenu>
-                          </TableCell>
-                        </TableRow>
-                      ))}
-                    </TableBody>
-                  </Table>
-                </div>
+                              </DropdownMenu>
+                            </TableCell>
+                          </TableRow>
+                        ))}
+                      </TableBody>
+                    </Table>
+                  </div>
+                )}
               </CardContent>
             </Card>
           </TabsContent>
@@ -574,29 +600,92 @@ const AdminPanel = () => {
           <TabsContent value="campaigns" className="space-y-6">
             <Card className="bg-slate-800 border-slate-700">
               <CardHeader>
-                <CardTitle className="text-white">Campaigns</CardTitle>
+                <div className="flex items-center justify-between">
+                  <CardTitle className="text-white">Campaign Management</CardTitle>
+                  <Button onClick={loadCampaigns} size="sm" variant="outline" className="border-slate-600">
+                    <RefreshCw className="h-4 w-4 mr-2" />
+                    Refresh
+                  </Button>
+                </div>
               </CardHeader>
               <CardContent>
-                <Table>
-                  <TableHeader>
-                    <TableRow>
-                      <TableHead className="text-slate-300">ID</TableHead>
-                      <TableHead className="text-slate-300">Name</TableHead>
-                      <TableHead className="text-slate-300">User ID</TableHead>
-                      <TableHead className="text-slate-300">Created At</TableHead>
-                    </TableRow>
-                  </TableHeader>
-                  <TableBody>
-                    {campaigns.map(campaign => (
-                      <TableRow key={campaign.id}>
-                        <TableCell className="text-slate-300">{campaign.id}</TableCell>
-                        <TableCell className="text-white">{campaign.name}</TableCell>
-                        <TableCell className="text-slate-300">{campaign.user_id}</TableCell>
-                        <TableCell className="text-slate-300">{new Date(campaign.created_at).toLocaleDateString()}</TableCell>
-                      </TableRow>
-                    ))}
-                  </TableBody>
-                </Table>
+                {loading ? (
+                  <div className="text-center py-8">
+                    <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600 mx-auto"></div>
+                    <p className="text-slate-400 mt-2">Loading campaigns...</p>
+                  </div>
+                ) : campaigns.length === 0 ? (
+                  <div className="text-center py-8">
+                    <p className="text-slate-400">No campaigns found.</p>
+                  </div>
+                ) : (
+                  <div className="overflow-x-auto">
+                    <Table>
+                      <TableHeader>
+                        <TableRow className="border-slate-700">
+                          <TableHead className="text-slate-300">CAMPAIGN</TableHead>
+                          <TableHead className="text-slate-300">USER</TableHead>
+                          <TableHead className="text-slate-300">STATUS</TableHead>
+                          <TableHead className="text-slate-300">CLICKS</TableHead>
+                          <TableHead className="text-slate-300">CREATED</TableHead>
+                          <TableHead className="text-slate-300">ACTIONS</TableHead>
+                        </TableRow>
+                      </TableHeader>
+                      <TableBody>
+                        {campaigns.map(campaign => (
+                          <TableRow key={campaign.id} className="border-slate-700 hover:bg-slate-700/50">
+                            <TableCell className="text-white">
+                              <div className="flex items-center gap-3">
+                                <div className="w-8 h-8 bg-purple-600 rounded-full flex items-center justify-center">
+                                  <span className="text-white text-sm font-medium">
+                                    {campaign.name?.charAt(0)?.toUpperCase() || 'C'}
+                                  </span>
+                                </div>
+                                <div>
+                                  <div className="font-medium">{campaign.name || 'Unnamed Campaign'}</div>
+                                  <div className="text-sm text-slate-400">ID: {campaign.id}</div>
+                                </div>
+                              </div>
+                            </TableCell>
+                            <TableCell className="text-slate-300">
+                              <div>
+                                <div className="font-medium">User #{campaign.user_id}</div>
+                                <div className="text-sm text-slate-400">Campaign Owner</div>
+                              </div>
+                            </TableCell>
+                            <TableCell>
+                              <Badge className={campaign.is_active ? 'bg-green-600 text-white' : 'bg-gray-600 text-white'}>
+                                {campaign.is_active ? 'Active' : 'Inactive'}
+                              </Badge>
+                            </TableCell>
+                            <TableCell className="text-slate-300">
+                              <div className="text-center">
+                                <div className="text-lg font-semibold">{campaign.click_count || 0}</div>
+                                <div className="text-xs text-slate-400">total clicks</div>
+                              </div>
+                            </TableCell>
+                            <TableCell className="text-slate-300">
+                              {campaign.created_at ? new Date(campaign.created_at).toLocaleDateString() : 'N/A'}
+                            </TableCell>
+                            <TableCell>
+                              <div className="flex items-center gap-2">
+                                <Button variant="outline" size="sm" className="border-slate-600">
+                                  <Eye className="h-4 w-4" />
+                                </Button>
+                                <Button variant="outline" size="sm" className="border-slate-600">
+                                  <Edit className="h-4 w-4" />
+                                </Button>
+                                <Button variant="outline" size="sm" className="border-red-600 text-red-400">
+                                  <Trash2 className="h-4 w-4" />
+                                </Button>
+                              </div>
+                            </TableCell>
+                          </TableRow>
+                        ))}
+                      </TableBody>
+                    </Table>
+                  </div>
+                )}
               </CardContent>
             </Card>
           </TabsContent>
