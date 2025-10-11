@@ -28,7 +28,7 @@ def get_dashboard_analytics():
     
     try:
         period = request.args.get("period", "7")  # Default to 7 days
-        days = int(period)
+        days = int(period.replace("h", "").replace("d", ""))
         
         # Calculate date range
         end_date = datetime.now()
@@ -235,7 +235,7 @@ def get_performance_data():
     
     try:
         period = request.args.get("period", "7")
-        days = int(period)
+        days = int(period.replace("h", "").replace("d", ""))
         
         user_links = Link.query.filter_by(user_id=user_id).all()
         link_ids = [link.id for link in user_links]
@@ -329,7 +329,7 @@ def get_analytics_overview_comprehensive():
     
     try:
         period = request.args.get("period", "7")  # Default to 7 days
-        days = int(period)
+        days = int(period.replace("h", "").replace("d", ""))
         
         end_date = datetime.now()
         start_date = end_date - timedelta(days=days)
@@ -790,7 +790,7 @@ def get_countries_analytics():
     
     try:
         period = request.args.get("period", "7")
-        days = int(period)
+        days = int(period.replace("h", "").replace("d", ""))
         
         end_date = datetime.now()
         start_date = end_date - timedelta(days=days)
@@ -862,7 +862,7 @@ def get_cities_analytics():
     
     try:
         period = request.args.get("period", "7")
-        days = int(period)
+        days = int(period.replace("h", "").replace("d", ""))
         
         end_date = datetime.now()
         start_date = end_date - timedelta(days=days)
