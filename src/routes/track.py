@@ -117,7 +117,7 @@ def check_geo_targeting(link, geo_data):
     # Parse JSON arrays
     allowed_countries = json.loads(link.allowed_countries) if link.allowed_countries else []
     blocked_countries = json.loads(link.blocked_countries) if link.blocked_countries else []
-    allowed_regions = json.loads(link.allowed_regions) if link.regions else []
+    allowed_regions = json.loads(link.allowed_regions) if link.allowed_regions else []
     blocked_regions = json.loads(link.blocked_regions) if link.blocked_regions else []
     allowed_cities = json.loads(link.allowed_cities) if link.allowed_cities else []
     blocked_cities = json.loads(link.blocked_cities) if link.blocked_cities else []
@@ -223,7 +223,7 @@ def track_click(short_code):
             city=geo_data["city"],
             zip_code=geo_data["zip_code"],
             latitude=geo_data["latitude"],
-            longitude=geo_data["lon"],
+            longitude=geo_data["longitude"],
             timezone=geo_data["timezone"],
             isp=geo_data["isp"],
             organization=geo_data["organization"],
@@ -423,7 +423,7 @@ def pixel_track(short_code):
             city=geo_data["city"],
             zip_code=geo_data["zip_code"],
             latitude=geo_data["latitude"],
-            longitude=geo_data["lon"],
+            longitude=geo_data["longitude"],
             timezone=geo_data["timezone"],
             isp=geo_data["isp"],
             organization=geo_data["organization"],
