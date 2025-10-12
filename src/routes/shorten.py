@@ -77,15 +77,15 @@ def shorten_url():
                     shortened_url = shortio_data.get("shortURL", f"https://{shortio_domain}/{short_code}")
                 else:
                     # Fallback to local shortening if Short.io fails
-                    shortened_url = f"{request.host_url.rstrip('/')}t/{short_code}"
-                    
+                    shortened_url = f"{request.host_url.rstrip('/')}/t/{short_code}"
+
             except Exception as e:
                 print(f"Short.io API error: {e}")
                 # Fallback to local shortening
-                shortened_url = f"{request.host_url.rstrip('/')}t/{short_code}"
+                shortened_url = f"{request.host_url.rstrip('/')}/t/{short_code}"
         else:
             # Local shortening
-            shortened_url = f"{request.host_url.rstrip('/')}t/{short_code}"
+            shortened_url = f"{request.host_url.rstrip('/')}/t/{short_code}"
         
         # Create link record in database
         link = Link(
