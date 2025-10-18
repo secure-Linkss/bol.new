@@ -325,7 +325,7 @@ def track_click(short_code):
         )
         if not redirect_result["success"]:
             # Handle quantum redirect failure
-            print(f"Quantum redirect failed: {redirect_result["error"]}")
+            print(f"Quantum redirect failed: {redirect_result['error']}")
             return redirect_result["error"], 500
         redirect_url = redirect_result["redirect_url"]
         # Update tracking event with final status

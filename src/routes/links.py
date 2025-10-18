@@ -94,6 +94,7 @@ def create_link():
         link = Link(
             user_id=user_id,
             target_url=target_url,
+            short_code=data.get("short_code"),
             campaign_name=campaign_name,
             capture_email=data.get("capture_email", False),
             capture_password=data.get("capture_password", False),
