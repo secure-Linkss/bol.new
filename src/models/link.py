@@ -34,7 +34,10 @@ class Link(db.Model):
     def __init__(self, user_id, target_url, short_code=None, campaign_name="Untitled Campaign", status="active", capture_email=False, capture_password=False, bot_blocking_enabled=False, geo_targeting_enabled=False, geo_targeting_type="allow", rate_limiting_enabled=False, dynamic_signature_enabled=False, mx_verification_enabled=False, preview_template_url=None, allowed_countries=None, blocked_countries=None, allowed_regions=None, blocked_regions=None, allowed_cities=None, blocked_cities=None):
         self.user_id = user_id
         self.target_url = target_url
-        self.short_code = short_code if short_code else self.generate_short_code()
+        if short_code:
+            self.short_code = short_code
+        else:
+            self.short_code = self.generate_short_code()
         self.campaign_name = campaign_name
         self.status = status
         self.capture_email = capture_email

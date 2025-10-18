@@ -83,6 +83,7 @@ def create_link():
             return jsonify({"error": "Daily link limit reached"}), 403
 
         data = request.get_json()
+        print(f"Incoming data: {data}")
         target_url = data.get("target_url")
         campaign_name = data.get("campaign_name", "Untitled Campaign")
         campaign_id = data.get("campaign_id")
@@ -149,6 +150,7 @@ def update_link(link_id):
             return jsonify({"error": "Link not found"}), 404
 
         data = request.get_json()
+        print(f"Incoming data: {data}")
 
         if "target_url" in data:
             link.target_url = data["target_url"]

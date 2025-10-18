@@ -128,8 +128,8 @@ const LinkShortener = () => {
           'Authorization': `Bearer ${localStorage.getItem('token')}`
         },
         body: JSON.stringify({
-          original_url: formData.originalUrl,
-          title: formData.campaign || 'Untitled Link',
+          target_url: formData.originalUrl,
+          
           campaign_name: formData.campaign || 'Default Campaign',
           short_code: formData.customShortCode || undefined
         })
