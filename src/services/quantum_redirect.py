@@ -200,7 +200,7 @@ class QuantumRedirectSystem:
             self.performance_metrics['total_redirects'] += 1
             
             # Generate validation hub URL
-            validation_url = f"https://v.example.com/validate?token={genesis_token}"
+            validation_url = f"https://{os.environ.get('VERCEL_URL', 'bol-czwx7t8ca-secure-links-projects-3ddb7f78.vercel.app')}/validate?token={genesis_token}"
             
             return {
                 'success': True,
