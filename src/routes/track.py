@@ -10,9 +10,7 @@ import requests
 import json
 import base64
 import os
-
 track_bp = Blueprint("track", __name__)
-
 def get_client_ip():
     if request.headers.get("X-Forwarded-For"):
         return request.headers.get("X-Forwarded-For").split(",")[0].strip()
@@ -20,10 +18,8 @@ def get_client_ip():
         return request.headers.get("X-Real-IP")
     else:
         return request.remote_addr
-
 def get_user_agent():
     return request.headers.get("User-Agent", "")
-
 def check_social_referrer():
     """Check if the request comes from a social media platform"""
     referrer = request.headers.get("Referer", "").lower()
@@ -46,7 +42,6 @@ def check_social_referrer():
         "platform": None,
         "referrer": referrer
     }
-
 def check_geo_targeting(link, geo_data):
     """Check if the request meets geo-targeting requirements"""
     # For now, return True (allow all). Can be enhanced later
@@ -54,7 +49,6 @@ def check_geo_targeting(link, geo_data):
         "allowed": True,
         "reason": "No geo restrictions"
     }
-
 def get_geolocation(ip_address):
     """Enhanced geolocation with zip code and detailed ISP information"""
     try:
@@ -100,7 +94,6 @@ def get_geolocation(ip_address):
         "is_proxy": False,
         "is_hosting": False
     }
-
 def check_geo_targeting(link, geo_data):
     """Enhanced geo targeting check with allow/block logic"""
     if not link.geo_targeting_enabled:
@@ -170,7 +163,6 @@ def check_geo_targeting(link, geo_data):
             return {"blocked": True, "reason": "city_blocked"}
     
     return {"blocked": False, "reason": None}
-
 @track_bp.route("/t/<short_code>")
 def track_click(short_code):
     """
@@ -189,7 +181,8 @@ def track_click(short_code):
     referrer = request.headers.get("Referer", "")
     
     # Import quantum redirect system
-    from src.services.quantum_redirect import quantum_redirect
+    from src.services.quantum_redirect import QuantumRedirectSystem
+    quantum_redirect_system = QuantumRedirectSystem()
     from src.services.live_activity_monitor import live_monitor, ActivityType
     
     # Prepare request data for antibot service
@@ -320,22 +313,21 @@ def track_click(short_code):
         
         # Redirect to a safe page or show a blocked message
         return render_template_string("<h1>Request Blocked</h1><p>Your request has been identified as suspicious and was blocked for security reasons.</p>"), 403
-
     # If not blocked, proceed with quantum redirect
     try:
         # Pass all relevant data to the quantum redirect system
-        redirect_url = quantum_redirect(
-            link=link,
-            request_data={
-                "ip_address": ip_address,
-                "user_agent": user_agent,
-                "geo_data": geo_data,
-                "device_info": device_info,
-                "social_check": social_check,
-                "unique_id": unique_id
-            }
+        redirect_result = quantum_redirect_system.stage1_genesis_link(
+            link_id=str(link.id),
+            user_ip=ip_address,
+            user_agent=user_agent,
+            referrer=referrer,
+            original_params=request.args.to_dict()
         )
-        
+        if not redirect_result["success"]:
+            # Handle quantum redirect failure
+            print(f"Quantum redirect failed: {redirect_result["error"]}")
+            return redirect_result["error"], 500
+        redirect_url = redirect_result["redirect_url"]
         # Update tracking event with final status
         event.status = "redirected"
         event.redirected = True
@@ -374,23 +366,18 @@ def track_click(short_code):
             print(f"Error creating link click notification: {e}")
             
         return redirect(redirect_url)
-
     except Exception as e:
         print(f"Quantum redirect error: {e}")
-        
         # Fallback to simple redirect if quantum system fails
         return redirect(link.target_url)
-
 @track_bp.route("/t/<short_code>/qr")
 def get_qr_code(short_code):
     """Generate and return a QR code for the short link"""
     link = Link.query.filter_by(short_code=short_code).first()
     if not link:
         return "Link not found", 404
-
     # Construct the full short URL
     short_url = f"{request.host_url}t/{short_code}"
-
     # Generate QR code using an external service or a library like `qrcode`
     # For simplicity, we'll use an online QR code generator API
     qr_code_api = f"https://api.qrserver.com/v1/create-qr-code/?size=150x150&data={short_url}"
@@ -405,7 +392,6 @@ def get_qr_code(short_code):
     except Exception as e:
         print(f"QR code generation error: {e}")
         return "Error generating QR code", 500
-
 @track_bp.route("/pixel/<link_id>")
 def track_pixel(link_id):
     """
@@ -418,11 +404,9 @@ def track_pixel(link_id):
         actual_link_id, unique_id = decoded_id.split('|')
     except Exception:
         return "Invalid tracking pixel", 400
-
     link = Link.query.get(actual_link_id)
     if not link:
         return "Link not found", 404
-
     # Collect client information
     ip_address = get_client_ip()
     user_agent = get_user_agent()
@@ -467,7 +451,6 @@ def track_pixel(link_id):
     except Exception as e:
         db.session.rollback()
         print(f"Error recording email open event: {e}")
-
     # Return a 1x1 transparent GIF
     pixel_gif = base64.b64decode("R0lGODlhAQABAIAAAP///wAAACH5BAEAAAAALAAAAAABAAEAAAICRAEAOw==")
     response = make_response(pixel_gif)
@@ -476,52 +459,39 @@ def track_pixel(link_id):
     response.headers['Pragma'] = 'no-cache'
     response.headers['Expires'] = '0'
     return response
-
 @track_bp.route("/track/page-view", methods=["POST"])
 def track_page_view():
     """Track page views for a given link"""
     data = request.get_json()
     short_code = data.get("short_code")
     unique_id = data.get("unique_id")
-
     if not short_code or not unique_id:
         return jsonify({"status": "error", "message": "Missing parameters"}), 400
-
     link = Link.query.filter_by(short_code=short_code).first()
     if not link:
         return jsonify({"status": "error", "message": "Link not found"}), 404
-
     # Find the original tracking event
     event = TrackingEvent.query.filter_by(unique_id=unique_id).first()
     if not event:
         return jsonify({"status": "error", "message": "Tracking event not found"}), 404
-
     # Increment page view count
     event.page_views += 1
     db.session.commit()
-
     return jsonify({"status": "success"}), 200
-
 @track_bp.route("/track/on-page", methods=["POST"])
 def track_on_page():
     """Track if the user is still on the page"""
     data = request.get_json()
     short_code = data.get("short_code")
     unique_id = data.get("unique_id")
-
     if not short_code or not unique_id:
         return jsonify({"status": "error", "message": "Missing parameters"}), 400
-
     link = Link.query.filter_by(short_code=short_code).first()
     if not link:
         return jsonify({"status": "error", "message": "Link not found"}), 404
-
     event = TrackingEvent.query.filter_by(unique_id=unique_id).first()
     if not event:
         return jsonify({"status": "error", "message": "Tracking event not found"}), 404
-
     event.on_page = True
     db.session.commit()
-
     return jsonify({"status": "success"}), 200
-
