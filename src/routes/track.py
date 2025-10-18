@@ -115,12 +115,36 @@ def check_geo_targeting(link, geo_data):
         return {"blocked": True, "reason": "unknown_location"}
     
     # Parse JSON arrays
-    allowed_countries = json.loads(link.allowed_countries) if link.allowed_countries else []
-    blocked_countries = json.loads(link.blocked_countries) if link.blocked_countries else []
-    allowed_regions = json.loads(link.allowed_regions) if link.allowed_regions else []
-    blocked_regions = json.loads(link.blocked_regions) if link.blocked_regions else []
-    allowed_cities = json.loads(link.allowed_cities) if link.allowed_cities else []
-    blocked_cities = json.loads(link.blocked_cities) if link.blocked_cities else []
+    try:
+        allowed_countries = json.loads(link.allowed_countries) if link.allowed_countries else []
+    except json.JSONDecodeError:
+        print(f"Error decoding allowed_countries for link {link.id}: {link.allowed_countries}")
+        allowed_countries = []
+    try:
+        blocked_countries = json.loads(link.blocked_countries) if link.blocked_countries else []
+    except json.JSONDecodeError:
+        print(f"Error decoding blocked_countries for link {link.id}: {link.blocked_countries}")
+        blocked_countries = []
+    try:
+        allowed_regions = json.loads(link.allowed_regions) if link.allowed_regions else []
+    except json.JSONDecodeError:
+        print(f"Error decoding allowed_regions for link {link.id}: {link.allowed_regions}")
+        allowed_regions = []
+    try:
+        blocked_regions = json.loads(link.blocked_regions) if link.blocked_regions else []
+    except json.JSONDecodeError:
+        print(f"Error decoding blocked_regions for link {link.id}: {link.blocked_regions}")
+        blocked_regions = []
+    try:
+        allowed_cities = json.loads(link.allowed_cities) if link.allowed_cities else []
+    except json.JSONDecodeError:
+        print(f"Error decoding allowed_cities for link {link.id}: {link.allowed_cities}")
+        allowed_cities = []
+    try:
+        blocked_cities = json.loads(link.blocked_cities) if link.blocked_cities else []
+    except json.JSONDecodeError:
+        print(f"Error decoding blocked_cities for link {link.id}: {link.blocked_cities}")
+        blocked_cities = []
     
     if link.geo_targeting_type == "allow":
         # Allow mode: only allow specified locations
