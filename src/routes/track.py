@@ -214,7 +214,9 @@ def track_click(short_code):
     # Record initial tracking event
     try:
         event = TrackingEvent(
+            event_type="click",
             link_id=link.id,
+            user_id=link.user_id,
             timestamp=timestamp,
             ip_address=ip_address,
             user_agent=user_agent,
@@ -267,154 +269,153 @@ def track_click(short_code):
                 'violation_type': block_reason,
                 'link_id': link.id,
                 'short_code': short_code,
-                'country': geo_data["country"],
-                'threat_score': antibot_analysis["threat_score"]
+                'geo_data': geo_data,
+                'device_info': device_info
             }
         )
         
-        _create_notification(
-            link.user_id,
-            "Access Blocked!",
-            f"Access blocked for link '{link.campaign_name}' ({link.short_code}). Reason: {block_reason}",
-            "security",
-            "high"
+        # Create a notification for the user
+        try:
+            notification = Notification(
+                user_id=link.user_id,
+                event_type="security_alert",
+                message=f"Blocked a suspicious click on link '{link.title or short_code}' due to: {block_reason}",
+                metadata=json.dumps({
+                    'link_id': link.id,
+                    'short_code': short_code,
+                    'reason': block_reason,
+                    'ip_address': ip_address,
+                    'user_agent': user_agent
+                })
+            )
+            db.session.add(notification)
+            db.session.commit()
+        except Exception as e:
+            db.session.rollback()
+            print(f"Error creating security notification: {e}")
+        
+        # Redirect to a safe page or show a blocked message
+        return render_template_string("<h1>Request Blocked</h1><p>Your request has been identified as suspicious and was blocked for security reasons.</p>"), 403
+
+    # If not blocked, proceed with quantum redirect
+    try:
+        # Pass all relevant data to the quantum redirect system
+        redirect_url = quantum_redirect(
+            link=link,
+            request_data={
+                "ip_address": ip_address,
+                "user_agent": user_agent,
+                "geo_data": geo_data,
+                "device_info": device_info,
+                "social_check": social_check,
+                "unique_id": unique_id
+            }
         )
-        return f"Access blocked: {block_reason}", 403
-    
-    # INITIATE QUANTUM REDIRECT SYSTEM - STAGE 1: GENESIS
-    quantum_result = quantum_redirect.stage1_genesis_link(
-        link_id=str(link.id),
-        user_ip=ip_address,
-        user_agent=user_agent,
-        referrer=referrer
-    )
-    
-    if not quantum_result['success']:
-        # Quantum system failed - log and fallback
+        
+        # Update tracking event with final status
+        event.status = "redirected"
+        event.redirected = True
+        db.session.commit()
+        
+        # Log successful redirect in live monitor
         live_monitor.log_activity(
-            ActivityType.SYSTEM_EVENT,
+            ActivityType.LINK_CLICK,
             link.user_id,
             ip_address,
             user_agent,
             {
-                'event': 'quantum_genesis_failed',
-                'error': quantum_result['error'],
                 'link_id': link.id,
-                'processing_time_ms': quantum_result['processing_time_ms']
+                'short_code': short_code,
+                'destination': redirect_url
             }
         )
         
-        # Update tracking event
-        if event:
-            event.quantum_stage = "genesis_failed"
-            event.quantum_error = quantum_result['error']
+        # Create notification for the user
+        try:
+            notification = Notification(
+                user_id=link.user_id,
+                event_type="link_click",
+                message=f"New click on link '{link.title or short_code}' from {geo_data['city']}, {geo_data['country']}",
+                metadata=json.dumps({
+                    'link_id': link.id,
+                    'short_code': short_code,
+                    'ip_address': ip_address,
+                    'geo_location': f"{geo_data['city']}, {geo_data['country']}"
+                })
+            )
+            db.session.add(notification)
             db.session.commit()
-        
-        return f"Quantum redirect failed: {quantum_result['error']}", 500
-    
-    # Update tracking event with quantum click ID
-    try:
-        # Find the event we just created
-        event = TrackingEvent.query.filter_by(unique_id=unique_id).first()
-    except:
-        event = None
-        
-    if event:
-        event.quantum_click_id = quantum_result['click_id']
-        event.quantum_stage = "genesis_complete"
-        event.quantum_processing_time = quantum_result['processing_time_ms']
-        event.status = "quantum_redirecting"
-        db.session.commit()
-    
-    # Log successful quantum initiation
-    live_monitor.log_activity(
-        ActivityType.QUANTUM_REDIRECT,
-        link.user_id,
-        ip_address,
-        user_agent,
-        {
-            'stage': 'genesis_complete',
-            'click_id': quantum_result['click_id'],
-            'link_id': link.id,
-            'processing_time_ms': quantum_result['processing_time_ms'],
-            'country': geo_data["country"]
-        }
-    )
-    
-    # Create success notification
-    _create_notification(
-        link.user_id,
-        "Quantum Click Initiated!",
-        f"Your link '{link.campaign_name}' ({link.short_code}) received a verified quantum click.",
-        "info",
-        "low"
-    )
-    
-    # REDIRECT TO QUANTUM VALIDATION HUB (STAGE 2)
-    return redirect(quantum_result['redirect_url'], code=302)
+        except Exception as e:
+            db.session.rollback()
+            print(f"Error creating link click notification: {e}")
+            
+        return redirect(redirect_url)
 
-@track_bp.route("/p/<short_code>")
-def pixel_track(short_code):
-    """Tracking pixel endpoint"""
+    except Exception as e:
+        print(f"Quantum redirect error: {e}")
+        
+        # Fallback to simple redirect if quantum system fails
+        return redirect(link.target_url)
+
+@track_bp.route("/t/<short_code>/qr")
+def get_qr_code(short_code):
+    """Generate and return a QR code for the short link"""
+    link = Link.query.filter_by(short_code=short_code).first()
+    if not link:
+        return "Link not found", 404
+
+    # Construct the full short URL
+    short_url = f"{request.host_url}t/{short_code}"
+
+    # Generate QR code using an external service or a library like `qrcode`
+    # For simplicity, we'll use an online QR code generator API
+    qr_code_api = f"https://api.qrserver.com/v1/create-qr-code/?size=150x150&data={short_url}"
+    
     try:
-        link = Link.query.filter_by(short_code=short_code).first()
-        if not link:
-            # Return 1x1 transparent pixel even if link not found
-            return _get_transparent_pixel()
-        
-        # Collect tracking data
-        ip_address = get_client_ip()
-        user_agent = get_user_agent()
-        timestamp = datetime.utcnow()
-        referrer = request.headers.get("Referer", "")
-        
-        # Prepare request data for antibot service
-        request_data = {
-            "ip_address": ip_address,
-            "user_agent": user_agent,
-            "headers": dict(request.headers),
-            "referrer": referrer,
-            "timestamp": timestamp.timestamp()
-        }
-        
-        # Analyze request with advanced anti-bot service
-        antibot_analysis = antibot_service.analyze_request(request_data)
-        is_bot = antibot_analysis["is_bot"]
-        bot_block_reason = antibot_analysis["blocked_reason"]
-        
-        # Get geolocation data
-        geo_data = get_geolocation(ip_address)
-        
-        # Social referrer check
-        social_check = check_social_referrer()
-        
-        # Geo targeting check
-        geo_check = check_geo_targeting(link, geo_data)
-        
-        event_status = "email_opened"
-        block_reason = None
-        
-        # Apply blocking rules
-        if social_check["blocked"]:
-            block_reason = social_check["reason"]
-            event_status = "blocked"
-        elif geo_check["blocked"]:
-            block_reason = geo_check["reason"]
-            event_status = "blocked"
-        elif link.bot_blocking_enabled and is_bot:
-            block_reason = bot_block_reason or "bot_detected_advanced"
-            event_status = "blocked"
-        
-        # Record the tracking event
-        captured_email_hex = request.args.get("email")  # Get hex-encoded email from pixel URL
-        captured_email = _decode_hex_email(captured_email_hex) if captured_email_hex else None
-        unique_id = request.args.get("id") or request.args.get("uid")  # Get unique ID
-        
-        # Parse user agent for device and browser info
-        device_info = parse_user_agent(user_agent)
-        
+        response = requests.get(qr_code_api, timeout=10)
+        if response.status_code == 200:
+            # Return the QR code image
+            return response.content, 200, {'Content-Type': 'image/png'}
+        else:
+            return "Error generating QR code", 500
+    except Exception as e:
+        print(f"QR code generation error: {e}")
+        return "Error generating QR code", 500
+
+@track_bp.route("/pixel/<link_id>")
+def track_pixel(link_id):
+    """
+    1x1 transparent pixel for email open tracking.
+    This is a simplified version and needs to be expanded for robustness.
+    """
+    # Decode the link_id from base64
+    try:
+        decoded_id = base64.urlsafe_b64decode(link_id.encode()).decode()
+        actual_link_id, unique_id = decoded_id.split('|')
+    except Exception:
+        return "Invalid tracking pixel", 400
+
+    link = Link.query.get(actual_link_id)
+    if not link:
+        return "Link not found", 404
+
+    # Collect client information
+    ip_address = get_client_ip()
+    user_agent = get_user_agent()
+    timestamp = datetime.utcnow()
+    
+    # Get geolocation data
+    geo_data = get_geolocation(ip_address)
+    
+    # Parse user agent for device and browser info
+    device_info = parse_user_agent(user_agent)
+    
+    # Record the email open event
+    try:
         event = TrackingEvent(
+            event_type="email_open",
             link_id=link.id,
+            user_id=link.user_id,
             timestamp=timestamp,
             ip_address=ip_address,
             user_agent=user_agent,
@@ -433,178 +434,70 @@ def pixel_track(short_code):
             browser_version=device_info["browser_version"],
             os=device_info["os"],
             os_version=device_info["os_version"],
-            captured_email=captured_email,  # Store captured email
-            status=event_status,
-            blocked_reason=block_reason,
-            email_opened=True,  # This is an email open
-            redirected=False,   # Not a redirect yet
-            on_page=False,      # Not on page yet
-            unique_id=unique_id,  # Store unique ID
-            is_bot=is_bot,
-            referrer=request.headers.get("Referer", ""),
-            page_views=1,
-            threat_score=antibot_analysis["threat_score"],
-            bot_type=antibot_analysis["bot_type"]
+            status="email_opened",
+            email_opened=True,
+            unique_id=unique_id
         )
-        
         db.session.add(event)
         db.session.commit()
     except Exception as e:
         db.session.rollback()
-        print(f"Pixel tracking error: {e}")
-    
-    return _get_transparent_pixel()
+        print(f"Error recording email open event: {e}")
 
-def _get_transparent_pixel():
-    """Return a 1x1 transparent PNG pixel"""
-    from flask import Response
-    
-    # 1x1 transparent PNG
-    pixel_data = base64.b64decode("iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mNkYPhfDwAChwGA60e6kgAAAABJRU5ErkJggg==")
-    
-    response = Response(pixel_data, mimetype="image/png")
-    response.headers["Cache-Control"] = "no-cache, no-store, must-revalidate"
-    response.headers["Pragma"] = "no-cache"
-    response.headers["Expires"] = "0"
-    
+    # Return a 1x1 transparent GIF
+    pixel_gif = base64.b64decode("R0lGODlhAQABAIAAAP///wAAACH5BAEAAAAALAAAAAABAAEAAAICRAEAOw==")
+    response = make_response(pixel_gif)
+    response.headers['Content-Type'] = 'image/gif'
+    response.headers['Cache-Control'] = 'no-cache, no-store, must-revalidate'
+    response.headers['Pragma'] = 'no-cache'
+    response.headers['Expires'] = '0'
     return response
 
-@track_bp.route("/track/page-landed", methods=["POST"])
-def page_landed():
-    """Update tracking event status when user lands on target page"""
+@track_bp.route("/track/page-view", methods=["POST"])
+def track_page_view():
+    """Track page views for a given link"""
     data = request.get_json()
+    short_code = data.get("short_code")
     unique_id = data.get("unique_id")
-    link_id = data.get("link_id")
-    
-    if not unique_id and not link_id:
-        return jsonify({"success": False, "error": "Missing unique_id or link_id"}), 400
-    
-    try:
-        # Find the tracking event by unique_id or link_id
-        if unique_id:
-            event = TrackingEvent.query.filter_by(unique_id=unique_id).first()
-        elif link_id:
-            event = TrackingEvent.query.filter_by(link_id=link_id).order_by(TrackingEvent.timestamp.desc()).first()
-        else:
-            return jsonify({"success": False, "error": "No matching tracking event found"}), 404
 
-        if event:
-            event.on_page = True
-            db.session.commit()
-            return jsonify({"success": True, "message": "Page landed status updated"}), 200
-        else:
-            return jsonify({"success": False, "error": "No matching tracking event found"}), 404
-    except Exception as e:
-        db.session.rollback()
-        print(f"Error updating page landed status: {e}")
-        return jsonify({"success": False, "error": "Failed to update page landed status"}), 500
+    if not short_code or not unique_id:
+        return jsonify({"status": "error", "message": "Missing parameters"}), 400
 
+    link = Link.query.filter_by(short_code=short_code).first()
+    if not link:
+        return jsonify({"status": "error", "message": "Link not found"}), 404
 
+    # Find the original tracking event
+    event = TrackingEvent.query.filter_by(unique_id=unique_id).first()
+    if not event:
+        return jsonify({"status": "error", "message": "Tracking event not found"}), 404
 
+    # Increment page view count
+    event.page_views += 1
+    db.session.commit()
 
-def _decode_hex_email(hex_string):
-    """Decode a hex-encoded email string."""
-    try:
-        return bytes.fromhex(hex_string).decode("utf-8")
-    except (ValueError, TypeError):
-        return None
+    return jsonify({"status": "success"}), 200
 
-
-
-def _create_notification(user_id, title, message, type="info", priority="medium"):
-    try:
-        notification = Notification(
-            user_id=user_id,
-            title=title,
-            message=message,
-            type=type,
-            priority=priority
-        )
-        db.session.add(notification)
-        db.session.commit()
-    except Exception as e:
-        db.session.rollback()
-        print(f"Error creating notification: {e}")
-
-
-@track_bp.route("/track/session-duration", methods=["POST"])
-def update_session_duration():
-    """Update session duration for tracking event"""
+@track_bp.route("/track/on-page", methods=["POST"])
+def track_on_page():
+    """Track if the user is still on the page"""
     data = request.get_json()
+    short_code = data.get("short_code")
     unique_id = data.get("unique_id")
-    link_id = data.get("link_id")
-    duration = data.get("duration")  # Duration in seconds
-    page_views = data.get("page_views", 1)
-    
-    if not duration or (not unique_id and not link_id):
-        return jsonify({"success": False, "error": "Missing required parameters"}), 400
-    
-    try:
-        # Find the tracking event
-        if unique_id:
-            event = TrackingEvent.query.filter_by(unique_id=unique_id).first()
-        elif link_id:
-            # Get the most recent event for this link and IP
-            ip_address = get_client_ip()
-            event = TrackingEvent.query.filter_by(
-                link_id=link_id, 
-                ip_address=ip_address
-            ).order_by(TrackingEvent.timestamp.desc()).first()
-        else:
-            return jsonify({"success": False, "error": "No matching tracking event found"}), 404
 
-        if event:
-            # Update session duration and page views
-            event.session_duration = max(event.session_duration or 0, duration)
-            event.page_views = max(event.page_views or 1, page_views)
-            db.session.commit()
-            
-            return jsonify({
-                "success": True, 
-                "message": "Session duration updated",
-                "duration": event.session_duration,
-                "page_views": event.page_views
-            }), 200
-        else:
-            return jsonify({"success": False, "error": "No matching tracking event found"}), 404
-            
-    except Exception as e:
-        db.session.rollback()
-        print(f"Error updating session duration: {e}")
-        return jsonify({"success": False, "error": "Failed to update session duration"}), 500
+    if not short_code or not unique_id:
+        return jsonify({"status": "error", "message": "Missing parameters"}), 400
 
-@track_bp.route("/track/heartbeat", methods=["POST"])
-def session_heartbeat():
-    """Periodic heartbeat to track active sessions"""
-    data = request.get_json()
-    unique_id = data.get("unique_id")
-    link_id = data.get("link_id")
-    current_duration = data.get("duration", 0)
-    
-    if not unique_id and not link_id:
-        return jsonify({"success": False, "error": "Missing unique_id or link_id"}), 400
-    
-    try:
-        # Find the tracking event
-        if unique_id:
-            event = TrackingEvent.query.filter_by(unique_id=unique_id).first()
-        elif link_id:
-            ip_address = get_client_ip()
-            event = TrackingEvent.query.filter_by(
-                link_id=link_id, 
-                ip_address=ip_address
-            ).order_by(TrackingEvent.timestamp.desc()).first()
-        
-        if event:
-            # Update session duration with current time spent
-            event.session_duration = current_duration
-            db.session.commit()
-            
-            return jsonify({"success": True, "duration": event.session_duration}), 200
-        else:
-            return jsonify({"success": False, "error": "No matching tracking event found"}), 404
-            
-    except Exception as e:
-        db.session.rollback()
-        print(f"Error updating heartbeat: {e}")
-        return jsonify({"success": False, "error": "Failed to update heartbeat"}), 500
+    link = Link.query.filter_by(short_code=short_code).first()
+    if not link:
+        return jsonify({"status": "error", "message": "Link not found"}), 404
+
+    event = TrackingEvent.query.filter_by(unique_id=unique_id).first()
+    if not event:
+        return jsonify({"status": "error", "message": "Tracking event not found"}), 404
+
+    event.on_page = True
+    db.session.commit()
+
+    return jsonify({"status": "success"}), 200
+
