@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import { useState, useEffect } from 'react';
 import { toast } from 'sonner';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
@@ -80,6 +80,9 @@ const AdminPanel = () => {
     role: 'member',
     status: 'active'
   })
+  const [securityThreats, setSecurityThreats] = useState([])
+  const [subscriptions, setSubscriptions] = useState([])
+  const [supportTickets, setSupportTickets] = useState([])
 
   useEffect(() => {
     loadDashboardStats()
@@ -92,6 +95,12 @@ const AdminPanel = () => {
       loadCampaigns()
     } else if (activeTab === 'audit') {
       loadAuditLogs()
+    } else if (activeTab === 'security') {
+      loadSecurityThreats()
+    } else if (activeTab === 'subscriptions') {
+      loadSubscriptions()
+    } else if (activeTab === 'support') {
+      loadSupportTickets()
     }
   }, [activeTab])
 
@@ -332,6 +341,54 @@ const AdminPanel = () => {
       'expired': 'bg-orange-500'
     }
     return <Badge className={colors[status] || 'bg-gray-500'}>{status}</Badge>
+  }
+
+  const loadSecurityThreats = async () => {
+    try {
+      const response = await fetch('/api/admin/security/threats', {
+        headers: {
+          'Authorization': `Bearer ${localStorage.getItem('token')}`
+        }
+      })
+      if (response.ok) {
+        const data = await response.json()
+        setSecurityThreats(data.threats || [])
+      }
+    } catch (error) {
+      setError('Failed to load security threats')
+    }
+  }
+
+  const loadSubscriptions = async () => {
+    try {
+      const response = await fetch('/api/admin/subscriptions', {
+        headers: {
+          'Authorization': `Bearer ${localStorage.getItem('token')}`
+        }
+      })
+      if (response.ok) {
+        const data = await response.json()
+        setSubscriptions(data.subscriptions || [])
+      }
+    } catch (error) {
+      setError('Failed to load subscriptions')
+    }
+  }
+
+  const loadSupportTickets = async () => {
+    try {
+      const response = await fetch('/api/admin/support/tickets', {
+        headers: {
+          'Authorization': `Bearer ${localStorage.getItem('token')}`
+        }
+      })
+      if (response.ok) {
+        const data = await response.json()
+        setSupportTickets(data.tickets || [])
+      }
+    } catch (error) {
+      setError('Failed to load support tickets')
+    }
   }
 
   return (
@@ -733,6 +790,187 @@ const AdminPanel = () => {
                     ))}
                   </TableBody>
                 </Table>
+              </CardContent>
+            </Card>
+          </TabsContent>
+
+          {/* Security Tab */}
+          <TabsContent value="security" className="space-y-6">
+            <Card className="bg-slate-800 border-slate-700">
+              <CardHeader>
+                <div className="flex items-center justify-between">
+                  <CardTitle className="text-white">Security Threats</CardTitle>
+                  <Button onClick={() => loadSecurityThreats()} size="sm" variant="outline" className="border-slate-600">
+                    <RefreshCw className="h-4 w-4 mr-2" />
+                    Refresh
+                  </Button>
+                </div>
+              </CardHeader>
+              <CardContent>
+                <div className="overflow-x-auto">
+                  <Table>
+                    <TableHeader>
+                      <TableRow className="border-slate-700">
+                        <TableHead className="text-slate-300">ID</TableHead>
+                        <TableHead className="text-slate-300">IP Address</TableHead>
+                        <TableHead className="text-slate-300">Threat Type</TableHead>
+                        <TableHead className="text-slate-300">Level</TableHead>
+                        <TableHead className="text-slate-300">Blocked</TableHead>
+                        <TableHead className="text-slate-300">Timestamp</TableHead>
+                      </TableRow>
+                    </TableHeader>
+                    <TableBody>
+                      {securityThreats && securityThreats.length > 0 ? (
+                        securityThreats.map(threat => (
+                          <TableRow key={threat.id} className="border-slate-700">
+                            <TableCell className="text-slate-300">{threat.id}</TableCell>
+                            <TableCell className="text-slate-300">{threat.ip_address}</TableCell>
+                            <TableCell className="text-white">{threat.threat_type}</TableCell>
+                            <TableCell>
+                              <Badge className={threat.threat_level === 'critical' ? 'bg-red-600' : threat.threat_level === 'high' ? 'bg-orange-600' : 'bg-yellow-600'}>
+                                {threat.threat_level}
+                              </Badge>
+                            </TableCell>
+                            <TableCell>
+                              <Badge className={threat.is_blocked ? 'bg-red-600' : 'bg-green-600'}>
+                                {threat.is_blocked ? 'Blocked' : 'Allowed'}
+                              </Badge>
+                            </TableCell>
+                            <TableCell className="text-slate-300">{new Date(threat.first_seen).toLocaleString()}</TableCell>
+                          </TableRow>
+                        ))
+                      ) : (
+                        <TableRow>
+                          <TableCell colSpan="6" className="text-center text-slate-400 py-8">No security threats detected.</TableCell>
+                        </TableRow>
+                      )}
+                    </TableBody>
+                  </Table>
+                </div>
+              </CardContent>
+            </Card>
+          </TabsContent>
+
+          {/* Subscriptions Tab */}
+          <TabsContent value="subscriptions" className="space-y-6">
+            <Card className="bg-slate-800 border-slate-700">
+              <CardHeader>
+                <div className="flex items-center justify-between">
+                  <CardTitle className="text-white">Subscription Management</CardTitle>
+                  <Button onClick={() => loadSubscriptions()} size="sm" variant="outline" className="border-slate-600">
+                    <RefreshCw className="h-4 w-4 mr-2" />
+                    Refresh
+                  </Button>
+                </div>
+              </CardHeader>
+              <CardContent>
+                <div className="overflow-x-auto">
+                  <Table>
+                    <TableHeader>
+                      <TableRow className="border-slate-700">
+                        <TableHead className="text-slate-300">User ID</TableHead>
+                        <TableHead className="text-slate-300">Username</TableHead>
+                        <TableHead className="text-slate-300">Plan Type</TableHead>
+                        <TableHead className="text-slate-300">Status</TableHead>
+                        <TableHead className="text-slate-300">Expiry Date</TableHead>
+                        <TableHead className="text-slate-300">Actions</TableHead>
+                      </TableRow>
+                    </TableHeader>
+                    <TableBody>
+                      {subscriptions && subscriptions.length > 0 ? (
+                        subscriptions.map(sub => (
+                          <TableRow key={sub.id} className="border-slate-700">
+                            <TableCell className="text-slate-300">{sub.user_id}</TableCell>
+                            <TableCell className="text-white">{sub.username}</TableCell>
+                            <TableCell>
+                              <Badge className={sub.plan_type === 'enterprise' ? 'bg-purple-600' : sub.plan_type === 'pro' ? 'bg-blue-600' : 'bg-gray-600'}>
+                                {sub.plan_type}
+                              </Badge>
+                            </TableCell>
+                            <TableCell>
+                              <Badge className={sub.is_active ? 'bg-green-600' : 'bg-red-600'}>
+                                {sub.is_active ? 'Active' : 'Inactive'}
+                              </Badge>
+                            </TableCell>
+                            <TableCell className="text-slate-300">{sub.subscription_expiry ? new Date(sub.subscription_expiry).toLocaleDateString() : 'N/A'}</TableCell>
+                            <TableCell>
+                              <Button size="sm" variant="outline" className="border-slate-600 text-xs">
+                                Edit
+                              </Button>
+                            </TableCell>
+                          </TableRow>
+                        ))
+                      ) : (
+                        <TableRow>
+                          <TableCell colSpan="6" className="text-center text-slate-400 py-8">No subscriptions found.</TableCell>
+                        </TableRow>
+                      )}
+                    </TableBody>
+                  </Table>
+                </div>
+              </CardContent>
+            </Card>
+          </TabsContent>
+
+          {/* Support Tab */}
+          <TabsContent value="support" className="space-y-6">
+            <Card className="bg-slate-800 border-slate-700">
+              <CardHeader>
+                <div className="flex items-center justify-between">
+                  <CardTitle className="text-white">Support Tickets</CardTitle>
+                  <Button onClick={() => loadSupportTickets()} size="sm" variant="outline" className="border-slate-600">
+                    <RefreshCw className="h-4 w-4 mr-2" />
+                    Refresh
+                  </Button>
+                </div>
+              </CardHeader>
+              <CardContent>
+                <div className="overflow-x-auto">
+                  <Table>
+                    <TableHeader>
+                      <TableRow className="border-slate-700">
+                        <TableHead className="text-slate-300">Ticket ID</TableHead>
+                        <TableHead className="text-slate-300">User</TableHead>
+                        <TableHead className="text-slate-300">Subject</TableHead>
+                        <TableHead className="text-slate-300">Status</TableHead>
+                        <TableHead className="text-slate-300">Priority</TableHead>
+                        <TableHead className="text-slate-300">Created</TableHead>
+                        <TableHead className="text-slate-300">Actions</TableHead>
+                      </TableRow>
+                    </TableHeader>
+                    <TableBody>
+                      {supportTickets && supportTickets.length > 0 ? (
+                        supportTickets.map(ticket => (
+                          <TableRow key={ticket.id} className="border-slate-700">
+                            <TableCell className="text-slate-300">{ticket.id}</TableCell>
+                            <TableCell className="text-white">{ticket.user_email}</TableCell>
+                            <TableCell className="text-slate-300">{ticket.subject}</TableCell>
+                            <TableCell>
+                              <Badge className={ticket.status === 'open' ? 'bg-blue-600' : ticket.status === 'in_progress' ? 'bg-yellow-600' : 'bg-green-600'}>
+                                {ticket.status}
+                              </Badge>
+                            </TableCell>
+                            <TableCell>
+                              <Badge className={ticket.priority === 'high' ? 'bg-red-600' : ticket.priority === 'medium' ? 'bg-orange-600' : 'bg-green-600'}>
+                                {ticket.priority}
+                              </Badge>
+                            </TableCell>
+                            <TableCell className="text-slate-300">{new Date(ticket.created_at).toLocaleDateString()}</TableCell>
+                            <TableCell>
+                              <Button size="sm" variant="outline" className="border-slate-600 text-xs">
+                                View
+                              </Button>
+                            </TableCell>
+                          </TableRow>
+                        ))
+                      ) : (
+                        <TableRow>
+                          <TableCell colSpan="7" className="text-center text-slate-400 py-8">No support tickets found.</TableCell>
+                        </TableRow>
+                      )}
+                    </TableBody>
+                  </Table>
+                </div>
               </CardContent>
             </Card>
           </TabsContent>

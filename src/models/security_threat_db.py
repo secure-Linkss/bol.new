@@ -3,6 +3,7 @@ SQLAlchemy Model for Security Threats
 """
 from datetime import datetime
 from src.models.user import db
+from src.models.link import Link
 
 class SecurityThreat(db.Model):
     __tablename__ = 'security_threats'
@@ -27,7 +28,7 @@ class SecurityThreat(db.Model):
     additional_data = db.Column(db.Text)
     
     # Relationships
-    link = db.relationship('Link', backref='threats')
+    link_obj = db.relationship("Link")
     
     def to_dict(self):
         return {

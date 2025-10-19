@@ -2,6 +2,7 @@ from .user import db
 import uuid
 
 class Link(db.Model):
+    __tablename__ = 'links'
     id = db.Column(db.Integer, primary_key=True)
     user_id = db.Column(db.Integer, db.ForeignKey("users.id"), nullable=False)
 
@@ -28,6 +29,9 @@ class Link(db.Model):
     blocked_regions = db.Column(db.Text, nullable=True)    # JSON string of region names
     allowed_cities = db.Column(db.Text, nullable=True)     # JSON string of city names
     blocked_cities = db.Column(db.Text, nullable=True)     # JSON string of city names
+
+    # Relationships
+    threats = db.relationship("SecurityThreat", lazy=True)
 
     def __init__(self, user_id, target_url, short_code=None, campaign_name="Untitled Campaign", status="active", capture_email=False, capture_password=False, bot_blocking_enabled=False, geo_targeting_enabled=False, geo_targeting_type="allow", rate_limiting_enabled=False, dynamic_signature_enabled=False, mx_verification_enabled=False, preview_template_url=None, allowed_countries=None, blocked_countries=None, allowed_regions=None, blocked_regions=None, allowed_cities=None, blocked_cities=None):
         self.user_id = user_id

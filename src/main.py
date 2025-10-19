@@ -21,8 +21,10 @@ from src.routes.admin_complete import admin_complete_bp
 from src.routes.security import security_bp
 from src.routes.quantum_redirect import quantum_bp
 from src.routes.advanced_security import advanced_security_bp
+from flask_migrate import Migrate
 
 app = Flask(__name__, static_folder=os.path.join(os.path.dirname(__file__), '..', 'src', 'static'))
+migrate = Migrate(app, db)
 app.config['SECRET_KEY'] = os.environ.get('SECRET_KEY', 'ej5B3Amppi4gjpbC65te6rJuvJzgVCWW_xfB-ZLR1TE')
 
 # Enable CORS for all routes
@@ -57,7 +59,7 @@ app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
 db.init_app(app)
 
 with app.app_context():
-    # db.create_all()
+    db.create_all()
     # Create default admin user if not exists
     if not User.query.filter_by(username="Brain").first():
         admin_user = User(username="Brain", email="admin@brainlinktracker.com")
