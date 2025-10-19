@@ -1,0 +1,4 @@
+Traceback (most recent call last):
+  File "/home/user/brain-link-tracker/comprehensive_db_check.py", line 7, in <module>
+    import psycopg2
+ModuleNotFoundError: No module named 'psycopg2'
