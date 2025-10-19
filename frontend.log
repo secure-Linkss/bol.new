@@ -13,3 +13,4 @@
 5:23:47 PM [vite] (client) page reload src/services/quantum_redirect.py
 5:24:01 PM [vite] (client) page reload src/services/quantum_redirect.py
 5:24:09 PM [vite] (client) page reload src/routes/quantum_redirect.py
+5:26:01 PM [vite] (client) hmr update /src/components/AdminPanel.jsx, /src/index.css, /src/App.css

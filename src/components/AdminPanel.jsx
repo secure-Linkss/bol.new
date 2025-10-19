@@ -373,69 +373,69 @@ const AdminPanel = () => {
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-slate-900 via-slate-800 to-slate-900 p-6">
+    <div className="min-h-screen bg-gradient-to-br from-slate-900 via-slate-800 to-slate-900 p-4 sm:p-6">
       <div className="max-w-7xl mx-auto">
-        {/* Header */}
-        <div className="mb-8">
-          <h1 className="text-4xl font-bold text-white mb-2">Admin Panel</h1>
-          <p className="text-slate-400">Enterprise-grade administration dashboard</p>
+        {/* Header - Mobile Responsive */}
+        <div className="mb-6 sm:mb-8">
+          <h1 className="text-2xl sm:text-4xl font-bold text-white mb-1 sm:mb-2">Admin Panel</h1>
+          <p className="text-sm sm:text-base text-slate-400">Enterprise-grade administration dashboard</p>
         </div>
 
-        {/* Alerts */}
+        {/* Alerts - Mobile Responsive */}
         {error && (
           <Alert className="mb-4 border-red-500 bg-red-500/10">
             <AlertTriangle className="h-4 w-4 text-red-500" />
-            <AlertDescription className="text-red-400">{error}</AlertDescription>
+            <AlertDescription className="text-red-400 text-sm sm:text-base">{error}</AlertDescription>
           </Alert>
         )}
 
         {success && (
           <Alert className="mb-4 border-green-500 bg-green-500/10">
-            <AlertDescription className="text-green-400">{success}</AlertDescription>
+            <AlertDescription className="text-green-400 text-sm sm:text-base">{success}</AlertDescription>
           </Alert>
         )}
 
-        {/* Main Tabs */}
-        <Tabs value={activeTab} onValueChange={setActiveTab} className="space-y-6">
-          <div className="overflow-x-auto scrollbar-hide">
-            <TabsList className="bg-slate-800 border-slate-700 p-1 flex w-max min-w-full gap-1 md:grid md:grid-cols-8 md:w-full">
-              <TabsTrigger value="dashboard" className="data-[state=active]:bg-slate-700 flex items-center justify-center px-2 py-2 text-xs md:text-sm whitespace-nowrap min-w-[80px] md:min-w-0">
-                <LayoutDashboard className="h-4 w-4 mr-1 md:mr-2" />
+        {/* Main Tabs - Mobile Responsive */}
+        <Tabs value={activeTab} onValueChange={setActiveTab} className="space-y-4 sm:space-y-6">
+          {/* Tab List - Horizontal Scroll on Mobile */}
+          <div className="overflow-x-auto scrollbar-hide -mx-4 sm:mx-0 px-4 sm:px-0">
+            <TabsList className="bg-slate-800 border-slate-700 p-1 flex w-max min-w-full gap-1 sm:grid sm:grid-cols-8 sm:w-full">
+              <TabsTrigger value="dashboard" className="data-[state=active]:bg-slate-700 flex items-center justify-center px-2 sm:px-3 py-2 text-xs sm:text-sm whitespace-nowrap min-w-[70px] sm:min-w-0">
+                <LayoutDashboard className="h-4 w-4 mr-1 sm:mr-2" />
                 <span className="hidden sm:inline">Dashboard</span>
                 <span className="sm:hidden">Dash</span>
               </TabsTrigger>
-              <TabsTrigger value="users" className="data-[state=active]:bg-slate-700 flex items-center justify-center px-2 py-2 text-xs md:text-sm whitespace-nowrap min-w-[80px] md:min-w-0">
-                <Users className="h-4 w-4 mr-1 md:mr-2" />
-                <span className="hidden sm:inline">Users</span>
-                <span className="sm:hidden">Users</span>
+              <TabsTrigger value="users" className="data-[state=active]:bg-slate-700 flex items-center justify-center px-2 sm:px-3 py-2 text-xs sm:text-sm whitespace-nowrap min-w-[70px] sm:min-w-0">
+                <Users className="h-4 w-4 mr-1 sm:mr-2" />
+                <span>Users</span>
               </TabsTrigger>
-              <TabsTrigger value="campaigns" className="data-[state=active]:bg-slate-700 flex items-center justify-center px-2 py-2 text-xs md:text-sm whitespace-nowrap min-w-[80px] md:min-w-0">
-                <FolderKanban className="h-4 w-4 mr-1 md:mr-2" />
+              <TabsTrigger value="campaigns" className="data-[state=active]:bg-slate-700 flex items-center justify-center px-2 sm:px-3 py-2 text-xs sm:text-sm whitespace-nowrap min-w-[70px] sm:min-w-0">
+                <FolderKanban className="h-4 w-4 mr-1 sm:mr-2" />
                 <span className="hidden sm:inline">Campaigns</span>
                 <span className="sm:hidden">Camp</span>
               </TabsTrigger>
-              <TabsTrigger value="security" className="data-[state=active]:bg-slate-700 flex items-center justify-center px-2 py-2 text-xs md:text-sm whitespace-nowrap min-w-[80px] md:min-w-0">
-                <Shield className="h-4 w-4 mr-1 md:mr-2" />
+              <TabsTrigger value="security" className="data-[state=active]:bg-slate-700 flex items-center justify-center px-2 sm:px-3 py-2 text-xs sm:text-sm whitespace-nowrap min-w-[70px] sm:min-w-0">
+                <Shield className="h-4 w-4 mr-1 sm:mr-2" />
                 <span className="hidden sm:inline">Security</span>
                 <span className="sm:hidden">Sec</span>
               </TabsTrigger>
-              <TabsTrigger value="subscriptions" className="data-[state=active]:bg-slate-700 flex items-center justify-center px-2 py-2 text-xs md:text-sm whitespace-nowrap min-w-[80px] md:min-w-0">
-                <CreditCard className="h-4 w-4 mr-1 md:mr-2" />
-                <span className="hidden sm:inline">Subscriptions</span>
-                <span className="sm:hidden">Subs</span>
+              <TabsTrigger value="subscriptions" className="data-[state=active]:bg-slate-700 flex items-center justify-center px-2 sm:px-3 py-2 text-xs sm:text-sm whitespace-nowrap min-w-[70px] sm:min-w-0">
+                <CreditCard className="h-4 w-4 mr-1 sm:mr-2" />
+                <span className="hidden sm:inline">Subs</span>
+                <span className="sm:hidden">Sub</span>
               </TabsTrigger>
-              <TabsTrigger value="support" className="data-[state=active]:bg-slate-700 flex items-center justify-center px-2 py-2 text-xs md:text-sm whitespace-nowrap min-w-[80px] md:min-w-0">
-                <MessageSquare className="h-4 w-4 mr-1 md:mr-2" />
+              <TabsTrigger value="support" className="data-[state=active]:bg-slate-700 flex items-center justify-center px-2 sm:px-3 py-2 text-xs sm:text-sm whitespace-nowrap min-w-[70px] sm:min-w-0">
+                <MessageSquare className="h-4 w-4 mr-1 sm:mr-2" />
                 <span className="hidden sm:inline">Support</span>
                 <span className="sm:hidden">Supp</span>
               </TabsTrigger>
-              <TabsTrigger value="audit" className="data-[state=active]:bg-slate-700 flex items-center justify-center px-2 py-2 text-xs md:text-sm whitespace-nowrap min-w-[80px] md:min-w-0">
-                <FileText className="h-4 w-4 mr-1 md:mr-2" />
+              <TabsTrigger value="audit" className="data-[state=active]:bg-slate-700 flex items-center justify-center px-2 sm:px-3 py-2 text-xs sm:text-sm whitespace-nowrap min-w-[70px] sm:min-w-0">
+                <FileText className="h-4 w-4 mr-1 sm:mr-2" />
                 <span className="hidden sm:inline">Audit</span>
-                <span className="sm:hidden">Audit</span>
+                <span className="sm:hidden">Aud</span>
               </TabsTrigger>
-              <TabsTrigger value="settings" className="data-[state=active]:bg-slate-700 flex items-center justify-center px-2 py-2 text-xs md:text-sm whitespace-nowrap min-w-[80px] md:min-w-0">
-                <Settings className="h-4 w-4 mr-1 md:mr-2" />
+              <TabsTrigger value="settings" className="data-[state=active]:bg-slate-700 flex items-center justify-center px-2 sm:px-3 py-2 text-xs sm:text-sm whitespace-nowrap min-w-[70px] sm:min-w-0">
+                <Settings className="h-4 w-4 mr-1 sm:mr-2" />
                 <span className="hidden sm:inline">Settings</span>
                 <span className="sm:hidden">Set</span>
               </TabsTrigger>
@@ -443,40 +443,40 @@ const AdminPanel = () => {
           </div>
 
           {/* Dashboard Tab */}
-          <TabsContent value="dashboard" className="space-y-6">
+          <TabsContent value="dashboard" className="space-y-4 sm:space-y-6">
             {dashboardStats && (
               <>
-                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+                <div className="grid grid-cols-2 sm:grid-cols-2 lg:grid-cols-4 gap-2 sm:gap-4">
                   <Card className="bg-slate-800 border-slate-700">
-                    <CardHeader>
-                      <CardTitle className="text-white text-sm">Total Users</CardTitle>
+                    <CardHeader className="p-3 sm:p-4">
+                      <CardTitle className="text-white text-xs sm:text-sm">Total Users</CardTitle>
                     </CardHeader>
-                    <CardContent>
-                      <p className="text-3xl font-bold text-blue-400">{dashboardStats.total_users || 0}</p>
+                    <CardContent className="p-3 sm:p-4">
+                      <p className="text-2xl sm:text-3xl font-bold text-blue-400">{dashboardStats.total_users || 0}</p>
                     </CardContent>
                   </Card>
                   <Card className="bg-slate-800 border-slate-700">
-                    <CardHeader>
-                      <CardTitle className="text-white text-sm">Active Campaigns</CardTitle>
+                    <CardHeader className="p-3 sm:p-4">
+                      <CardTitle className="text-white text-xs sm:text-sm">Active Campaigns</CardTitle>
                     </CardHeader>
-                    <CardContent>
-                      <p className="text-3xl font-bold text-green-400">{dashboardStats.active_campaigns || 0}</p>
+                    <CardContent className="p-3 sm:p-4">
+                      <p className="text-2xl sm:text-3xl font-bold text-green-400">{dashboardStats.active_campaigns || 0}</p>
                     </CardContent>
                   </Card>
                   <Card className="bg-slate-800 border-slate-700">
-                    <CardHeader>
-                      <CardTitle className="text-white text-sm">Total Clicks</CardTitle>
+                    <CardHeader className="p-3 sm:p-4">
+                      <CardTitle className="text-white text-xs sm:text-sm">Total Clicks</CardTitle>
                     </CardHeader>
-                    <CardContent>
-                      <p className="text-3xl font-bold text-purple-400">{dashboardStats.total_clicks || 0}</p>
+                    <CardContent className="p-3 sm:p-4">
+                      <p className="text-2xl sm:text-3xl font-bold text-purple-400">{dashboardStats.total_clicks || 0}</p>
                     </CardContent>
                   </Card>
                   <Card className="bg-slate-800 border-slate-700">
-                    <CardHeader>
-                      <CardTitle className="text-white text-sm">Verified Conversions</CardTitle>
+                    <CardHeader className="p-3 sm:p-4">
+                      <CardTitle className="text-white text-xs sm:text-sm">Verified</CardTitle>
                     </CardHeader>
-                    <CardContent>
-                      <p className="text-3xl font-bold text-orange-400">{dashboardStats.verified_conversions || 0}</p>
+                    <CardContent className="p-3 sm:p-4">
+                      <p className="text-2xl sm:text-3xl font-bold text-orange-400">{dashboardStats.verified_conversions || 0}</p>
                     </CardContent>
                   </Card>
                 </div>
@@ -484,67 +484,64 @@ const AdminPanel = () => {
             )}
           </TabsContent>
 
-          {/* Users Tab */}
-          <TabsContent value="users" className="space-y-6">
+          {/* Users Tab - Mobile Responsive */}
+          <TabsContent value="users" className="space-y-4 sm:space-y-6">
             <Card className="bg-slate-800 border-slate-700">
-              <CardHeader>
-                <div className="flex items-center justify-between flex-wrap gap-4">
-                  <CardTitle className="text-white">User Management</CardTitle>
-                  <div className="flex gap-2">
-                    <Button onClick={() => setShowCreateUserDialog(true)} className="bg-blue-600 hover:bg-blue-700">
-                      <Plus className="h-4 w-4 mr-2" />
-                      Create User
+              <CardHeader className="p-3 sm:p-6">
+                <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 sm:gap-4">
+                  <CardTitle className="text-white text-lg sm:text-xl">User Management</CardTitle>
+                  <div className="flex gap-2 w-full sm:w-auto">
+                    <Button onClick={() => setShowCreateUserDialog(true)} className="bg-blue-600 hover:bg-blue-700 flex-1 sm:flex-none text-xs sm:text-sm py-2">
+                      <Plus className="h-4 w-4 mr-1 sm:mr-2" />
+                      <span className="hidden sm:inline">Create User</span>
+                      <span className="sm:hidden">Add</span>
                     </Button>
-                    <Button onClick={loadUsers} size="sm" variant="outline" className="border-slate-600">
-                      <RefreshCw className="h-4 w-4 mr-2" />
-                      Refresh
+                    <Button onClick={loadUsers} size="sm" variant="outline" className="border-slate-600 text-xs sm:text-sm">
+                      <RefreshCw className="h-4 w-4" />
                     </Button>
                   </div>
                 </div>
               </CardHeader>
-              <CardContent>
+              <CardContent className="p-3 sm:p-6">
                 <div className="space-y-4">
-                  <div className="flex gap-2">
+                  <div className="flex flex-col sm:flex-row gap-2">
                     <Input
                       placeholder="Search users..."
                       value={searchQuery}
                       onChange={(e) => setSearchQuery(e.target.value)}
-                      className="bg-slate-700 border-slate-600 text-white"
+                      className="bg-slate-700 border-slate-600 text-white text-sm"
                     />
                     <Select value={filterStatus} onValueChange={setFilterStatus}>
-                      <SelectTrigger className="bg-slate-700 border-slate-600 text-white w-[150px]">
-                        <SelectValue placeholder="Filter by status" />
+                      <SelectTrigger className="bg-slate-700 border-slate-600 text-white text-sm w-full sm:w-[150px]">
+                        <SelectValue placeholder="Filter" />
                       </SelectTrigger>
                       <SelectContent className="bg-slate-700 border-slate-600">
                         <SelectItem value="all">All Status</SelectItem>
                         <SelectItem value="active">Active</SelectItem>
                         <SelectItem value="suspended">Suspended</SelectItem>
-                        <SelectItem value="pending">Pending</SelectItem>
                       </SelectContent>
                     </Select>
                   </div>
                   <div className="overflow-x-auto">
-                    <Table>
+                    <Table className="text-xs sm:text-sm">
                       <TableHeader>
                         <TableRow className="border-slate-700">
                           <TableHead className="text-slate-300">Username</TableHead>
-                          <TableHead className="text-slate-300">Email</TableHead>
+                          <TableHead className="text-slate-300 hidden sm:table-cell">Email</TableHead>
                           <TableHead className="text-slate-300">Role</TableHead>
-                          <TableHead className="text-slate-300">Status</TableHead>
-                          <TableHead className="text-slate-300">Created</TableHead>
-                          <TableHead className="text-slate-300">Actions</TableHead>
+                          <TableHead className="text-slate-300 hidden md:table-cell">Status</TableHead>
+                          <TableHead className="text-slate-300 text-right">Actions</TableHead>
                         </TableRow>
                       </TableHeader>
                       <TableBody>
                         {users && users.length > 0 ? (
                           users.map(user => (
                             <TableRow key={user.id} className="border-slate-700">
-                              <TableCell className="text-white">{user.username}</TableCell>
-                              <TableCell className="text-slate-300">{user.email}</TableCell>
-                              <TableCell>{getRoleBadge(user.role)}</TableCell>
-                              <TableCell>{getStatusBadge(user.status || 'active')}</TableCell>
-                              <TableCell className="text-slate-300">{new Date(user.created_at).toLocaleDateString()}</TableCell>
-                              <TableCell>
+                              <TableCell className="text-white text-xs sm:text-sm">{user.username}</TableCell>
+                              <TableCell className="text-slate-300 hidden sm:table-cell text-xs sm:text-sm">{user.email}</TableCell>
+                              <TableCell className="text-xs sm:text-sm">{getRoleBadge(user.role)}</TableCell>
+                              <TableCell className="text-slate-300 hidden md:table-cell text-xs sm:text-sm">{getStatusBadge(user.status || 'active')}</TableCell>
+                              <TableCell className="text-right">
                                 <DropdownMenu>
                                   <DropdownMenuTrigger asChild>
                                     <Button variant="ghost" size="sm" className="h-8 w-8 p-0">
@@ -552,12 +549,12 @@ const AdminPanel = () => {
                                     </Button>
                                   </DropdownMenuTrigger>
                                   <DropdownMenuContent className="bg-slate-700 border-slate-600">
-                                    <DropdownMenuItem className="text-slate-300">
+                                    <DropdownMenuItem className="text-slate-300 text-xs sm:text-sm">
                                       <Edit className="h-4 w-4 mr-2" />
                                       Edit
                                     </DropdownMenuItem>
                                     <DropdownMenuSeparator className="bg-slate-600" />
-                                    <DropdownMenuItem className="text-red-400" onClick={() => {
+                                    <DropdownMenuItem className="text-red-400 text-xs sm:text-sm" onClick={() => {
                                       setSelectedUser(user)
                                       setDeleteDialogOpen(true)
                                     }}>
@@ -571,7 +568,7 @@ const AdminPanel = () => {
                           ))
                         ) : (
                           <TableRow>
-                            <TableCell colSpan="6" className="text-center text-slate-400 py-8">No users found.</TableCell>
+                            <TableCell colSpan="5" className="text-center text-slate-400 py-8 text-xs sm:text-sm">No users found.</TableCell>
                           </TableRow>
                         )}
                       </TableBody>
@@ -582,44 +579,41 @@ const AdminPanel = () => {
             </Card>
           </TabsContent>
 
-          {/* Campaigns Tab */}
-          <TabsContent value="campaigns" className="space-y-6">
+          {/* Campaigns Tab - Mobile Responsive */}
+          <TabsContent value="campaigns" className="space-y-4 sm:space-y-6">
             <Card className="bg-slate-800 border-slate-700">
-              <CardHeader>
+              <CardHeader className="p-3 sm:p-6">
                 <div className="flex items-center justify-between">
-                  <CardTitle className="text-white">Campaign Management</CardTitle>
-                  <Button onClick={loadCampaigns} size="sm" variant="outline" className="border-slate-600">
-                    <RefreshCw className="h-4 w-4 mr-2" />
-                    Refresh
+                  <CardTitle className="text-white text-lg sm:text-xl">Campaign Management</CardTitle>
+                  <Button onClick={loadCampaigns} size="sm" variant="outline" className="border-slate-600 text-xs sm:text-sm">
+                    <RefreshCw className="h-4 w-4" />
                   </Button>
                 </div>
               </CardHeader>
-              <CardContent>
+              <CardContent className="p-3 sm:p-6">
                 <div className="overflow-x-auto">
-                  <Table>
+                  <Table className="text-xs sm:text-sm">
                     <TableHeader>
                       <TableRow className="border-slate-700">
-                        <TableHead className="text-slate-300">Campaign Name</TableHead>
-                        <TableHead className="text-slate-300">Status</TableHead>
+                        <TableHead className="text-slate-300">Name</TableHead>
+                        <TableHead className="text-slate-300 hidden sm:table-cell">Status</TableHead>
                         <TableHead className="text-slate-300">Links</TableHead>
-                        <TableHead className="text-slate-300">Clicks</TableHead>
-                        <TableHead className="text-slate-300">Created</TableHead>
+                        <TableHead className="text-slate-300 hidden md:table-cell">Clicks</TableHead>
                       </TableRow>
                     </TableHeader>
                     <TableBody>
                       {campaigns && campaigns.length > 0 ? (
                         campaigns.map(campaign => (
                           <TableRow key={campaign.id} className="border-slate-700">
-                            <TableCell className="text-white">{campaign.name}</TableCell>
-                            <TableCell>{getStatusBadge(campaign.status)}</TableCell>
-                            <TableCell className="text-slate-300">{campaign.link_count || 0}</TableCell>
-                            <TableCell className="text-slate-300">{campaign.click_count || 0}</TableCell>
-                            <TableCell className="text-slate-300">{new Date(campaign.created_at).toLocaleDateString()}</TableCell>
+                            <TableCell className="text-white text-xs sm:text-sm">{campaign.name}</TableCell>
+                            <TableCell className="hidden sm:table-cell text-xs sm:text-sm">{getStatusBadge(campaign.status)}</TableCell>
+                            <TableCell className="text-slate-300 text-xs sm:text-sm">{campaign.link_count || 0}</TableCell>
+                            <TableCell className="text-slate-300 hidden md:table-cell text-xs sm:text-sm">{campaign.click_count || 0}</TableCell>
                           </TableRow>
                         ))
                       ) : (
                         <TableRow>
-                          <TableCell colSpan="5" className="text-center text-slate-400 py-8">No campaigns found.</TableCell>
+                          <TableCell colSpan="4" className="text-center text-slate-400 py-8 text-xs sm:text-sm">No campaigns found.</TableCell>
                         </TableRow>
                       )}
                     </TableBody>
@@ -629,89 +623,85 @@ const AdminPanel = () => {
             </Card>
           </TabsContent>
 
-          {/* Security Tab - Enhanced */}
-          <TabsContent value="security" className="space-y-6">
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
+          {/* Security Tab - Mobile Responsive */}
+          <TabsContent value="security" className="space-y-3 sm:space-y-6">
+            <div className="grid grid-cols-2 sm:grid-cols-3 gap-2 sm:gap-4 mb-4 sm:mb-6">
               <Card className="bg-slate-800 border-slate-700">
-                <CardHeader>
-                  <CardTitle className="text-white text-sm">Active Threats</CardTitle>
+                <CardHeader className="p-2 sm:p-4">
+                  <CardTitle className="text-white text-xs sm:text-sm">Active</CardTitle>
                 </CardHeader>
-                <CardContent>
-                  <p className="text-3xl font-bold text-red-400">{securityThreats.filter(t => !t.is_blocked).length}</p>
+                <CardContent className="p-2 sm:p-4">
+                  <p className="text-xl sm:text-3xl font-bold text-red-400">{securityThreats.filter(t => !t.is_blocked).length}</p>
                 </CardContent>
               </Card>
               <Card className="bg-slate-800 border-slate-700">
-                <CardHeader>
-                  <CardTitle className="text-white text-sm">Blocked Attempts</CardTitle>
+                <CardHeader className="p-2 sm:p-4">
+                  <CardTitle className="text-white text-xs sm:text-sm">Blocked</CardTitle>
                 </CardHeader>
-                <CardContent>
-                  <p className="text-3xl font-bold text-green-400">{securityThreats.filter(t => t.is_blocked).length}</p>
+                <CardContent className="p-2 sm:p-4">
+                  <p className="text-xl sm:text-3xl font-bold text-green-400">{securityThreats.filter(t => t.is_blocked).length}</p>
                 </CardContent>
               </Card>
               <Card className="bg-slate-800 border-slate-700">
-                <CardHeader>
-                  <CardTitle className="text-white text-sm">Critical Level</CardTitle>
+                <CardHeader className="p-2 sm:p-4">
+                  <CardTitle className="text-white text-xs sm:text-sm">Critical</CardTitle>
                 </CardHeader>
-                <CardContent>
-                  <p className="text-3xl font-bold text-orange-400">{securityThreats.filter(t => t.threat_level === 'critical').length}</p>
+                <CardContent className="p-2 sm:p-4">
+                  <p className="text-xl sm:text-3xl font-bold text-orange-400">{securityThreats.filter(t => t.threat_level === 'critical').length}</p>
                 </CardContent>
               </Card>
             </div>
 
             <Card className="bg-slate-800 border-slate-700">
-              <CardHeader>
+              <CardHeader className="p-3 sm:p-6">
                 <div className="flex items-center justify-between">
-                  <CardTitle className="text-white">Security Threats</CardTitle>
-                  <Button onClick={() => loadSecurityThreats()} size="sm" variant="outline" className="border-slate-600">
-                    <RefreshCw className="h-4 w-4 mr-2" />
-                    Refresh
+                  <CardTitle className="text-white text-lg sm:text-xl">Security Threats</CardTitle>
+                  <Button onClick={() => loadSecurityThreats()} size="sm" variant="outline" className="border-slate-600 text-xs sm:text-sm">
+                    <RefreshCw className="h-4 w-4" />
                   </Button>
                 </div>
               </CardHeader>
-              <CardContent>
+              <CardContent className="p-3 sm:p-6">
                 <div className="overflow-x-auto">
-                  <Table>
+                  <Table className="text-xs sm:text-sm">
                     <TableHeader>
                       <TableRow className="border-slate-700">
-                        <TableHead className="text-slate-300">IP Address</TableHead>
-                        <TableHead className="text-slate-300">Threat Type</TableHead>
+                        <TableHead className="text-slate-300">IP</TableHead>
+                        <TableHead className="text-slate-300 hidden sm:table-cell">Type</TableHead>
                         <TableHead className="text-slate-300">Level</TableHead>
-                        <TableHead className="text-slate-300">Blocked</TableHead>
-                        <TableHead className="text-slate-300">First Seen</TableHead>
-                        <TableHead className="text-slate-300">Actions</TableHead>
+                        <TableHead className="text-slate-300 hidden md:table-cell">Status</TableHead>
+                        <TableHead className="text-slate-300 text-right">Action</TableHead>
                       </TableRow>
                     </TableHeader>
                     <TableBody>
                       {securityThreats && securityThreats.length > 0 ? (
                         securityThreats.map(threat => (
                           <TableRow key={threat.id} className="border-slate-700">
-                            <TableCell className="text-white font-mono text-sm">{threat.ip_address}</TableCell>
-                            <TableCell className="text-slate-300">{threat.threat_type}</TableCell>
-                            <TableCell>
-                              <Badge className={threat.threat_level === 'critical' ? 'bg-red-600' : threat.threat_level === 'high' ? 'bg-orange-600' : 'bg-yellow-600'}>
+                            <TableCell className="text-white font-mono text-xs">{threat.ip_address?.substring(0, 12)}...</TableCell>
+                            <TableCell className="text-slate-300 hidden sm:table-cell text-xs">{threat.threat_type}</TableCell>
+                            <TableCell className="text-xs">
+                              <Badge className={threat.threat_level === 'critical' ? 'bg-red-600 text-xs' : 'bg-orange-600 text-xs'}>
                                 {threat.threat_level}
                               </Badge>
                             </TableCell>
-                            <TableCell>
-                              <Badge className={threat.is_blocked ? 'bg-red-600' : 'bg-green-600'}>
-                                {threat.is_blocked ? <Lock className="h-3 w-3 mr-1 inline" /> : <Unlock className="h-3 w-3 mr-1 inline" />}
+                            <TableCell className="hidden md:table-cell text-xs">
+                              <Badge className={threat.is_blocked ? 'bg-red-600 text-xs' : 'bg-green-600 text-xs'}>
                                 {threat.is_blocked ? 'Blocked' : 'Allowed'}
                               </Badge>
                             </TableCell>
-                            <TableCell className="text-slate-300 text-sm">{new Date(threat.first_seen).toLocaleString()}</TableCell>
-                            <TableCell>
+                            <TableCell className="text-right">
                               <Button size="sm" variant="outline" className="border-slate-600 text-xs" onClick={() => {
                                 setSelectedThreat(threat)
                                 setShowSecurityModal(true)
                               }}>
-                                View Details
+                                View
                               </Button>
                             </TableCell>
                           </TableRow>
                         ))
                       ) : (
                         <TableRow>
-                          <TableCell colSpan="6" className="text-center text-slate-400 py-8">No security threats detected.</TableCell>
+                          <TableCell colSpan="5" className="text-center text-slate-400 py-8 text-xs">No threats detected.</TableCell>
                         </TableRow>
                       )}
                     </TableBody>
@@ -721,31 +711,31 @@ const AdminPanel = () => {
             </Card>
           </TabsContent>
 
-          {/* Subscriptions Tab - Enhanced */}
-          <TabsContent value="subscriptions" className="space-y-6">
-            <div className="grid grid-cols-1 md:grid-cols-4 gap-4 mb-6">
+          {/* Subscriptions Tab - Mobile Responsive */}
+          <TabsContent value="subscriptions" className="space-y-3 sm:space-y-6">
+            <div className="grid grid-cols-2 sm:grid-cols-4 gap-2 sm:gap-4 mb-4 sm:mb-6">
               <Card className="bg-slate-800 border-slate-700">
-                <CardHeader>
-                  <CardTitle className="text-white text-sm">Total Subscriptions</CardTitle>
+                <CardHeader className="p-2 sm:p-4">
+                  <CardTitle className="text-white text-xs sm:text-sm">Total</CardTitle>
                 </CardHeader>
-                <CardContent>
-                  <p className="text-3xl font-bold text-blue-400">{subscriptions.length}</p>
+                <CardContent className="p-2 sm:p-4">
+                  <p className="text-xl sm:text-3xl font-bold text-blue-400">{subscriptions.length}</p>
                 </CardContent>
               </Card>
               <Card className="bg-slate-800 border-slate-700">
-                <CardHeader>
-                  <CardTitle className="text-white text-sm">Active</CardTitle>
+                <CardHeader className="p-2 sm:p-4">
+                  <CardTitle className="text-white text-xs sm:text-sm">Active</CardTitle>
                 </CardHeader>
-                <CardContent>
-                  <p className="text-3xl font-bold text-green-400">{subscriptions.filter(s => s.is_active).length}</p>
+                <CardContent className="p-2 sm:p-4">
+                  <p className="text-xl sm:text-3xl font-bold text-green-400">{subscriptions.filter(s => s.is_active).length}</p>
                 </CardContent>
               </Card>
               <Card className="bg-slate-800 border-slate-700">
-                <CardHeader>
-                  <CardTitle className="text-white text-sm">Expiring Soon</CardTitle>
+                <CardHeader className="p-2 sm:p-4">
+                  <CardTitle className="text-white text-xs sm:text-sm">Expiring</CardTitle>
                 </CardHeader>
-                <CardContent>
-                  <p className="text-3xl font-bold text-orange-400">{subscriptions.filter(s => {
+                <CardContent className="p-2 sm:p-4">
+                  <p className="text-xl sm:text-3xl font-bold text-orange-400">{subscriptions.filter(s => {
                     const expiry = new Date(s.subscription_expiry)
                     const today = new Date()
                     const daysUntilExpiry = Math.floor((expiry - today) / (1000 * 60 * 60 * 24))
@@ -754,11 +744,11 @@ const AdminPanel = () => {
                 </CardContent>
               </Card>
               <Card className="bg-slate-800 border-slate-700">
-                <CardHeader>
-                  <CardTitle className="text-white text-sm">Expired</CardTitle>
+                <CardHeader className="p-2 sm:p-4">
+                  <CardTitle className="text-white text-xs sm:text-sm">Expired</CardTitle>
                 </CardHeader>
-                <CardContent>
-                  <p className="text-3xl font-bold text-red-400">{subscriptions.filter(s => {
+                <CardContent className="p-2 sm:p-4">
+                  <p className="text-xl sm:text-3xl font-bold text-red-400">{subscriptions.filter(s => {
                     const expiry = new Date(s.subscription_expiry)
                     const today = new Date()
                     return expiry < today
@@ -768,26 +758,24 @@ const AdminPanel = () => {
             </div>
 
             <Card className="bg-slate-800 border-slate-700">
-              <CardHeader>
+              <CardHeader className="p-3 sm:p-6">
                 <div className="flex items-center justify-between">
-                  <CardTitle className="text-white">Subscription Management</CardTitle>
-                  <Button onClick={() => loadSubscriptions()} size="sm" variant="outline" className="border-slate-600">
-                    <RefreshCw className="h-4 w-4 mr-2" />
-                    Refresh
+                  <CardTitle className="text-white text-lg sm:text-xl">Subscriptions</CardTitle>
+                  <Button onClick={() => loadSubscriptions()} size="sm" variant="outline" className="border-slate-600 text-xs sm:text-sm">
+                    <RefreshCw className="h-4 w-4" />
                   </Button>
                 </div>
               </CardHeader>
-              <CardContent>
+              <CardContent className="p-3 sm:p-6">
                 <div className="overflow-x-auto">
-                  <Table>
+                  <Table className="text-xs sm:text-sm">
                     <TableHeader>
                       <TableRow className="border-slate-700">
                         <TableHead className="text-slate-300">User</TableHead>
-                        <TableHead className="text-slate-300">Plan Type</TableHead>
+                        <TableHead className="text-slate-300 hidden sm:table-cell">Plan</TableHead>
                         <TableHead className="text-slate-300">Status</TableHead>
-                        <TableHead className="text-slate-300">Expiry Date</TableHead>
-                        <TableHead className="text-slate-300">Days Left</TableHead>
-                        <TableHead className="text-slate-300">Actions</TableHead>
+                        <TableHead className="text-slate-300 hidden md:table-cell">Expiry</TableHead>
+                        <TableHead className="text-slate-300 text-right">Action</TableHead>
                       </TableRow>
                     </TableHeader>
                     <TableBody>
@@ -798,25 +786,19 @@ const AdminPanel = () => {
                           const daysLeft = Math.floor((expiry - today) / (1000 * 60 * 60 * 24))
                           return (
                             <TableRow key={sub.id} className="border-slate-700">
-                              <TableCell className="text-white">{sub.username}</TableCell>
-                              <TableCell>
-                                <Badge className={sub.plan_type === 'enterprise' ? 'bg-purple-600' : sub.plan_type === 'pro' ? 'bg-blue-600' : 'bg-gray-600'}>
+                              <TableCell className="text-white text-xs sm:text-sm">{sub.username}</TableCell>
+                              <TableCell className="hidden sm:table-cell text-xs">
+                                <Badge className={sub.plan_type === 'enterprise' ? 'bg-purple-600 text-xs' : 'bg-blue-600 text-xs'}>
                                   {sub.plan_type}
                                 </Badge>
                               </TableCell>
-                              <TableCell>
-                                <Badge className={sub.is_active ? 'bg-green-600' : 'bg-red-600'}>
-                                  {sub.is_active ? <CheckCircle className="h-3 w-3 mr-1 inline" /> : <XCircle className="h-3 w-3 mr-1 inline" />}
+                              <TableCell className="text-xs">
+                                <Badge className={sub.is_active ? 'bg-green-600 text-xs' : 'bg-red-600 text-xs'}>
                                   {sub.is_active ? 'Active' : 'Inactive'}
                                 </Badge>
                               </TableCell>
-                              <TableCell className="text-slate-300">{expiry.toLocaleDateString()}</TableCell>
-                              <TableCell>
-                                <Badge className={daysLeft > 30 ? 'bg-green-600' : daysLeft > 7 ? 'bg-yellow-600' : 'bg-red-600'}>
-                                  {daysLeft > 0 ? `${daysLeft}d` : 'Expired'}
-                                </Badge>
-                              </TableCell>
-                              <TableCell>
+                              <TableCell className="text-slate-300 hidden md:table-cell text-xs">{expiry.toLocaleDateString()}</TableCell>
+                              <TableCell className="text-right">
                                 <Button size="sm" variant="outline" className="border-slate-600 text-xs" onClick={() => {
                                   setSelectedSubscription(sub)
                                   setShowSubscriptionModal(true)
@@ -829,7 +811,7 @@ const AdminPanel = () => {
                         })
                       ) : (
                         <TableRow>
-                          <TableCell colSpan="6" className="text-center text-slate-400 py-8">No subscriptions found.</TableCell>
+                          <TableCell colSpan="5" className="text-center text-slate-400 py-8 text-xs">No subscriptions found.</TableCell>
                         </TableRow>
                       )}
                     </TableBody>
@@ -839,87 +821,81 @@ const AdminPanel = () => {
             </Card>
           </TabsContent>
 
-          {/* Support Tab - Enhanced */}
-          <TabsContent value="support" className="space-y-6">
-            <div className="grid grid-cols-1 md:grid-cols-4 gap-4 mb-6">
+          {/* Support Tab - Mobile Responsive */}
+          <TabsContent value="support" className="space-y-3 sm:space-y-6">
+            <div className="grid grid-cols-2 sm:grid-cols-4 gap-2 sm:gap-4 mb-4 sm:mb-6">
               <Card className="bg-slate-800 border-slate-700">
-                <CardHeader>
-                  <CardTitle className="text-white text-sm">Total Tickets</CardTitle>
+                <CardHeader className="p-2 sm:p-4">
+                  <CardTitle className="text-white text-xs sm:text-sm">Total</CardTitle>
                 </CardHeader>
-                <CardContent>
-                  <p className="text-3xl font-bold text-blue-400">{supportTickets.length}</p>
+                <CardContent className="p-2 sm:p-4">
+                  <p className="text-xl sm:text-3xl font-bold text-blue-400">{supportTickets.length}</p>
                 </CardContent>
               </Card>
               <Card className="bg-slate-800 border-slate-700">
-                <CardHeader>
-                  <CardTitle className="text-white text-sm">Open</CardTitle>
+                <CardHeader className="p-2 sm:p-4">
+                  <CardTitle className="text-white text-xs sm:text-sm">Open</CardTitle>
                 </CardHeader>
-                <CardContent>
-                  <p className="text-3xl font-bold text-orange-400">{supportTickets.filter(t => t.status === 'open').length}</p>
+                <CardContent className="p-2 sm:p-4">
+                  <p className="text-xl sm:text-3xl font-bold text-orange-400">{supportTickets.filter(t => t.status === 'open').length}</p>
                 </CardContent>
               </Card>
               <Card className="bg-slate-800 border-slate-700">
-                <CardHeader>
-                  <CardTitle className="text-white text-sm">In Progress</CardTitle>
+                <CardHeader className="p-2 sm:p-4">
+                  <CardTitle className="text-white text-xs sm:text-sm">In Progress</CardTitle>
                 </CardHeader>
-                <CardContent>
-                  <p className="text-3xl font-bold text-yellow-400">{supportTickets.filter(t => t.status === 'in_progress').length}</p>
+                <CardContent className="p-2 sm:p-4">
+                  <p className="text-xl sm:text-3xl font-bold text-yellow-400">{supportTickets.filter(t => t.status === 'in_progress').length}</p>
                 </CardContent>
               </Card>
               <Card className="bg-slate-800 border-slate-700">
-                <CardHeader>
-                  <CardTitle className="text-white text-sm">Resolved</CardTitle>
+                <CardHeader className="p-2 sm:p-4">
+                  <CardTitle className="text-white text-xs sm:text-sm">Resolved</CardTitle>
                 </CardHeader>
-                <CardContent>
-                  <p className="text-3xl font-bold text-green-400">{supportTickets.filter(t => t.status === 'resolved').length}</p>
+                <CardContent className="p-2 sm:p-4">
+                  <p className="text-xl sm:text-3xl font-bold text-green-400">{supportTickets.filter(t => t.status === 'resolved').length}</p>
                 </CardContent>
               </Card>
             </div>
 
             <Card className="bg-slate-800 border-slate-700">
-              <CardHeader>
+              <CardHeader className="p-3 sm:p-6">
                 <div className="flex items-center justify-between">
-                  <CardTitle className="text-white">Support Tickets</CardTitle>
-                  <Button onClick={() => loadSupportTickets()} size="sm" variant="outline" className="border-slate-600">
-                    <RefreshCw className="h-4 w-4 mr-2" />
-                    Refresh
+                  <CardTitle className="text-white text-lg sm:text-xl">Support Tickets</CardTitle>
+                  <Button onClick={() => loadSupportTickets()} size="sm" variant="outline" className="border-slate-600 text-xs sm:text-sm">
+                    <RefreshCw className="h-4 w-4" />
                   </Button>
                 </div>
               </CardHeader>
-              <CardContent>
+              <CardContent className="p-3 sm:p-6">
                 <div className="overflow-x-auto">
-                  <Table>
+                  <Table className="text-xs sm:text-sm">
                     <TableHeader>
                       <TableRow className="border-slate-700">
-                        <TableHead className="text-slate-300">Ticket ID</TableHead>
-                        <TableHead className="text-slate-300">User</TableHead>
-                        <TableHead className="text-slate-300">Subject</TableHead>
+                        <TableHead className="text-slate-300">ID</TableHead>
+                        <TableHead className="text-slate-300 hidden sm:table-cell">Subject</TableHead>
                         <TableHead className="text-slate-300">Status</TableHead>
-                        <TableHead className="text-slate-300">Priority</TableHead>
-                        <TableHead className="text-slate-300">Created</TableHead>
-                        <TableHead className="text-slate-300">Actions</TableHead>
+                        <TableHead className="text-slate-300 hidden md:table-cell">Priority</TableHead>
+                        <TableHead className="text-slate-300 text-right">Action</TableHead>
                       </TableRow>
                     </TableHeader>
                     <TableBody>
                       {supportTickets && supportTickets.length > 0 ? (
                         supportTickets.map(ticket => (
                           <TableRow key={ticket.id} className="border-slate-700">
-                            <TableCell className="text-white font-mono text-sm">#{ticket.id}</TableCell>
-                            <TableCell className="text-slate-300">{ticket.user_email}</TableCell>
-                            <TableCell className="text-white">{ticket.subject}</TableCell>
-                            <TableCell>
-                              <Badge className={ticket.status === 'open' ? 'bg-blue-600' : ticket.status === 'in_progress' ? 'bg-yellow-600' : 'bg-green-600'}>
-                                {ticket.status === 'open' ? <AlertCircle className="h-3 w-3 mr-1 inline" /> : ticket.status === 'in_progress' ? <Clock className="h-3 w-3 mr-1 inline" /> : <CheckCircle className="h-3 w-3 mr-1 inline" />}
+                            <TableCell className="text-white font-mono text-xs">#{ticket.id}</TableCell>
+                            <TableCell className="text-white hidden sm:table-cell text-xs">{ticket.subject?.substring(0, 20)}...</TableCell>
+                            <TableCell className="text-xs">
+                              <Badge className={ticket.status === 'open' ? 'bg-blue-600 text-xs' : 'bg-green-600 text-xs'}>
                                 {ticket.status}
                               </Badge>
                             </TableCell>
-                            <TableCell>
-                              <Badge className={ticket.priority === 'high' ? 'bg-red-600' : ticket.priority === 'medium' ? 'bg-orange-600' : 'bg-green-600'}>
+                            <TableCell className="hidden md:table-cell text-xs">
+                              <Badge className={ticket.priority === 'high' ? 'bg-red-600 text-xs' : 'bg-orange-600 text-xs'}>
                                 {ticket.priority}
                               </Badge>
                             </TableCell>
-                            <TableCell className="text-slate-300 text-sm">{new Date(ticket.created_at).toLocaleDateString()}</TableCell>
-                            <TableCell>
+                            <TableCell className="text-right">
                               <Button size="sm" variant="outline" className="border-slate-600 text-xs" onClick={() => {
                                 setSelectedTicket(ticket)
                                 setShowSupportModal(true)
@@ -931,7 +907,7 @@ const AdminPanel = () => {
                         ))
                       ) : (
                         <TableRow>
-                          <TableCell colSpan="7" className="text-center text-slate-400 py-8">No support tickets found.</TableCell>
+                          <TableCell colSpan="5" className="text-center text-slate-400 py-8 text-xs">No tickets found.</TableCell>
                         </TableRow>
                       )}
                     </TableBody>
@@ -941,36 +917,35 @@ const AdminPanel = () => {
             </Card>
           </TabsContent>
 
-          {/* Audit Logs Tab */}
-          <TabsContent value="audit" className="space-y-6">
+          {/* Audit Logs Tab - Mobile Responsive */}
+          <TabsContent value="audit" className="space-y-4 sm:space-y-6">
             <Card className="bg-slate-800 border-slate-700">
-              <CardHeader>
+              <CardHeader className="p-3 sm:p-6">
                 <div className="flex items-center justify-between">
-                  <CardTitle className="text-white">Audit Logs</CardTitle>
-                  <Button onClick={exportAuditLogs} size="sm" variant="outline" className="border-slate-600">
-                    <Download className="h-4 w-4 mr-2" />
-                    Export CSV
+                  <CardTitle className="text-white text-lg sm:text-xl">Audit Logs</CardTitle>
+                  <Button onClick={exportAuditLogs} size="sm" variant="outline" className="border-slate-600 text-xs sm:text-sm">
+                    <Download className="h-4 w-4" />
                   </Button>
                 </div>
               </CardHeader>
-              <CardContent>
+              <CardContent className="p-3 sm:p-6">
                 <div className="overflow-x-auto">
-                  <Table>
+                  <Table className="text-xs sm:text-sm">
                     <TableHeader>
                       <TableRow className="border-slate-700">
                         <TableHead className="text-slate-300">ID</TableHead>
-                        <TableHead className="text-slate-300">User ID</TableHead>
+                        <TableHead className="text-slate-300 hidden sm:table-cell">User ID</TableHead>
                         <TableHead className="text-slate-300">Action</TableHead>
-                        <TableHead className="text-slate-300">Timestamp</TableHead>
+                        <TableHead className="text-slate-300 hidden md:table-cell">Timestamp</TableHead>
                       </TableRow>
                     </TableHeader>
                     <TableBody>
                       {auditLogs.map(log => (
                         <TableRow key={log.id} className="border-slate-700">
-                          <TableCell className="text-slate-300">{log.id}</TableCell>
-                          <TableCell className="text-slate-300">{log.user_id}</TableCell>
-                          <TableCell className="text-white">{log.action}</TableCell>
-                          <TableCell className="text-slate-300">{new Date(log.timestamp).toLocaleString()}</TableCell>
+                          <TableCell className="text-slate-300 text-xs">{log.id}</TableCell>
+                          <TableCell className="text-slate-300 hidden sm:table-cell text-xs">{log.user_id}</TableCell>
+                          <TableCell className="text-white text-xs">{log.action}</TableCell>
+                          <TableCell className="text-slate-300 hidden md:table-cell text-xs">{new Date(log.timestamp).toLocaleString()}</TableCell>
                         </TableRow>
                       ))}
                     </TableBody>
@@ -980,26 +955,26 @@ const AdminPanel = () => {
             </Card>
           </TabsContent>
 
-          {/* Settings Tab */}
-          <TabsContent value="settings" className="space-y-6">
+          {/* Settings Tab - Mobile Responsive */}
+          <TabsContent value="settings" className="space-y-4 sm:space-y-6">
             <Card className="bg-slate-800 border-slate-700">
-              <CardHeader>
-                <CardTitle className="text-white">System Settings</CardTitle>
+              <CardHeader className="p-3 sm:p-6">
+                <CardTitle className="text-white text-lg sm:text-xl">System Settings</CardTitle>
               </CardHeader>
-              <CardContent>
-                <div className="space-y-4">
-                  <div className="flex items-center justify-between p-4 bg-slate-700/50 rounded-lg">
-                    <div>
-                      <h3 className="text-white font-medium">Delete All System Data</h3>
-                      <p className="text-slate-400 text-sm">This will permanently delete all data. This action cannot be undone.</p>
+              <CardContent className="p-3 sm:p-6">
+                <div className="space-y-3 sm:space-y-4">
+                  <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 sm:gap-4 p-3 sm:p-4 bg-slate-700/50 rounded-lg">
+                    <div className="flex-1">
+                      <h3 className="text-white font-medium text-sm sm:text-base">Delete All System Data</h3>
+                      <p className="text-slate-400 text-xs sm:text-sm">This will permanently delete all data.</p>
                     </div>
                     <Button
                       variant="destructive"
                       onClick={() => setSystemDeleteDialog(true)}
-                      className="bg-red-600 hover:bg-red-700"
+                      className="bg-red-600 hover:bg-red-700 w-full sm:w-auto text-xs sm:text-sm"
                     >
-                      <Trash2 className="h-4 w-4 mr-2" />
-                      Delete All System Data
+                      <Trash2 className="h-4 w-4 mr-1 sm:mr-2" />
+                      Delete
                     </Button>
                   </div>
                 </div>
@@ -1008,23 +983,24 @@ const AdminPanel = () => {
           </TabsContent>
         </Tabs>
 
+        {/* Dialogs - Mobile Responsive */}
         {/* Delete User Dialog */}
         <Dialog open={deleteDialogOpen} onOpenChange={setDeleteDialogOpen}>
-          <DialogContent className="bg-slate-800 border-slate-700">
+          <DialogContent className="bg-slate-800 border-slate-700 w-[95vw] sm:w-full max-w-md">
             <DialogHeader>
-              <DialogTitle className="text-white">Confirm Deletion</DialogTitle>
-              <DialogDescription className="text-slate-400">
-                Are you sure you want to delete user {selectedUser?.username}? This action cannot be undone.
+              <DialogTitle className="text-white text-lg sm:text-xl">Confirm Deletion</DialogTitle>
+              <DialogDescription className="text-slate-400 text-xs sm:text-sm">
+                Are you sure you want to delete user {selectedUser?.username}?
               </DialogDescription>
             </DialogHeader>
-            <DialogFooter>
-              <Button variant="outline" onClick={() => setDeleteDialogOpen(false)} className="border-slate-600">
+            <DialogFooter className="flex flex-col sm:flex-row gap-2 sm:gap-0">
+              <Button variant="outline" onClick={() => setDeleteDialogOpen(false)} className="border-slate-600 text-xs sm:text-sm order-2 sm:order-1">
                 Cancel
               </Button>
               <Button
                 variant="destructive"
                 onClick={() => selectedUser && deleteUser(selectedUser.id)}
-                className="bg-red-600 hover:bg-red-700"
+                className="bg-red-600 hover:bg-red-700 text-xs sm:text-sm order-1 sm:order-2"
               >
                 Delete
               </Button>
@@ -1034,16 +1010,16 @@ const AdminPanel = () => {
 
         {/* System Delete Dialog */}
         <Dialog open={systemDeleteDialog} onOpenChange={setSystemDeleteDialog}>
-          <DialogContent className="bg-slate-800 border-slate-700">
+          <DialogContent className="bg-slate-800 border-slate-700 w-[95vw] sm:w-full max-w-md">
             <DialogHeader>
-              <DialogTitle className="text-white">Confirm System Data Deletion</DialogTitle>
-              <DialogDescription className="text-slate-400">
-                This will permanently delete ALL system data except the main admin account. This action CANNOT be undone.
+              <DialogTitle className="text-white text-lg sm:text-xl">Confirm System Data Deletion</DialogTitle>
+              <DialogDescription className="text-slate-400 text-xs sm:text-sm">
+                This will permanently delete ALL system data.
               </DialogDescription>
             </DialogHeader>
-            <div className="space-y-4 py-4">
+            <div className="space-y-3 sm:space-y-4 py-4">
               <div className="space-y-2">
-                <Label htmlFor="confirm" className="text-white">
+                <Label htmlFor="confirm" className="text-white text-xs sm:text-sm">
                   Type <span className="font-mono text-red-400">DELETE_ALL_DATA</span> to confirm
                 </Label>
                 <Input
@@ -1051,24 +1027,24 @@ const AdminPanel = () => {
                   value={confirmText}
                   onChange={(e) => setConfirmText(e.target.value)}
                   placeholder="DELETE_ALL_DATA"
-                  className="bg-slate-700 border-slate-600 text-white"
+                  className="bg-slate-700 border-slate-600 text-white text-xs sm:text-sm"
                 />
               </div>
             </div>
-            <DialogFooter>
+            <DialogFooter className="flex flex-col sm:flex-row gap-2 sm:gap-0">
               <Button variant="outline" onClick={() => {
                 setSystemDeleteDialog(false)
                 setConfirmText('')
-              }} className="border-slate-600">
+              }} className="border-slate-600 text-xs sm:text-sm order-2 sm:order-1">
                 Cancel
               </Button>
               <Button
                 variant="destructive"
                 onClick={deleteAllSystemData}
                 disabled={confirmText !== 'DELETE_ALL_DATA'}
-                className="bg-red-600 hover:bg-red-700"
+                className="bg-red-600 hover:bg-red-700 text-xs sm:text-sm order-1 sm:order-2"
               >
-                Delete All Data
+                Delete All
               </Button>
             </DialogFooter>
           </DialogContent>
@@ -1076,74 +1052,60 @@ const AdminPanel = () => {
 
         {/* Create User Dialog */}
         <Dialog open={showCreateUserDialog} onOpenChange={setShowCreateUserDialog}>
-          <DialogContent className="bg-slate-800 border-slate-700">
+          <DialogContent className="bg-slate-800 border-slate-700 w-[95vw] sm:w-full max-w-md">
             <DialogHeader>
-              <DialogTitle className="text-white">Create New User</DialogTitle>
-              <DialogDescription className="text-slate-400">
-                Add a new user to the system with specified role and permissions.
+              <DialogTitle className="text-white text-lg sm:text-xl">Create New User</DialogTitle>
+              <DialogDescription className="text-slate-400 text-xs sm:text-sm">
+                Add a new user to the system.
               </DialogDescription>
             </DialogHeader>
-            <div className="space-y-4 py-4">
+            <div className="space-y-3 sm:space-y-4 py-4">
               <div className="space-y-2">
-                <Label htmlFor="username" className="text-white">Username</Label>
+                <Label htmlFor="username" className="text-white text-xs sm:text-sm">Username</Label>
                 <Input
                   id="username"
                   value={newUser.username}
                   onChange={(e) => setNewUser({...newUser, username: e.target.value})}
                   placeholder="Enter username"
-                  className="bg-slate-700 border-slate-600 text-white"
+                  className="bg-slate-700 border-slate-600 text-white text-xs sm:text-sm"
                 />
               </div>
               <div className="space-y-2">
-                <Label htmlFor="email" className="text-white">Email</Label>
+                <Label htmlFor="email" className="text-white text-xs sm:text-sm">Email</Label>
                 <Input
                   id="email"
                   type="email"
                   value={newUser.email}
                   onChange={(e) => setNewUser({...newUser, email: e.target.value})}
-                  placeholder="Enter email address"
-                  className="bg-slate-700 border-slate-600 text-white"
+                  placeholder="Enter email"
+                  className="bg-slate-700 border-slate-600 text-white text-xs sm:text-sm"
                 />
               </div>
               <div className="space-y-2">
-                <Label htmlFor="password" className="text-white">Password</Label>
+                <Label htmlFor="password" className="text-white text-xs sm:text-sm">Password</Label>
                 <Input
                   id="password"
                   type="password"
                   value={newUser.password}
                   onChange={(e) => setNewUser({...newUser, password: e.target.value})}
                   placeholder="Enter password"
-                  className="bg-slate-700 border-slate-600 text-white"
+                  className="bg-slate-700 border-slate-600 text-white text-xs sm:text-sm"
                 />
               </div>
               <div className="space-y-2">
-                <Label htmlFor="role" className="text-white">Role</Label>
+                <Label htmlFor="role" className="text-white text-xs sm:text-sm">Role</Label>
                 <Select value={newUser.role} onValueChange={(value) => setNewUser({...newUser, role: value})}>
-                  <SelectTrigger className="bg-slate-700 border-slate-600 text-white">
+                  <SelectTrigger className="bg-slate-700 border-slate-600 text-white text-xs sm:text-sm">
                     <SelectValue placeholder="Select role" />
                   </SelectTrigger>
                   <SelectContent className="bg-slate-700 border-slate-600">
                     <SelectItem value="member">Member</SelectItem>
                     <SelectItem value="admin">Admin</SelectItem>
-                    <SelectItem value="main_admin">Main Admin</SelectItem>
-                  </SelectContent>
-                </Select>
-              </div>
-              <div className="space-y-2">
-                <Label htmlFor="status" className="text-white">Status</Label>
-                <Select value={newUser.status} onValueChange={(value) => setNewUser({...newUser, status: value})}>
-                  <SelectTrigger className="bg-slate-700 border-slate-600 text-white">
-                    <SelectValue placeholder="Select status" />
-                  </SelectTrigger>
-                  <SelectContent className="bg-slate-700 border-slate-600">
-                    <SelectItem value="active">Active</SelectItem>
-                    <SelectItem value="pending">Pending</SelectItem>
-                    <SelectItem value="suspended">Suspended</SelectItem>
                   </SelectContent>
                 </Select>
               </div>
             </div>
-            <DialogFooter>
+            <DialogFooter className="flex flex-col sm:flex-row gap-2 sm:gap-0">
               <Button variant="outline" onClick={() => {
                 setShowCreateUserDialog(false)
                 setNewUser({
@@ -1153,12 +1115,12 @@ const AdminPanel = () => {
                   role: 'member',
                   status: 'active'
                 })
-              }} className="border-slate-600">
+              }} className="border-slate-600 text-xs sm:text-sm order-2 sm:order-1">
                 Cancel
               </Button>
               <Button
                 onClick={createUser}
-                className="bg-blue-600 hover:bg-blue-700"
+                className="bg-blue-600 hover:bg-blue-700 text-xs sm:text-sm order-1 sm:order-2"
               >
                 Create User
               </Button>
@@ -1168,42 +1130,30 @@ const AdminPanel = () => {
 
         {/* Security Threat Details Modal */}
         <Dialog open={showSecurityModal} onOpenChange={setShowSecurityModal}>
-          <DialogContent className="bg-slate-800 border-slate-700 max-w-2xl">
+          <DialogContent className="bg-slate-800 border-slate-700 w-[95vw] sm:w-full max-w-md">
             <DialogHeader>
-              <DialogTitle className="text-white">Security Threat Details</DialogTitle>
+              <DialogTitle className="text-white text-lg sm:text-xl">Threat Details</DialogTitle>
             </DialogHeader>
             {selectedThreat && (
-              <div className="space-y-4 py-4">
-                <div className="grid grid-cols-2 gap-4">
-                  <div>
-                    <Label className="text-slate-400 text-sm">IP Address</Label>
-                    <p className="text-white font-mono">{selectedThreat.ip_address}</p>
-                  </div>
-                  <div>
-                    <Label className="text-slate-400 text-sm">Threat Type</Label>
-                    <p className="text-white">{selectedThreat.threat_type}</p>
-                  </div>
-                  <div>
-                    <Label className="text-slate-400 text-sm">Threat Level</Label>
-                    <Badge className={selectedThreat.threat_level === 'critical' ? 'bg-red-600' : 'bg-orange-600'}>
-                      {selectedThreat.threat_level}
-                    </Badge>
-                  </div>
-                  <div>
-                    <Label className="text-slate-400 text-sm">Status</Label>
-                    <Badge className={selectedThreat.is_blocked ? 'bg-red-600' : 'bg-green-600'}>
-                      {selectedThreat.is_blocked ? 'Blocked' : 'Allowed'}
-                    </Badge>
-                  </div>
-                  <div className="col-span-2">
-                    <Label className="text-slate-400 text-sm">First Seen</Label>
-                    <p className="text-white">{new Date(selectedThreat.first_seen).toLocaleString()}</p>
-                  </div>
+              <div className="space-y-3 sm:space-y-4 py-4">
+                <div className="space-y-2">
+                  <Label className="text-slate-400 text-xs sm:text-sm">IP Address</Label>
+                  <p className="text-white font-mono text-xs sm:text-sm">{selectedThreat.ip_address}</p>
+                </div>
+                <div className="space-y-2">
+                  <Label className="text-slate-400 text-xs sm:text-sm">Type</Label>
+                  <p className="text-white text-xs sm:text-sm">{selectedThreat.threat_type}</p>
+                </div>
+                <div className="space-y-2">
+                  <Label className="text-slate-400 text-xs sm:text-sm">Level</Label>
+                  <Badge className={selectedThreat.threat_level === 'critical' ? 'bg-red-600' : 'bg-orange-600'}>
+                    {selectedThreat.threat_level}
+                  </Badge>
                 </div>
               </div>
             )}
             <DialogFooter>
-              <Button onClick={() => setShowSecurityModal(false)} className="bg-blue-600 hover:bg-blue-700">
+              <Button onClick={() => setShowSecurityModal(false)} className="bg-blue-600 hover:bg-blue-700 w-full sm:w-auto text-xs sm:text-sm">
                 Close
               </Button>
             </DialogFooter>
@@ -1212,38 +1162,26 @@ const AdminPanel = () => {
 
         {/* Subscription Management Modal */}
         <Dialog open={showSubscriptionModal} onOpenChange={setShowSubscriptionModal}>
-          <DialogContent className="bg-slate-800 border-slate-700 max-w-2xl">
+          <DialogContent className="bg-slate-800 border-slate-700 w-[95vw] sm:w-full max-w-md">
             <DialogHeader>
-              <DialogTitle className="text-white">Subscription Management</DialogTitle>
+              <DialogTitle className="text-white text-lg sm:text-xl">Manage Subscription</DialogTitle>
             </DialogHeader>
             {selectedSubscription && (
-              <div className="space-y-4 py-4">
-                <div className="grid grid-cols-2 gap-4">
-                  <div>
-                    <Label className="text-slate-400 text-sm">User</Label>
-                    <p className="text-white">{selectedSubscription.username}</p>
-                  </div>
-                  <div>
-                    <Label className="text-slate-400 text-sm">Plan Type</Label>
-                    <Badge className={selectedSubscription.plan_type === 'enterprise' ? 'bg-purple-600' : 'bg-blue-600'}>
-                      {selectedSubscription.plan_type}
-                    </Badge>
-                  </div>
-                  <div>
-                    <Label className="text-slate-400 text-sm">Status</Label>
-                    <Badge className={selectedSubscription.is_active ? 'bg-green-600' : 'bg-red-600'}>
-                      {selectedSubscription.is_active ? 'Active' : 'Inactive'}
-                    </Badge>
-                  </div>
-                  <div>
-                    <Label className="text-slate-400 text-sm">Expiry Date</Label>
-                    <p className="text-white">{new Date(selectedSubscription.subscription_expiry).toLocaleDateString()}</p>
-                  </div>
+              <div className="space-y-3 sm:space-y-4 py-4">
+                <div className="space-y-2">
+                  <Label className="text-slate-400 text-xs sm:text-sm">User</Label>
+                  <p className="text-white text-xs sm:text-sm">{selectedSubscription.username}</p>
                 </div>
                 <div className="space-y-2">
-                  <Label className="text-white">Extend Subscription</Label>
+                  <Label className="text-slate-400 text-xs sm:text-sm">Plan</Label>
+                  <Badge className={selectedSubscription.plan_type === 'enterprise' ? 'bg-purple-600' : 'bg-blue-600'}>
+                    {selectedSubscription.plan_type}
+                  </Badge>
+                </div>
+                <div className="space-y-2">
+                  <Label htmlFor="extend" className="text-white text-xs sm:text-sm">Extend Subscription</Label>
                   <Select>
-                    <SelectTrigger className="bg-slate-700 border-slate-600 text-white">
+                    <SelectTrigger className="bg-slate-700 border-slate-600 text-white text-xs sm:text-sm">
                       <SelectValue placeholder="Select duration" />
                     </SelectTrigger>
                     <SelectContent className="bg-slate-700 border-slate-600">
@@ -1256,12 +1194,12 @@ const AdminPanel = () => {
                 </div>
               </div>
             )}
-            <DialogFooter>
-              <Button variant="outline" onClick={() => setShowSubscriptionModal(false)} className="border-slate-600">
+            <DialogFooter className="flex flex-col sm:flex-row gap-2 sm:gap-0">
+              <Button variant="outline" onClick={() => setShowSubscriptionModal(false)} className="border-slate-600 text-xs sm:text-sm order-2 sm:order-1">
                 Cancel
               </Button>
-              <Button className="bg-blue-600 hover:bg-blue-700">
-                Update Subscription
+              <Button className="bg-blue-600 hover:bg-blue-700 text-xs sm:text-sm order-1 sm:order-2">
+                Update
               </Button>
             </DialogFooter>
           </DialogContent>
@@ -1269,63 +1207,45 @@ const AdminPanel = () => {
 
         {/* Support Ticket Details Modal */}
         <Dialog open={showSupportModal} onOpenChange={setShowSupportModal}>
-          <DialogContent className="bg-slate-800 border-slate-700 max-w-2xl">
+          <DialogContent className="bg-slate-800 border-slate-700 w-[95vw] sm:w-full max-w-md">
             <DialogHeader>
-              <DialogTitle className="text-white">Support Ticket Details</DialogTitle>
+              <DialogTitle className="text-white text-lg sm:text-xl">Ticket Details</DialogTitle>
             </DialogHeader>
             {selectedTicket && (
-              <div className="space-y-4 py-4">
-                <div className="grid grid-cols-2 gap-4">
-                  <div className="col-span-2">
-                    <Label className="text-slate-400 text-sm">Subject</Label>
-                    <p className="text-white font-semibold">{selectedTicket.subject}</p>
-                  </div>
-                  <div>
-                    <Label className="text-slate-400 text-sm">User Email</Label>
-                    <p className="text-white">{selectedTicket.user_email}</p>
-                  </div>
-                  <div>
-                    <Label className="text-slate-400 text-sm">Status</Label>
-                    <Badge className={selectedTicket.status === 'open' ? 'bg-blue-600' : 'bg-green-600'}>
-                      {selectedTicket.status}
-                    </Badge>
-                  </div>
-                  <div>
-                    <Label className="text-slate-400 text-sm">Priority</Label>
-                    <Badge className={selectedTicket.priority === 'high' ? 'bg-red-600' : 'bg-orange-600'}>
-                      {selectedTicket.priority}
-                    </Badge>
-                  </div>
-                  <div>
-                    <Label className="text-slate-400 text-sm">Created</Label>
-                    <p className="text-white">{new Date(selectedTicket.created_at).toLocaleString()}</p>
-                  </div>
-                  <div className="col-span-2">
-                    <Label className="text-slate-400 text-sm">Description</Label>
-                    <Textarea
-                      value={selectedTicket.description || ''}
-                      readOnly
-                      className="bg-slate-700 border-slate-600 text-white resize-none"
-                      rows={4}
-                    />
-                  </div>
+              <div className="space-y-3 sm:space-y-4 py-4">
+                <div className="space-y-2">
+                  <Label className="text-slate-400 text-xs sm:text-sm">Subject</Label>
+                  <p className="text-white font-semibold text-xs sm:text-sm">{selectedTicket.subject}</p>
                 </div>
                 <div className="space-y-2">
-                  <Label className="text-white">Response</Label>
+                  <Label className="text-slate-400 text-xs sm:text-sm">Status</Label>
+                  <Badge className={selectedTicket.status === 'open' ? 'bg-blue-600' : 'bg-green-600'}>
+                    {selectedTicket.status}
+                  </Badge>
+                </div>
+                <div className="space-y-2">
+                  <Label className="text-slate-400 text-xs sm:text-sm">Priority</Label>
+                  <Badge className={selectedTicket.priority === 'high' ? 'bg-red-600' : 'bg-orange-600'}>
+                    {selectedTicket.priority}
+                  </Badge>
+                </div>
+                <div className="space-y-2">
+                  <Label htmlFor="response" className="text-white text-xs sm:text-sm">Response</Label>
                   <Textarea
-                    placeholder="Enter your response..."
-                    className="bg-slate-700 border-slate-600 text-white"
+                    id="response"
+                    placeholder="Enter response..."
+                    className="bg-slate-700 border-slate-600 text-white text-xs sm:text-sm"
                     rows={3}
                   />
                 </div>
               </div>
             )}
-            <DialogFooter>
-              <Button variant="outline" onClick={() => setShowSupportModal(false)} className="border-slate-600">
+            <DialogFooter className="flex flex-col sm:flex-row gap-2 sm:gap-0">
+              <Button variant="outline" onClick={() => setShowSupportModal(false)} className="border-slate-600 text-xs sm:text-sm order-2 sm:order-1">
                 Cancel
               </Button>
-              <Button className="bg-blue-600 hover:bg-blue-700">
-                Send Response
+              <Button className="bg-blue-600 hover:bg-blue-700 text-xs sm:text-sm order-1 sm:order-2">
+                Send
               </Button>
             </DialogFooter>
           </DialogContent>
