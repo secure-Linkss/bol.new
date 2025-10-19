@@ -8,7 +8,8 @@ import { Badge } from '@/components/ui/badge';
 import {
   Users, FolderKanban, Shield, CreditCard, MessageSquare, FileText, Settings, LayoutDashboard,
   UserCheck, UserX, Trash2, Edit, Eye, MoreVertical, Download, RefreshCw, AlertTriangle,
-  Search, Filter, Plus, ChevronDown, ChevronUp, TrendingUp, TrendingDown, Activity, Check, X, Clock
+  Search, Filter, Plus, ChevronDown, ChevronUp, TrendingUp, TrendingDown, Activity, Check, X, Clock,
+  Globe, Copy, Zap
 } from 'lucide-react';
 import {
   DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger,
@@ -29,7 +30,6 @@ import { Alert, AlertDescription } from '@/components/ui/alert';
 
 const AdminPanelComplete = () => {
   const [activeTab, setActiveTab] = useState('dashboard')
-  const [loading, setLoading] = useState(false)
 
   // Helper function to make API calls
   const apiCall = async (endpoint, options = {}) => {
@@ -57,41 +57,41 @@ const AdminPanelComplete = () => {
         {/* Header */}
         <div className="mb-6">
           <h1 className="text-3xl font-bold text-white mb-2">Admin Panel</h1>
-          <p className="text-gray-400">Comprehensive system administration and monitoring</p>
+          <p className="text-gray-400">Enterprise-grade system administration and monitoring</p>
         </div>
 
         {/* Tabs */}
         <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
-          <TabsList className="w-full justify-start overflow-x-auto bg-gray-900 border-gray-800">
-            <TabsTrigger value="dashboard" className="data-[state=active]:bg-blue-600">
+          <TabsList className="w-full justify-start overflow-x-auto bg-gray-900 border-gray-800 border-b rounded-none">
+            <TabsTrigger value="dashboard" className="data-[state=active]:bg-blue-600 data-[state=active]:text-white">
               <LayoutDashboard className="w-4 h-4 mr-2" />
               Dashboard
             </TabsTrigger>
-            <TabsTrigger value="users" className="data-[state=active]:bg-blue-600">
+            <TabsTrigger value="users" className="data-[state=active]:bg-blue-600 data-[state=active]:text-white">
               <Users className="w-4 h-4 mr-2" />
               Users
             </TabsTrigger>
-            <TabsTrigger value="campaigns" className="data-[state=active]:bg-blue-600">
+            <TabsTrigger value="campaigns" className="data-[state=active]:bg-blue-600 data-[state=active]:text-white">
               <FolderKanban className="w-4 h-4 mr-2" />
               Campaigns
             </TabsTrigger>
-            <TabsTrigger value="security" className="data-[state=active]:bg-blue-600">
+            <TabsTrigger value="security" className="data-[state=active]:bg-blue-600 data-[state=active]:text-white">
               <Shield className="w-4 h-4 mr-2" />
               Security
             </TabsTrigger>
-            <TabsTrigger value="subscriptions" className="data-[state=active]:bg-blue-600">
+            <TabsTrigger value="subscriptions" className="data-[state=active]:bg-blue-600 data-[state=active]:text-white">
               <CreditCard className="w-4 h-4 mr-2" />
               Subscriptions
             </TabsTrigger>
-            <TabsTrigger value="tickets" className="data-[state=active]:bg-blue-600">
+            <TabsTrigger value="tickets" className="data-[state=active]:bg-blue-600 data-[state=active]:text-white">
               <MessageSquare className="w-4 h-4 mr-2" />
               Support
             </TabsTrigger>
-            <TabsTrigger value="audit" className="data-[state=active]:bg-blue-600">
+            <TabsTrigger value="audit" className="data-[state=active]:bg-blue-600 data-[state=active]:text-white">
               <FileText className="w-4 h-4 mr-2" />
               Audit Logs
             </TabsTrigger>
-            <TabsTrigger value="settings" className="data-[state=active]:bg-blue-600">
+            <TabsTrigger value="settings" className="data-[state=active]:bg-blue-600 data-[state=active]:text-white">
               <Settings className="w-4 h-4 mr-2" />
               Settings
             </TabsTrigger>
@@ -175,7 +175,7 @@ const DashboardTab = ({ apiCall }) => {
   }
 
   const MetricCard = ({ title, value, icon: Icon, trend, color }) => (
-    <Card className="bg-gray-900 border-gray-800">
+    <Card className="bg-gray-900 border-gray-800 hover:border-gray-700 transition-colors">
       <CardContent className="p-6">
         <div className="flex items-center justify-between">
           <div>
@@ -188,7 +188,7 @@ const DashboardTab = ({ apiCall }) => {
               </p>
             )}
           </div>
-          <div className={`p-4 rounded-full ${color}`}>
+          <div className={`p-4 rounded-lg ${color}`}>
             <Icon className="w-6 h-6 text-white" />
           </div>
         </div>
@@ -330,6 +330,7 @@ const UserManagementTab = ({ apiCall }) => {
   const [showCreateDialog, setShowCreateDialog] = useState(false)
   const [showDeleteDialog, setShowDeleteDialog] = useState(false)
   const [selectedUser, setSelectedUser] = useState(null)
+  const [formData, setFormData] = useState({ username: '', email: '', role: 'member', password: '' })
 
   useEffect(() => {
     fetchUsers()
@@ -345,6 +346,26 @@ const UserManagementTab = ({ apiCall }) => {
       console.error(error)
     } finally {
       setLoading(false)
+    }
+  }
+
+  const handleCreateUser = async () => {
+    if (!formData.username || !formData.email || !formData.password) {
+      toast.error('Please fill in all required fields')
+      return
+    }
+
+    try {
+      await apiCall('/api/admin/users', {
+        method: 'POST',
+        body: JSON.stringify(formData)
+      })
+      toast.success('User created successfully')
+      setShowCreateDialog(false)
+      setFormData({ username: '', email: '', role: 'member', password: '' })
+      fetchUsers()
+    } catch (error) {
+      toast.error(error.message)
     }
   }
 
@@ -398,10 +419,10 @@ const UserManagementTab = ({ apiCall }) => {
           <div className="relative">
             <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-4 h-4" />
             <Input
-              placeholder="Search users..."
+              placeholder="Search users by username or email..."
               value={searchTerm}
               onChange={(e) => setSearchTerm(e.target.value)}
-              className="pl-10 bg-gray-900 border-gray-800 text-white"
+              className="pl-10 bg-gray-900 border-gray-800 text-white placeholder-gray-500"
             />
           </div>
         </div>
@@ -433,7 +454,7 @@ const UserManagementTab = ({ apiCall }) => {
 
           <Button
             onClick={() => setShowCreateDialog(true)}
-            className="bg-blue-600 hover:bg-blue-700"
+            className="bg-blue-600 hover:bg-blue-700 text-white"
           >
             <Plus className="w-4 h-4 mr-2" />
             Create User
@@ -446,11 +467,13 @@ const UserManagementTab = ({ apiCall }) => {
         <CardContent className="p-0">
           {loading ? (
             <div className="text-center py-12 text-gray-400">Loading users...</div>
+          ) : filteredUsers.length === 0 ? (
+            <div className="text-center py-12 text-gray-400">No users found</div>
           ) : (
             <div className="overflow-x-auto">
               <Table>
                 <TableHeader>
-                  <TableRow className="border-gray-800">
+                  <TableRow className="border-gray-800 bg-gray-800/50">
                     <TableHead className="text-gray-400">ID</TableHead>
                     <TableHead className="text-gray-400">Username</TableHead>
                     <TableHead className="text-gray-400">Email</TableHead>
@@ -463,7 +486,7 @@ const UserManagementTab = ({ apiCall }) => {
                 </TableHeader>
                 <TableBody>
                   {filteredUsers.map(user => (
-                    <TableRow key={user.id} className="border-gray-800">
+                    <TableRow key={user.id} className="border-gray-800 hover:bg-gray-800/50 transition-colors">
                       <TableCell className="text-white">{user.id}</TableCell>
                       <TableCell className="text-white font-medium">{user.username}</TableCell>
                       <TableCell className="text-gray-400">{user.email}</TableCell>
@@ -483,31 +506,31 @@ const UserManagementTab = ({ apiCall }) => {
                           {user.status}
                         </Badge>
                       </TableCell>
-                      <TableCell className="text-gray-400">{user.plan_type}</TableCell>
+                      <TableCell className="text-gray-400">{user.plan_type || 'N/A'}</TableCell>
                       <TableCell className="text-gray-400">
                         {user.created_at ? new Date(user.created_at).toLocaleDateString() : 'N/A'}
                       </TableCell>
                       <TableCell>
                         <DropdownMenu>
                           <DropdownMenuTrigger asChild>
-                            <Button variant="ghost" size="sm">
+                            <Button variant="ghost" size="sm" className="hover:bg-gray-800">
                               <MoreVertical className="w-4 h-4" />
                             </Button>
                           </DropdownMenuTrigger>
-                          <DropdownMenuContent align="end">
-                            <DropdownMenuLabel>Actions</DropdownMenuLabel>
-                            <DropdownMenuSeparator />
+                          <DropdownMenuContent align="end" className="bg-gray-800 border-gray-700">
+                            <DropdownMenuLabel className="text-gray-300">Actions</DropdownMenuLabel>
+                            <DropdownMenuSeparator className="bg-gray-700" />
                             {user.status === 'pending' && (
-                              <DropdownMenuItem onClick={() => handleApprove(user.id)}>
+                              <DropdownMenuItem onClick={() => handleApprove(user.id)} className="text-green-400 cursor-pointer">
                                 <UserCheck className="w-4 h-4 mr-2" />
                                 Approve
                               </DropdownMenuItem>
                             )}
-                            <DropdownMenuItem onClick={() => handleSuspend(user.id)}>
+                            <DropdownMenuItem onClick={() => handleSuspend(user.id)} className="text-yellow-400 cursor-pointer">
                               <UserX className="w-4 h-4 mr-2" />
                               {user.status === 'suspended' ? 'Unsuspend' : 'Suspend'}
                             </DropdownMenuItem>
-                            <DropdownMenuItem onClick={() => { setSelectedUser(user); setShowDeleteDialog(true); }}>
+                            <DropdownMenuItem onClick={() => { setSelectedUser(user); setShowDeleteDialog(true); }} className="text-red-400 cursor-pointer">
                               <Trash2 className="w-4 h-4 mr-2" />
                               Delete
                             </DropdownMenuItem>
@@ -523,6 +546,70 @@ const UserManagementTab = ({ apiCall }) => {
         </CardContent>
       </Card>
 
+      {/* Create User Dialog */}
+      <Dialog open={showCreateDialog} onOpenChange={setShowCreateDialog}>
+        <DialogContent className="bg-gray-900 border-gray-800 text-white">
+          <DialogHeader>
+            <DialogTitle>Create New User</DialogTitle>
+            <DialogDescription className="text-gray-400">
+              Add a new user to the system
+            </DialogDescription>
+          </DialogHeader>
+          <div className="space-y-4">
+            <div>
+              <Label className="text-gray-300">Username</Label>
+              <Input
+                value={formData.username}
+                onChange={(e) => setFormData({...formData, username: e.target.value})}
+                placeholder="Enter username"
+                className="bg-gray-800 border-gray-700 text-white mt-1"
+              />
+            </div>
+            <div>
+              <Label className="text-gray-300">Email</Label>
+              <Input
+                type="email"
+                value={formData.email}
+                onChange={(e) => setFormData({...formData, email: e.target.value})}
+                placeholder="Enter email"
+                className="bg-gray-800 border-gray-700 text-white mt-1"
+              />
+            </div>
+            <div>
+              <Label className="text-gray-300">Password</Label>
+              <Input
+                type="password"
+                value={formData.password}
+                onChange={(e) => setFormData({...formData, password: e.target.value})}
+                placeholder="Enter password"
+                className="bg-gray-800 border-gray-700 text-white mt-1"
+              />
+            </div>
+            <div>
+              <Label className="text-gray-300">Role</Label>
+              <Select value={formData.role} onValueChange={(val) => setFormData({...formData, role: val})}>
+                <SelectTrigger className="bg-gray-800 border-gray-700 text-white mt-1">
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="member">Member</SelectItem>
+                  <SelectItem value="admin">Admin</SelectItem>
+                  <SelectItem value="main_admin">Main Admin</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
+          </div>
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setShowCreateDialog(false)} className="border-gray-700">
+              Cancel
+            </Button>
+            <Button className="bg-blue-600 hover:bg-blue-700" onClick={handleCreateUser}>
+              Create User
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
       {/* Delete Confirmation Dialog */}
       <Dialog open={showDeleteDialog} onOpenChange={setShowDeleteDialog}>
         <DialogContent className="bg-gray-900 border-gray-800 text-white">
@@ -533,10 +620,10 @@ const UserManagementTab = ({ apiCall }) => {
             </DialogDescription>
           </DialogHeader>
           <DialogFooter>
-            <Button variant="outline" onClick={() => setShowDeleteDialog(false)}>
+            <Button variant="outline" onClick={() => setShowDeleteDialog(false)} className="border-gray-700">
               Cancel
             </Button>
-            <Button variant="destructive" onClick={handleDelete}>
+            <Button variant="destructive" onClick={handleDelete} className="bg-red-600 hover:bg-red-700">
               Delete
             </Button>
           </DialogFooter>
@@ -633,7 +720,7 @@ const CampaignManagementTab = ({ apiCall }) => {
               placeholder="Search campaigns..."
               value={searchTerm}
               onChange={(e) => setSearchTerm(e.target.value)}
-              className="pl-10 bg-gray-900 border-gray-800 text-white"
+              className="pl-10 bg-gray-900 border-gray-800 text-white placeholder-gray-500"
             />
           </div>
         </div>
@@ -655,11 +742,14 @@ const CampaignManagementTab = ({ apiCall }) => {
         <CardContent className="p-0">
           {loading ? (
             <div className="text-center py-12 text-gray-400">Loading campaigns...</div>
+          ) : filteredCampaigns.length === 0 ? (
+            <div className="text-center py-12 text-gray-400">No campaigns found</div>
           ) : (
             <div className="overflow-x-auto">
               <Table>
                 <TableHeader>
-                  <TableRow className="border-gray-800">
+                  <TableRow className="border-gray-800 bg-gray-800/50">
+                    <TableHead className="text-gray-400 w-12"></TableHead>
                     <TableHead className="text-gray-400">ID</TableHead>
                     <TableHead className="text-gray-400">Name</TableHead>
                     <TableHead className="text-gray-400">Owner</TableHead>
@@ -672,7 +762,17 @@ const CampaignManagementTab = ({ apiCall }) => {
                 </TableHeader>
                 <TableBody>
                   {filteredCampaigns.map(campaign => (
-                    <TableRow key={campaign.id} className="border-gray-800">
+                    <TableRow key={campaign.id} className="border-gray-800 hover:bg-gray-800/50 transition-colors">
+                      <TableCell>
+                        <Button
+                          variant="ghost"
+                          size="sm"
+                          onClick={() => setExpandedId(expandedId === campaign.id ? null : campaign.id)}
+                          className="hover:bg-gray-800"
+                        >
+                          {expandedId === campaign.id ? <ChevronUp className="w-4 h-4" /> : <ChevronDown className="w-4 h-4" />}
+                        </Button>
+                      </TableCell>
                       <TableCell className="text-white">{campaign.id}</TableCell>
                       <TableCell className="text-white font-medium">{campaign.name}</TableCell>
                       <TableCell className="text-gray-400">{campaign.owner}</TableCell>
@@ -689,22 +789,22 @@ const CampaignManagementTab = ({ apiCall }) => {
                       <TableCell>
                         <DropdownMenu>
                           <DropdownMenuTrigger asChild>
-                            <Button variant="ghost" size="sm">
+                            <Button variant="ghost" size="sm" className="hover:bg-gray-800">
                               <MoreVertical className="w-4 h-4" />
                             </Button>
                           </DropdownMenuTrigger>
-                          <DropdownMenuContent align="end">
-                            <DropdownMenuLabel>Actions</DropdownMenuLabel>
-                            <DropdownMenuSeparator />
-                            <DropdownMenuItem onClick={() => handleSuspend(campaign.id)}>
+                          <DropdownMenuContent align="end" className="bg-gray-800 border-gray-700">
+                            <DropdownMenuLabel className="text-gray-300">Actions</DropdownMenuLabel>
+                            <DropdownMenuSeparator className="bg-gray-700" />
+                            <DropdownMenuItem onClick={() => handleSuspend(campaign.id)} className="text-yellow-400 cursor-pointer">
                               <Shield className="w-4 h-4 mr-2" />
                               {campaign.status === 'suspended' ? 'Activate' : 'Suspend'}
                             </DropdownMenuItem>
-                            <DropdownMenuItem onClick={() => handleExport(campaign.id)}>
+                            <DropdownMenuItem onClick={() => handleExport(campaign.id)} className="text-blue-400 cursor-pointer">
                               <Download className="w-4 h-4 mr-2" />
                               Export
                             </DropdownMenuItem>
-                            <DropdownMenuItem onClick={() => { setSelectedCampaign(campaign); setShowDeleteDialog(true); }}>
+                            <DropdownMenuItem onClick={() => { setSelectedCampaign(campaign); setShowDeleteDialog(true); }} className="text-red-400 cursor-pointer">
                               <Trash2 className="w-4 h-4 mr-2" />
                               Delete
                             </DropdownMenuItem>
@@ -730,10 +830,10 @@ const CampaignManagementTab = ({ apiCall }) => {
             </DialogDescription>
           </DialogHeader>
           <DialogFooter>
-            <Button variant="outline" onClick={() => setShowDeleteDialog(false)}>
+            <Button variant="outline" onClick={() => setShowDeleteDialog(false)} className="border-gray-700">
               Cancel
             </Button>
-            <Button variant="destructive" onClick={handleDelete}>
+            <Button variant="destructive" onClick={handleDelete} className="bg-red-600 hover:bg-red-700">
               Delete
             </Button>
           </DialogFooter>
@@ -805,7 +905,7 @@ const SecurityTab = ({ apiCall }) => {
       {/* Summary Cards */}
       {summary && (
         <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-          <Card className="bg-gray-900 border-gray-800">
+          <Card className="bg-gray-900 border-gray-800 hover:border-gray-700 transition-colors">
             <CardContent className="p-6">
               <div className="flex items-center justify-between">
                 <div>
@@ -816,7 +916,7 @@ const SecurityTab = ({ apiCall }) => {
               </div>
             </CardContent>
           </Card>
-          <Card className="bg-gray-900 border-gray-800">
+          <Card className="bg-gray-900 border-gray-800 hover:border-gray-700 transition-colors">
             <CardContent className="p-6">
               <div className="flex items-center justify-between">
                 <div>
@@ -827,7 +927,7 @@ const SecurityTab = ({ apiCall }) => {
               </div>
             </CardContent>
           </Card>
-          <Card className="bg-gray-900 border-gray-800">
+          <Card className="bg-gray-900 border-gray-800 hover:border-gray-700 transition-colors">
             <CardContent className="p-6">
               <div className="flex items-center justify-between">
                 <div>
@@ -875,11 +975,13 @@ const SecurityTab = ({ apiCall }) => {
         <CardContent className="p-0">
           {loading ? (
             <div className="text-center py-12 text-gray-400">Loading threats...</div>
+          ) : filteredThreats.length === 0 ? (
+            <div className="text-center py-12 text-gray-400">No threats found</div>
           ) : (
             <div className="overflow-x-auto">
               <Table>
                 <TableHeader>
-                  <TableRow className="border-gray-800">
+                  <TableRow className="border-gray-800 bg-gray-800/50">
                     <TableHead className="text-gray-400">ID</TableHead>
                     <TableHead className="text-gray-400">IP Address</TableHead>
                     <TableHead className="text-gray-400">Type</TableHead>
@@ -891,7 +993,7 @@ const SecurityTab = ({ apiCall }) => {
                 </TableHeader>
                 <TableBody>
                   {filteredThreats.map(threat => (
-                    <TableRow key={threat.id} className="border-gray-800">
+                    <TableRow key={threat.id} className="border-gray-800 hover:bg-gray-800/50 transition-colors">
                       <TableCell className="text-white">{threat.id}</TableCell>
                       <TableCell className="text-white font-mono text-sm">{threat.ip_address}</TableCell>
                       <TableCell className="text-gray-400">{threat.threat_type}</TableCell>
@@ -913,21 +1015,21 @@ const SecurityTab = ({ apiCall }) => {
                       <TableCell>
                         <DropdownMenu>
                           <DropdownMenuTrigger asChild>
-                            <Button variant="ghost" size="sm">
+                            <Button variant="ghost" size="sm" className="hover:bg-gray-800">
                               <MoreVertical className="w-4 h-4" />
                             </Button>
                           </DropdownMenuTrigger>
-                          <DropdownMenuContent align="end">
-                            <DropdownMenuLabel>Actions</DropdownMenuLabel>
-                            <DropdownMenuSeparator />
+                          <DropdownMenuContent align="end" className="bg-gray-800 border-gray-700">
+                            <DropdownMenuLabel className="text-gray-300">Actions</DropdownMenuLabel>
+                            <DropdownMenuSeparator className="bg-gray-700" />
                             {!threat.is_blocked && (
-                              <DropdownMenuItem onClick={() => handleBlock(threat.id)}>
+                              <DropdownMenuItem onClick={() => handleBlock(threat.id)} className="text-red-400 cursor-pointer">
                                 <Shield className="w-4 h-4 mr-2" />
                                 Block
                               </DropdownMenuItem>
                             )}
                             {!threat.is_whitelisted && (
-                              <DropdownMenuItem onClick={() => handleWhitelist(threat.id)}>
+                              <DropdownMenuItem onClick={() => handleWhitelist(threat.id)} className="text-green-400 cursor-pointer">
                                 <Check className="w-4 h-4 mr-2" />
                                 Whitelist
                               </DropdownMenuItem>
@@ -1022,7 +1124,7 @@ const SubscriptionsTab = ({ apiCall }) => {
       {/* Stats Cards */}
       {stats && (
         <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-          <Card className="bg-gray-900 border-gray-800">
+          <Card className="bg-gray-900 border-gray-800 hover:border-gray-700 transition-colors">
             <CardContent className="p-6">
               <div className="flex items-center justify-between">
                 <div>
@@ -1033,7 +1135,7 @@ const SubscriptionsTab = ({ apiCall }) => {
               </div>
             </CardContent>
           </Card>
-          <Card className="bg-gray-900 border-gray-800">
+          <Card className="bg-gray-900 border-gray-800 hover:border-gray-700 transition-colors">
             <CardContent className="p-6">
               <div className="flex items-center justify-between">
                 <div>
@@ -1044,7 +1146,7 @@ const SubscriptionsTab = ({ apiCall }) => {
               </div>
             </CardContent>
           </Card>
-          <Card className="bg-gray-900 border-gray-800">
+          <Card className="bg-gray-900 border-gray-800 hover:border-gray-700 transition-colors">
             <CardContent className="p-6">
               <div className="flex items-center justify-between">
                 <div>
@@ -1063,11 +1165,13 @@ const SubscriptionsTab = ({ apiCall }) => {
         <CardContent className="p-0">
           {loading ? (
             <div className="text-center py-12 text-gray-400">Loading subscriptions...</div>
+          ) : subscriptions.length === 0 ? (
+            <div className="text-center py-12 text-gray-400">No subscriptions found</div>
           ) : (
             <div className="overflow-x-auto">
               <Table>
                 <TableHeader>
-                  <TableRow className="border-gray-800">
+                  <TableRow className="border-gray-800 bg-gray-800/50">
                     <TableHead className="text-gray-400">ID</TableHead>
                     <TableHead className="text-gray-400">User</TableHead>
                     <TableHead className="text-gray-400">Plan</TableHead>
@@ -1080,7 +1184,7 @@ const SubscriptionsTab = ({ apiCall }) => {
                 </TableHeader>
                 <TableBody>
                   {subscriptions.map(sub => (
-                    <TableRow key={sub.id} className="border-gray-800">
+                    <TableRow key={sub.id} className="border-gray-800 hover:bg-gray-800/50 transition-colors">
                       <TableCell className="text-white">{sub.id}</TableCell>
                       <TableCell className="text-white">{sub.user_email}</TableCell>
                       <TableCell className="text-gray-400">{sub.plan_type}</TableCell>
@@ -1097,18 +1201,18 @@ const SubscriptionsTab = ({ apiCall }) => {
                       <TableCell>
                         <DropdownMenu>
                           <DropdownMenuTrigger asChild>
-                            <Button variant="ghost" size="sm">
+                            <Button variant="ghost" size="sm" className="hover:bg-gray-800">
                               <MoreVertical className="w-4 h-4" />
                             </Button>
                           </DropdownMenuTrigger>
-                          <DropdownMenuContent align="end">
-                            <DropdownMenuLabel>Actions</DropdownMenuLabel>
-                            <DropdownMenuSeparator />
-                            <DropdownMenuItem onClick={() => { setSelectedSubscription(sub); setShowApproveDialog(true); }}>
+                          <DropdownMenuContent align="end" className="bg-gray-800 border-gray-700">
+                            <DropdownMenuLabel className="text-gray-300">Actions</DropdownMenuLabel>
+                            <DropdownMenuSeparator className="bg-gray-700" />
+                            <DropdownMenuItem onClick={() => { setSelectedSubscription(sub); setShowApproveDialog(true); }} className="text-green-400 cursor-pointer">
                               <Check className="w-4 h-4 mr-2" />
                               Approve
                             </DropdownMenuItem>
-                            <DropdownMenuItem onClick={() => { setSelectedSubscription(sub); setShowRejectDialog(true); }}>
+                            <DropdownMenuItem onClick={() => { setSelectedSubscription(sub); setShowRejectDialog(true); }} className="text-red-400 cursor-pointer">
                               <X className="w-4 h-4 mr-2" />
                               Reject
                             </DropdownMenuItem>
@@ -1135,17 +1239,17 @@ const SubscriptionsTab = ({ apiCall }) => {
           </DialogHeader>
           <div className="space-y-4">
             <div>
-              <Label className="text-gray-400">Duration (days)</Label>
+              <Label className="text-gray-300">Duration (days)</Label>
               <Input
                 type="number"
                 value={approvalDuration}
                 onChange={(e) => setApprovalDuration(e.target.value)}
-                className="bg-gray-800 border-gray-700 text-white"
+                className="bg-gray-800 border-gray-700 text-white mt-1"
               />
             </div>
           </div>
           <DialogFooter>
-            <Button variant="outline" onClick={() => setShowApproveDialog(false)}>
+            <Button variant="outline" onClick={() => setShowApproveDialog(false)} className="border-gray-700">
               Cancel
             </Button>
             <Button className="bg-green-600 hover:bg-green-700" onClick={handleApprove}>
@@ -1166,17 +1270,17 @@ const SubscriptionsTab = ({ apiCall }) => {
           </DialogHeader>
           <div className="space-y-4">
             <div>
-              <Label className="text-gray-400">Reason</Label>
+              <Label className="text-gray-300">Reason</Label>
               <Textarea
                 value={rejectionReason}
                 onChange={(e) => setRejectionReason(e.target.value)}
                 placeholder="Enter rejection reason..."
-                className="bg-gray-800 border-gray-700 text-white"
+                className="bg-gray-800 border-gray-700 text-white mt-1"
               />
             </div>
           </div>
           <DialogFooter>
-            <Button variant="outline" onClick={() => setShowRejectDialog(false)}>
+            <Button variant="outline" onClick={() => setShowRejectDialog(false)} className="border-gray-700">
               Cancel
             </Button>
             <Button className="bg-red-600 hover:bg-red-700" onClick={handleReject}>
@@ -1276,7 +1380,7 @@ const TicketsTab = ({ apiCall }) => {
       {/* Stats Cards */}
       {stats && (
         <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-          <Card className="bg-gray-900 border-gray-800">
+          <Card className="bg-gray-900 border-gray-800 hover:border-gray-700 transition-colors">
             <CardContent className="p-6">
               <div className="flex items-center justify-between">
                 <div>
@@ -1287,7 +1391,7 @@ const TicketsTab = ({ apiCall }) => {
               </div>
             </CardContent>
           </Card>
-          <Card className="bg-gray-900 border-gray-800">
+          <Card className="bg-gray-900 border-gray-800 hover:border-gray-700 transition-colors">
             <CardContent className="p-6">
               <div className="flex items-center justify-between">
                 <div>
@@ -1298,7 +1402,7 @@ const TicketsTab = ({ apiCall }) => {
               </div>
             </CardContent>
           </Card>
-          <Card className="bg-gray-900 border-gray-800">
+          <Card className="bg-gray-900 border-gray-800 hover:border-gray-700 transition-colors">
             <CardContent className="p-6">
               <div className="flex items-center justify-between">
                 <div>
@@ -1345,11 +1449,13 @@ const TicketsTab = ({ apiCall }) => {
         <CardContent className="p-0">
           {loading ? (
             <div className="text-center py-12 text-gray-400">Loading tickets...</div>
+          ) : filteredTickets.length === 0 ? (
+            <div className="text-center py-12 text-gray-400">No tickets found</div>
           ) : (
             <div className="overflow-x-auto">
               <Table>
                 <TableHeader>
-                  <TableRow className="border-gray-800">
+                  <TableRow className="border-gray-800 bg-gray-800/50">
                     <TableHead className="text-gray-400">ID</TableHead>
                     <TableHead className="text-gray-400">Reference</TableHead>
                     <TableHead className="text-gray-400">User</TableHead>
@@ -1362,7 +1468,7 @@ const TicketsTab = ({ apiCall }) => {
                 </TableHeader>
                 <TableBody>
                   {filteredTickets.map(ticket => (
-                    <TableRow key={ticket.id} className="border-gray-800">
+                    <TableRow key={ticket.id} className="border-gray-800 hover:bg-gray-800/50 transition-colors">
                       <TableCell className="text-white">{ticket.id}</TableCell>
                       <TableCell className="text-white font-mono text-sm">{ticket.ticket_ref}</TableCell>
                       <TableCell className="text-gray-400">{ticket.user_email}</TableCell>
@@ -1390,14 +1496,14 @@ const TicketsTab = ({ apiCall }) => {
                       <TableCell>
                         <DropdownMenu>
                           <DropdownMenuTrigger asChild>
-                            <Button variant="ghost" size="sm">
+                            <Button variant="ghost" size="sm" className="hover:bg-gray-800">
                               <MoreVertical className="w-4 h-4" />
                             </Button>
                           </DropdownMenuTrigger>
-                          <DropdownMenuContent align="end">
-                            <DropdownMenuLabel>Actions</DropdownMenuLabel>
-                            <DropdownMenuSeparator />
-                            <DropdownMenuItem onClick={() => { setSelectedTicket(ticket); setShowDetailDialog(true); }}>
+                          <DropdownMenuContent align="end" className="bg-gray-800 border-gray-700">
+                            <DropdownMenuLabel className="text-gray-300">Actions</DropdownMenuLabel>
+                            <DropdownMenuSeparator className="bg-gray-700" />
+                            <DropdownMenuItem onClick={() => { setSelectedTicket(ticket); setShowDetailDialog(true); }} className="text-blue-400 cursor-pointer">
                               <Eye className="w-4 h-4 mr-2" />
                               View Details
                             </DropdownMenuItem>
@@ -1476,7 +1582,7 @@ const TicketsTab = ({ apiCall }) => {
           )}
 
           <DialogFooter>
-            <Button variant="outline" onClick={() => setShowDetailDialog(false)}>
+            <Button variant="outline" onClick={() => setShowDetailDialog(false)} className="border-gray-700">
               Close
             </Button>
             <Button className="bg-blue-600 hover:bg-blue-700" onClick={handleReply}>
@@ -1551,7 +1657,7 @@ const AuditLogsTab = ({ apiCall }) => {
               placeholder="Search logs..."
               value={searchTerm}
               onChange={(e) => setSearchTerm(e.target.value)}
-              className="pl-10 bg-gray-900 border-gray-800 text-white"
+              className="pl-10 bg-gray-900 border-gray-800 text-white placeholder-gray-500"
             />
           </div>
         </div>
@@ -1571,7 +1677,7 @@ const AuditLogsTab = ({ apiCall }) => {
 
           <Button
             onClick={handleExport}
-            className="bg-green-600 hover:bg-green-700"
+            className="bg-green-600 hover:bg-green-700 text-white"
           >
             <Download className="w-4 h-4 mr-2" />
             Export
@@ -1584,11 +1690,13 @@ const AuditLogsTab = ({ apiCall }) => {
         <CardContent className="p-0">
           {loading ? (
             <div className="text-center py-12 text-gray-400">Loading audit logs...</div>
+          ) : filteredLogs.length === 0 ? (
+            <div className="text-center py-12 text-gray-400">No logs found</div>
           ) : (
             <div className="overflow-x-auto">
               <Table>
                 <TableHeader>
-                  <TableRow className="border-gray-800">
+                  <TableRow className="border-gray-800 bg-gray-800/50">
                     <TableHead className="text-gray-400">ID</TableHead>
                     <TableHead className="text-gray-400">Actor</TableHead>
                     <TableHead className="text-gray-400">Action</TableHead>
@@ -1600,7 +1708,7 @@ const AuditLogsTab = ({ apiCall }) => {
                 </TableHeader>
                 <TableBody>
                   {filteredLogs.map(log => (
-                    <TableRow key={log.id} className="border-gray-800">
+                    <TableRow key={log.id} className="border-gray-800 hover:bg-gray-800/50 transition-colors">
                       <TableCell className="text-white">{log.id}</TableCell>
                       <TableCell className="text-white">{log.actor}</TableCell>
                       <TableCell className="text-gray-400">{log.action}</TableCell>
@@ -1627,23 +1735,32 @@ const AuditLogsTab = ({ apiCall }) => {
 }
 
 // ============================================================================
-// SETTINGS TAB COMPONENT
+// SETTINGS TAB COMPONENT - WITH DOMAIN MANAGEMENT
 // ============================================================================
 const SettingsTab = ({ apiCall }) => {
   const [settings, setSettings] = useState({})
+  const [domains, setDomains] = useState([])
   const [loading, setLoading] = useState(true)
   const [editingKey, setEditingKey] = useState(null)
   const [editingValue, setEditingValue] = useState('')
+  const [showAddDomainDialog, setShowAddDomainDialog] = useState(false)
+  const [showDeleteDomainDialog, setShowDeleteDomainDialog] = useState(false)
+  const [newDomain, setNewDomain] = useState({ domain: '', description: '' })
+  const [selectedDomain, setSelectedDomain] = useState(null)
 
   useEffect(() => {
-    fetchSettings()
+    fetchData()
   }, [])
 
-  const fetchSettings = async () => {
+  const fetchData = async () => {
     try {
       setLoading(true)
-      const data = await apiCall('/api/admin/settings')
-      setSettings(Array.isArray(data) ? data.reduce((acc, s) => ({ ...acc, [s.setting_key]: s }), {}) : data)
+      const [settingsData, domainsData] = await Promise.all([
+        apiCall('/api/admin/settings'),
+        apiCall('/api/admin/domains').catch(() => ({ items: [] }))
+      ])
+      setSettings(Array.isArray(settingsData) ? settingsData.reduce((acc, s) => ({ ...acc, [s.setting_key]: s }), {}) : settingsData)
+      setDomains(Array.isArray(domainsData) ? domainsData : domainsData.items || [])
     } catch (error) {
       toast.error('Failed to load settings')
       console.error(error)
@@ -1661,7 +1778,54 @@ const SettingsTab = ({ apiCall }) => {
       toast.success('Setting updated successfully')
       setEditingKey(null)
       setEditingValue('')
-      fetchSettings()
+      fetchData()
+    } catch (error) {
+      toast.error(error.message)
+    }
+  }
+
+  const handleAddDomain = async () => {
+    if (!newDomain.domain) {
+      toast.error('Please enter a domain')
+      return
+    }
+
+    try {
+      await apiCall('/api/admin/domains', {
+        method: 'POST',
+        body: JSON.stringify(newDomain)
+      })
+      toast.success('Domain added successfully')
+      setShowAddDomainDialog(false)
+      setNewDomain({ domain: '', description: '' })
+      fetchData()
+    } catch (error) {
+      toast.error(error.message)
+    }
+  }
+
+  const handleDeleteDomain = async () => {
+    if (!selectedDomain) return
+
+    try {
+      await apiCall(`/api/admin/domains/${selectedDomain.id}`, { method: 'DELETE' })
+      toast.success('Domain deleted successfully')
+      setShowDeleteDomainDialog(false)
+      setSelectedDomain(null)
+      fetchData()
+    } catch (error) {
+      toast.error(error.message)
+    }
+  }
+
+  const handleToggleDomainStatus = async (domainId, currentStatus) => {
+    try {
+      await apiCall(`/api/admin/domains/${domainId}`, {
+        method: 'PATCH',
+        body: JSON.stringify({ is_active: !currentStatus })
+      })
+      toast.success('Domain status updated')
+      fetchData()
     } catch (error) {
       toast.error(error.message)
     }
@@ -1670,58 +1834,204 @@ const SettingsTab = ({ apiCall }) => {
   const settingsArray = Array.isArray(settings) ? settings : Object.values(settings)
 
   return (
-    <div className="space-y-4">
-      {loading ? (
-        <div className="text-center py-12 text-gray-400">Loading settings...</div>
-      ) : (
-        <div className="grid grid-cols-1 gap-4">
-          {settingsArray.map(setting => (
-            <Card key={setting.setting_key} className="bg-gray-900 border-gray-800">
-              <CardContent className="p-6">
-                <div className="flex items-center justify-between">
-                  <div className="flex-1">
-                    <h3 className="text-white font-semibold mb-2">{setting.setting_key}</h3>
-                    <p className="text-sm text-gray-400 mb-3">{setting.description}</p>
-                    {editingKey === setting.setting_key ? (
-                      <div className="flex gap-2">
-                        <Input
-                          value={editingValue}
-                          onChange={(e) => setEditingValue(e.target.value)}
-                          className="flex-1 bg-gray-800 border-gray-700 text-white"
-                        />
-                        <Button
-                          onClick={() => handleSaveSetting(setting.setting_key)}
-                          className="bg-green-600 hover:bg-green-700"
-                        >
-                          Save
-                        </Button>
-                        <Button
-                          variant="outline"
-                          onClick={() => setEditingKey(null)}
-                        >
-                          Cancel
-                        </Button>
-                      </div>
-                    ) : (
-                      <div className="flex items-center justify-between">
-                        <p className="text-white font-mono">{setting.setting_value}</p>
-                        <Button
-                          variant="outline"
-                          size="sm"
-                          onClick={() => { setEditingKey(setting.setting_key); setEditingValue(setting.setting_value); }}
-                        >
-                          <Edit className="w-4 h-4 mr-2" />
-                          Edit
-                        </Button>
-                      </div>
-                    )}
-                  </div>
-                </div>
-              </CardContent>
-            </Card>
-          ))}
+    <div className="space-y-6">
+      {/* Domain Management Section */}
+      <div>
+        <div className="flex items-center justify-between mb-4">
+          <div>
+            <h2 className="text-2xl font-bold text-white">Domain Management</h2>
+            <p className="text-gray-400 text-sm mt-1">Manage custom domains for tracking links (up to 100 domains)</p>
+          </div>
+          <Button
+            onClick={() => setShowAddDomainDialog(true)}
+            className="bg-blue-600 hover:bg-blue-700 text-white"
+          >
+            <Plus className="w-4 h-4 mr-2" />
+            Add Domain
+          </Button>
         </div>
-      )}
+
+        <Card className="bg-gray-900 border-gray-800">
+          <CardContent className="p-0">
+            {loading ? (
+              <div className="text-center py-12 text-gray-400">Loading domains...</div>
+            ) : domains.length === 0 ? (
+              <div className="text-center py-12 text-gray-400">No custom domains configured. Add one to get started.</div>
+            ) : (
+              <div className="overflow-x-auto">
+                <Table>
+                  <TableHeader>
+                    <TableRow className="border-gray-800 bg-gray-800/50">
+                      <TableHead className="text-gray-400">Domain</TableHead>
+                      <TableHead className="text-gray-400">Description</TableHead>
+                      <TableHead className="text-gray-400">Status</TableHead>
+                      <TableHead className="text-gray-400">Usage</TableHead>
+                      <TableHead className="text-gray-400">Added</TableHead>
+                      <TableHead className="text-gray-400">Actions</TableHead>
+                    </TableRow>
+                  </TableHeader>
+                  <TableBody>
+                    {domains.map(domain => (
+                      <TableRow key={domain.id} className="border-gray-800 hover:bg-gray-800/50 transition-colors">
+                        <TableCell className="text-white font-mono">{domain.domain}</TableCell>
+                        <TableCell className="text-gray-400">{domain.description || 'N/A'}</TableCell>
+                        <TableCell>
+                          <Badge className={domain.is_active ? 'bg-green-600' : 'bg-gray-600'}>
+                            {domain.is_active ? 'Active' : 'Inactive'}
+                          </Badge>
+                        </TableCell>
+                        <TableCell className="text-gray-400">{domain.usage_count || 0} links</TableCell>
+                        <TableCell className="text-gray-400">
+                          {domain.created_at ? new Date(domain.created_at).toLocaleDateString() : 'N/A'}
+                        </TableCell>
+                        <TableCell>
+                          <DropdownMenu>
+                            <DropdownMenuTrigger asChild>
+                              <Button variant="ghost" size="sm" className="hover:bg-gray-800">
+                                <MoreVertical className="w-4 h-4" />
+                              </Button>
+                            </DropdownMenuTrigger>
+                            <DropdownMenuContent align="end" className="bg-gray-800 border-gray-700">
+                              <DropdownMenuLabel className="text-gray-300">Actions</DropdownMenuLabel>
+                              <DropdownMenuSeparator className="bg-gray-700" />
+                              <DropdownMenuItem onClick={() => handleToggleDomainStatus(domain.id, domain.is_active)} className="text-blue-400 cursor-pointer">
+                                <Zap className="w-4 h-4 mr-2" />
+                                {domain.is_active ? 'Deactivate' : 'Activate'}
+                              </DropdownMenuItem>
+                              <DropdownMenuItem onClick={() => { setSelectedDomain(domain); setShowDeleteDomainDialog(true); }} className="text-red-400 cursor-pointer">
+                                <Trash2 className="w-4 h-4 mr-2" />
+                                Delete
+                              </DropdownMenuItem>
+                            </DropdownMenuContent>
+                          </DropdownMenu>
+                        </TableCell>
+                      </TableRow>
+                    ))}
+                  </TableBody>
+                </Table>
+              </div>
+            )}
+          </CardContent>
+        </Card>
+      </div>
+
+      {/* System Settings Section */}
+      <div>
+        <h2 className="text-2xl font-bold text-white mb-4">System Settings</h2>
+        {loading ? (
+          <div className="text-center py-12 text-gray-400">Loading settings...</div>
+        ) : (
+          <div className="grid grid-cols-1 gap-4">
+            {settingsArray.map(setting => (
+              <Card key={setting.setting_key} className="bg-gray-900 border-gray-800 hover:border-gray-700 transition-colors">
+                <CardContent className="p-6">
+                  <div className="flex items-center justify-between">
+                    <div className="flex-1">
+                      <h3 className="text-white font-semibold mb-2">{setting.setting_key}</h3>
+                      <p className="text-sm text-gray-400 mb-3">{setting.description}</p>
+                      {editingKey === setting.setting_key ? (
+                        <div className="flex gap-2">
+                          <Input
+                            value={editingValue}
+                            onChange={(e) => setEditingValue(e.target.value)}
+                            className="flex-1 bg-gray-800 border-gray-700 text-white"
+                          />
+                          <Button
+                            onClick={() => handleSaveSetting(setting.setting_key)}
+                            className="bg-green-600 hover:bg-green-700"
+                          >
+                            Save
+                          </Button>
+                          <Button
+                            variant="outline"
+                            onClick={() => setEditingKey(null)}
+                            className="border-gray-700"
+                          >
+                            Cancel
+                          </Button>
+                        </div>
+                      ) : (
+                        <div className="flex items-center justify-between">
+                          <p className="text-white font-mono text-sm break-all">{setting.setting_value}</p>
+                          <Button
+                            variant="outline"
+                            size="sm"
+                            onClick={() => { setEditingKey(setting.setting_key); setEditingValue(setting.setting_value); }}
+                            className="border-gray-700 ml-2"
+                          >
+                            <Edit className="w-4 h-4 mr-2" />
+                            Edit
+                          </Button>
+                        </div>
+                      )}
+                    </div>
+                  </div>
+                </CardContent>
+              </Card>
+            ))}
+          </div>
+        )}
+      </div>
+
+      {/* Add Domain Dialog */}
+      <Dialog open={showAddDomainDialog} onOpenChange={setShowAddDomainDialog}>
+        <DialogContent className="bg-gray-900 border-gray-800 text-white">
+          <DialogHeader>
+            <DialogTitle>Add New Domain</DialogTitle>
+            <DialogDescription className="text-gray-400">
+              Add a custom domain for tracking links
+            </DialogDescription>
+          </DialogHeader>
+          <div className="space-y-4">
+            <div>
+              <Label className="text-gray-300">Domain</Label>
+              <Input
+                value={newDomain.domain}
+                onChange={(e) => setNewDomain({...newDomain, domain: e.target.value})}
+                placeholder="e.g., links.example.com"
+                className="bg-gray-800 border-gray-700 text-white mt-1"
+              />
+            </div>
+            <div>
+              <Label className="text-gray-300">Description (Optional)</Label>
+              <Input
+                value={newDomain.description}
+                onChange={(e) => setNewDomain({...newDomain, description: e.target.value})}
+                placeholder="e.g., Main tracking domain"
+                className="bg-gray-800 border-gray-700 text-white mt-1"
+              />
+            </div>
+          </div>
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setShowAddDomainDialog(false)} className="border-gray-700">
+              Cancel
+            </Button>
+            <Button className="bg-blue-600 hover:bg-blue-700" onClick={handleAddDomain}>
+              Add Domain
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
+      {/* Delete Domain Dialog */}
+      <Dialog open={showDeleteDomainDialog} onOpenChange={setShowDeleteDomainDialog}>
+        <DialogContent className="bg-gray-900 border-gray-800 text-white">
+          <DialogHeader>
+            <DialogTitle>Confirm Deletion</DialogTitle>
+            <DialogDescription className="text-gray-400">
+              Are you sure you want to delete domain "{selectedDomain?.domain}"? This action cannot be undone.
+            </DialogDescription>
+          </DialogHeader>
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setShowDeleteDomainDialog(false)} className="border-gray-700">
+              Cancel
+            </Button>
+            <Button variant="destructive" onClick={handleDeleteDomain} className="bg-red-600 hover:bg-red-700">
+              Delete
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </div>
   )
 }
