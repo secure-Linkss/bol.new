@@ -17,6 +17,7 @@ from src.routes.analytics import analytics_bp
 from src.routes.campaigns import campaigns_bp
 from src.routes.notifications import notifications_bp
 from src.routes.admin import admin_bp
+from src.routes.admin_complete import admin_complete_bp
 from src.routes.security import security_bp
 from src.routes.quantum_redirect import quantum_bp
 from src.routes.advanced_security import advanced_security_bp
@@ -34,6 +35,7 @@ app.register_blueprint(links_bp, url_prefix='/api')
 app.register_blueprint(analytics_bp, url_prefix='/api')
 app.register_blueprint(campaigns_bp, url_prefix='/api')
 app.register_blueprint(admin_bp)
+app.register_blueprint(admin_complete_bp)
 app.register_blueprint(track_bp)
 app.register_blueprint(events_bp)
 app.register_blueprint(notifications_bp, url_prefix='/api')
