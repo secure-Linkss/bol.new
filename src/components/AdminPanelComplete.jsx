@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import { useState, useEffect } from 'react';
 import { toast } from 'sonner';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
@@ -8,7 +8,7 @@ import { Badge } from '@/components/ui/badge';
 import {
   Users, FolderKanban, Shield, CreditCard, MessageSquare, FileText, Settings, LayoutDashboard,
   UserCheck, UserX, Trash2, Edit, Eye, MoreVertical, Download, RefreshCw, AlertTriangle,
-  Search, Filter, Plus, ChevronDown, ChevronUp, TrendingUp, TrendingDown, Activity
+  Search, Filter, Plus, ChevronDown, ChevronUp, TrendingUp, TrendingDown, Activity, Check, X, Clock
 } from 'lucide-react';
 import {
   DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger,
@@ -304,11 +304,9 @@ const DashboardTab = ({ apiCall }) => {
                   <div key={campaign.id} className="flex items-center justify-between p-2 bg-gray-800 rounded">
                     <div>
                       <p className="text-white text-sm">{campaign.name}</p>
-                      <p className="text-xs text-gray-400">{campaign.created_at}</p>
+                      <p className="text-xs text-gray-400">{campaign.owner}</p>
                     </div>
-                    <Badge className={campaign.status === 'active' ? 'bg-green-600' : 'bg-gray-600'}>
-                      {campaign.status}
-                    </Badge>
+                    <Badge className="bg-blue-600">{campaign.links} links</Badge>
                   </div>
                 ))}
               </div>
@@ -548,12 +546,1185 @@ const UserManagementTab = ({ apiCall }) => {
   )
 }
 
-// Placeholder components for other tabs (to be implemented)
-const CampaignManagementTab = ({ apiCall }) => <div className="text-white">Campaign Management - Implementation needed</div>
-const SecurityTab = ({ apiCall }) => <div className="text-white">Security Monitoring - Implementation needed</div>
-const SubscriptionsTab = ({ apiCall }) => <div className="text-white">Subscriptions - Implementation needed</div>
-const TicketsTab = ({ apiCall }) => <div className="text-white">Support Tickets - Implementation needed</div>
-const AuditLogsTab = ({ apiCall }) => <div className="text-white">Audit Logs - Implementation needed</div>
-const SettingsTab = ({ apiCall }) => <div className="text-white">Admin Settings - Implementation needed</div>
+// ============================================================================
+// CAMPAIGN MANAGEMENT TAB COMPONENT
+// ============================================================================
+const CampaignManagementTab = ({ apiCall }) => {
+  const [campaigns, setCampaigns] = useState([])
+  const [loading, setLoading] = useState(true)
+  const [searchTerm, setSearchTerm] = useState('')
+  const [statusFilter, setStatusFilter] = useState('all')
+  const [expandedId, setExpandedId] = useState(null)
+  const [showDeleteDialog, setShowDeleteDialog] = useState(false)
+  const [selectedCampaign, setSelectedCampaign] = useState(null)
+
+  useEffect(() => {
+    fetchCampaigns()
+  }, [])
+
+  const fetchCampaigns = async () => {
+    try {
+      setLoading(true)
+      const data = await apiCall('/api/admin/campaigns/all')
+      setCampaigns(Array.isArray(data) ? data : data.items || [])
+    } catch (error) {
+      toast.error('Failed to load campaigns')
+      console.error(error)
+    } finally {
+      setLoading(false)
+    }
+  }
+
+  const handleSuspend = async (campaignId) => {
+    try {
+      await apiCall(`/api/admin/campaigns/${campaignId}/suspend`, { method: 'POST' })
+      toast.success('Campaign status updated')
+      fetchCampaigns()
+    } catch (error) {
+      toast.error(error.message)
+    }
+  }
+
+  const handleDelete = async () => {
+    if (!selectedCampaign) return
+    
+    try {
+      await apiCall(`/api/admin/campaigns/${selectedCampaign.id}/delete`, { method: 'DELETE' })
+      toast.success('Campaign deleted successfully')
+      setShowDeleteDialog(false)
+      setSelectedCampaign(null)
+      fetchCampaigns()
+    } catch (error) {
+      toast.error(error.message)
+    }
+  }
+
+  const handleExport = async (campaignId) => {
+    try {
+      const data = await apiCall(`/api/admin/campaigns/${campaignId}/export`)
+      const csv = data.csv || data
+      const blob = new Blob([csv], { type: 'text/csv' })
+      const url = window.URL.createObjectURL(blob)
+      const a = document.createElement('a')
+      a.href = url
+      a.download = `campaign-${campaignId}.csv`
+      a.click()
+      toast.success('Campaign exported successfully')
+    } catch (error) {
+      toast.error(error.message)
+    }
+  }
+
+  const filteredCampaigns = campaigns.filter(campaign => {
+    const matchesSearch = campaign.name?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+                         campaign.owner?.toLowerCase().includes(searchTerm.toLowerCase())
+    const matchesStatus = statusFilter === 'all' || campaign.status === statusFilter
+    return matchesSearch && matchesStatus
+  })
+
+  return (
+    <div className="space-y-4">
+      {/* Header Actions */}
+      <div className="flex flex-col md:flex-row gap-4 items-start md:items-center justify-between">
+        <div className="flex-1 max-w-md">
+          <div className="relative">
+            <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-4 h-4" />
+            <Input
+              placeholder="Search campaigns..."
+              value={searchTerm}
+              onChange={(e) => setSearchTerm(e.target.value)}
+              className="pl-10 bg-gray-900 border-gray-800 text-white"
+            />
+          </div>
+        </div>
+        
+        <Select value={statusFilter} onValueChange={setStatusFilter}>
+          <SelectTrigger className="w-[140px] bg-gray-900 border-gray-800 text-white">
+            <SelectValue placeholder="Status" />
+          </SelectTrigger>
+          <SelectContent>
+            <SelectItem value="all">All Status</SelectItem>
+            <SelectItem value="active">Active</SelectItem>
+            <SelectItem value="suspended">Suspended</SelectItem>
+          </SelectContent>
+        </Select>
+      </div>
+
+      {/* Campaigns Table */}
+      <Card className="bg-gray-900 border-gray-800">
+        <CardContent className="p-0">
+          {loading ? (
+            <div className="text-center py-12 text-gray-400">Loading campaigns...</div>
+          ) : (
+            <div className="overflow-x-auto">
+              <Table>
+                <TableHeader>
+                  <TableRow className="border-gray-800">
+                    <TableHead className="text-gray-400">ID</TableHead>
+                    <TableHead className="text-gray-400">Name</TableHead>
+                    <TableHead className="text-gray-400">Owner</TableHead>
+                    <TableHead className="text-gray-400">Links</TableHead>
+                    <TableHead className="text-gray-400">Clicks</TableHead>
+                    <TableHead className="text-gray-400">Status</TableHead>
+                    <TableHead className="text-gray-400">Created</TableHead>
+                    <TableHead className="text-gray-400">Actions</TableHead>
+                  </TableRow>
+                </TableHeader>
+                <TableBody>
+                  {filteredCampaigns.map(campaign => (
+                    <TableRow key={campaign.id} className="border-gray-800">
+                      <TableCell className="text-white">{campaign.id}</TableCell>
+                      <TableCell className="text-white font-medium">{campaign.name}</TableCell>
+                      <TableCell className="text-gray-400">{campaign.owner}</TableCell>
+                      <TableCell className="text-gray-400">{campaign.links_count || 0}</TableCell>
+                      <TableCell className="text-gray-400">{campaign.total_clicks || 0}</TableCell>
+                      <TableCell>
+                        <Badge className={campaign.status === 'active' ? 'bg-green-600' : 'bg-yellow-600'}>
+                          {campaign.status}
+                        </Badge>
+                      </TableCell>
+                      <TableCell className="text-gray-400">
+                        {campaign.created_at ? new Date(campaign.created_at).toLocaleDateString() : 'N/A'}
+                      </TableCell>
+                      <TableCell>
+                        <DropdownMenu>
+                          <DropdownMenuTrigger asChild>
+                            <Button variant="ghost" size="sm">
+                              <MoreVertical className="w-4 h-4" />
+                            </Button>
+                          </DropdownMenuTrigger>
+                          <DropdownMenuContent align="end">
+                            <DropdownMenuLabel>Actions</DropdownMenuLabel>
+                            <DropdownMenuSeparator />
+                            <DropdownMenuItem onClick={() => handleSuspend(campaign.id)}>
+                              <Shield className="w-4 h-4 mr-2" />
+                              {campaign.status === 'suspended' ? 'Activate' : 'Suspend'}
+                            </DropdownMenuItem>
+                            <DropdownMenuItem onClick={() => handleExport(campaign.id)}>
+                              <Download className="w-4 h-4 mr-2" />
+                              Export
+                            </DropdownMenuItem>
+                            <DropdownMenuItem onClick={() => { setSelectedCampaign(campaign); setShowDeleteDialog(true); }}>
+                              <Trash2 className="w-4 h-4 mr-2" />
+                              Delete
+                            </DropdownMenuItem>
+                          </DropdownMenuContent>
+                        </DropdownMenu>
+                      </TableCell>
+                    </TableRow>
+                  ))}
+                </TableBody>
+              </Table>
+            </div>
+          )}
+        </CardContent>
+      </Card>
+
+      {/* Delete Confirmation Dialog */}
+      <Dialog open={showDeleteDialog} onOpenChange={setShowDeleteDialog}>
+        <DialogContent className="bg-gray-900 border-gray-800 text-white">
+          <DialogHeader>
+            <DialogTitle>Confirm Deletion</DialogTitle>
+            <DialogDescription className="text-gray-400">
+              Are you sure you want to delete campaign "{selectedCampaign?.name}"? This action cannot be undone.
+            </DialogDescription>
+          </DialogHeader>
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setShowDeleteDialog(false)}>
+              Cancel
+            </Button>
+            <Button variant="destructive" onClick={handleDelete}>
+              Delete
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+    </div>
+  )
+}
+
+// ============================================================================
+// SECURITY & THREAT MONITORING TAB COMPONENT
+// ============================================================================
+const SecurityTab = ({ apiCall }) => {
+  const [threats, setThreats] = useState([])
+  const [summary, setSummary] = useState(null)
+  const [loading, setLoading] = useState(true)
+  const [threatTypeFilter, setThreatTypeFilter] = useState('all')
+  const [threatLevelFilter, setThreatLevelFilter] = useState('all')
+
+  useEffect(() => {
+    fetchData()
+  }, [])
+
+  const fetchData = async () => {
+    try {
+      setLoading(true)
+      const [threatsData, summaryData] = await Promise.all([
+        apiCall('/api/admin/security/threats'),
+        apiCall('/api/admin/security/summary')
+      ])
+      setThreats(Array.isArray(threatsData) ? threatsData : threatsData.items || [])
+      setSummary(summaryData)
+    } catch (error) {
+      toast.error('Failed to load security data')
+      console.error(error)
+    } finally {
+      setLoading(false)
+    }
+  }
+
+  const handleBlock = async (threatId) => {
+    try {
+      await apiCall(`/api/admin/security/threats/${threatId}/block`, { method: 'POST' })
+      toast.success('Threat blocked successfully')
+      fetchData()
+    } catch (error) {
+      toast.error(error.message)
+    }
+  }
+
+  const handleWhitelist = async (threatId) => {
+    try {
+      await apiCall(`/api/admin/security/threats/${threatId}/whitelist`, { method: 'POST' })
+      toast.success('Threat whitelisted successfully')
+      fetchData()
+    } catch (error) {
+      toast.error(error.message)
+    }
+  }
+
+  const filteredThreats = threats.filter(threat => {
+    const matchesThreatType = threatTypeFilter === 'all' || threat.threat_type === threatTypeFilter
+    const matchesThreatLevel = threatLevelFilter === 'all' || threat.threat_level === threatLevelFilter
+    return matchesThreatType && matchesThreatLevel
+  })
+
+  return (
+    <div className="space-y-4">
+      {/* Summary Cards */}
+      {summary && (
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+          <Card className="bg-gray-900 border-gray-800">
+            <CardContent className="p-6">
+              <div className="flex items-center justify-between">
+                <div>
+                  <p className="text-sm text-gray-400 mb-1">Total Threats</p>
+                  <p className="text-3xl font-bold text-white">{summary.total_threats || 0}</p>
+                </div>
+                <AlertTriangle className="w-8 h-8 text-red-500" />
+              </div>
+            </CardContent>
+          </Card>
+          <Card className="bg-gray-900 border-gray-800">
+            <CardContent className="p-6">
+              <div className="flex items-center justify-between">
+                <div>
+                  <p className="text-sm text-gray-400 mb-1">Blocked IPs</p>
+                  <p className="text-3xl font-bold text-white">{summary.blocked_ips || 0}</p>
+                </div>
+                <Shield className="w-8 h-8 text-blue-500" />
+              </div>
+            </CardContent>
+          </Card>
+          <Card className="bg-gray-900 border-gray-800">
+            <CardContent className="p-6">
+              <div className="flex items-center justify-between">
+                <div>
+                  <p className="text-sm text-gray-400 mb-1">Whitelisted</p>
+                  <p className="text-3xl font-bold text-white">{summary.whitelisted_ips || 0}</p>
+                </div>
+                <Check className="w-8 h-8 text-green-500" />
+              </div>
+            </CardContent>
+          </Card>
+        </div>
+      )}
+
+      {/* Filters */}
+      <div className="flex flex-col md:flex-row gap-4">
+        <Select value={threatTypeFilter} onValueChange={setThreatTypeFilter}>
+          <SelectTrigger className="w-[180px] bg-gray-900 border-gray-800 text-white">
+            <SelectValue placeholder="Threat Type" />
+          </SelectTrigger>
+          <SelectContent>
+            <SelectItem value="all">All Types</SelectItem>
+            <SelectItem value="proxy">Proxy</SelectItem>
+            <SelectItem value="bot">Bot</SelectItem>
+            <SelectItem value="rapid_click">Rapid Click</SelectItem>
+            <SelectItem value="suspicious">Suspicious</SelectItem>
+          </SelectContent>
+        </Select>
+
+        <Select value={threatLevelFilter} onValueChange={setThreatLevelFilter}>
+          <SelectTrigger className="w-[180px] bg-gray-900 border-gray-800 text-white">
+            <SelectValue placeholder="Threat Level" />
+          </SelectTrigger>
+          <SelectContent>
+            <SelectItem value="all">All Levels</SelectItem>
+            <SelectItem value="low">Low</SelectItem>
+            <SelectItem value="medium">Medium</SelectItem>
+            <SelectItem value="high">High</SelectItem>
+            <SelectItem value="critical">Critical</SelectItem>
+          </SelectContent>
+        </Select>
+      </div>
+
+      {/* Threats Table */}
+      <Card className="bg-gray-900 border-gray-800">
+        <CardContent className="p-0">
+          {loading ? (
+            <div className="text-center py-12 text-gray-400">Loading threats...</div>
+          ) : (
+            <div className="overflow-x-auto">
+              <Table>
+                <TableHeader>
+                  <TableRow className="border-gray-800">
+                    <TableHead className="text-gray-400">ID</TableHead>
+                    <TableHead className="text-gray-400">IP Address</TableHead>
+                    <TableHead className="text-gray-400">Type</TableHead>
+                    <TableHead className="text-gray-400">Level</TableHead>
+                    <TableHead className="text-gray-400">Country</TableHead>
+                    <TableHead className="text-gray-400">Status</TableHead>
+                    <TableHead className="text-gray-400">Actions</TableHead>
+                  </TableRow>
+                </TableHeader>
+                <TableBody>
+                  {filteredThreats.map(threat => (
+                    <TableRow key={threat.id} className="border-gray-800">
+                      <TableCell className="text-white">{threat.id}</TableCell>
+                      <TableCell className="text-white font-mono text-sm">{threat.ip_address}</TableCell>
+                      <TableCell className="text-gray-400">{threat.threat_type}</TableCell>
+                      <TableCell>
+                        <Badge className={
+                          threat.threat_level === 'critical' ? 'bg-red-600' :
+                          threat.threat_level === 'high' ? 'bg-orange-600' :
+                          threat.threat_level === 'medium' ? 'bg-yellow-600' : 'bg-green-600'
+                        }>
+                          {threat.threat_level}
+                        </Badge>
+                      </TableCell>
+                      <TableCell className="text-gray-400">{threat.country}</TableCell>
+                      <TableCell>
+                        <Badge className={threat.is_blocked ? 'bg-red-600' : threat.is_whitelisted ? 'bg-green-600' : 'bg-gray-600'}>
+                          {threat.is_blocked ? 'Blocked' : threat.is_whitelisted ? 'Whitelisted' : 'Active'}
+                        </Badge>
+                      </TableCell>
+                      <TableCell>
+                        <DropdownMenu>
+                          <DropdownMenuTrigger asChild>
+                            <Button variant="ghost" size="sm">
+                              <MoreVertical className="w-4 h-4" />
+                            </Button>
+                          </DropdownMenuTrigger>
+                          <DropdownMenuContent align="end">
+                            <DropdownMenuLabel>Actions</DropdownMenuLabel>
+                            <DropdownMenuSeparator />
+                            {!threat.is_blocked && (
+                              <DropdownMenuItem onClick={() => handleBlock(threat.id)}>
+                                <Shield className="w-4 h-4 mr-2" />
+                                Block
+                              </DropdownMenuItem>
+                            )}
+                            {!threat.is_whitelisted && (
+                              <DropdownMenuItem onClick={() => handleWhitelist(threat.id)}>
+                                <Check className="w-4 h-4 mr-2" />
+                                Whitelist
+                              </DropdownMenuItem>
+                            )}
+                          </DropdownMenuContent>
+                        </DropdownMenu>
+                      </TableCell>
+                    </TableRow>
+                  ))}
+                </TableBody>
+              </Table>
+            </div>
+          )}
+        </CardContent>
+      </Card>
+    </div>
+  )
+}
+
+// ============================================================================
+// SUBSCRIPTIONS & PAYMENTS TAB COMPONENT
+// ============================================================================
+const SubscriptionsTab = ({ apiCall }) => {
+  const [subscriptions, setSubscriptions] = useState([])
+  const [stats, setStats] = useState(null)
+  const [loading, setLoading] = useState(true)
+  const [showApproveDialog, setShowApproveDialog] = useState(false)
+  const [showRejectDialog, setShowRejectDialog] = useState(false)
+  const [selectedSubscription, setSelectedSubscription] = useState(null)
+  const [approvalDuration, setApprovalDuration] = useState('30')
+  const [rejectionReason, setRejectionReason] = useState('')
+
+  useEffect(() => {
+    fetchData()
+  }, [])
+
+  const fetchData = async () => {
+    try {
+      setLoading(true)
+      const [subsData, statsData] = await Promise.all([
+        apiCall('/api/admin/subscriptions/pending'),
+        apiCall('/api/admin/subscriptions/stats')
+      ])
+      setSubscriptions(Array.isArray(subsData) ? subsData : subsData.items || [])
+      setStats(statsData)
+    } catch (error) {
+      toast.error('Failed to load subscriptions')
+      console.error(error)
+    } finally {
+      setLoading(false)
+    }
+  }
+
+  const handleApprove = async () => {
+    if (!selectedSubscription) return
+    
+    try {
+      await apiCall(`/api/admin/subscriptions/${selectedSubscription.id}/approve`, {
+        method: 'POST',
+        body: JSON.stringify({ duration_days: parseInt(approvalDuration) })
+      })
+      toast.success('Subscription approved successfully')
+      setShowApproveDialog(false)
+      setSelectedSubscription(null)
+      setApprovalDuration('30')
+      fetchData()
+    } catch (error) {
+      toast.error(error.message)
+    }
+  }
+
+  const handleReject = async () => {
+    if (!selectedSubscription) return
+    
+    try {
+      await apiCall(`/api/admin/subscriptions/${selectedSubscription.id}/reject`, {
+        method: 'POST',
+        body: JSON.stringify({ reason: rejectionReason })
+      })
+      toast.success('Subscription rejected successfully')
+      setShowRejectDialog(false)
+      setSelectedSubscription(null)
+      setRejectionReason('')
+      fetchData()
+    } catch (error) {
+      toast.error(error.message)
+    }
+  }
+
+  return (
+    <div className="space-y-4">
+      {/* Stats Cards */}
+      {stats && (
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+          <Card className="bg-gray-900 border-gray-800">
+            <CardContent className="p-6">
+              <div className="flex items-center justify-between">
+                <div>
+                  <p className="text-sm text-gray-400 mb-1">Pending Verifications</p>
+                  <p className="text-3xl font-bold text-white">{stats.pending || 0}</p>
+                </div>
+                <Clock className="w-8 h-8 text-yellow-500" />
+              </div>
+            </CardContent>
+          </Card>
+          <Card className="bg-gray-900 border-gray-800">
+            <CardContent className="p-6">
+              <div className="flex items-center justify-between">
+                <div>
+                  <p className="text-sm text-gray-400 mb-1">Active Subscriptions</p>
+                  <p className="text-3xl font-bold text-white">{stats.active || 0}</p>
+                </div>
+                <Check className="w-8 h-8 text-green-500" />
+              </div>
+            </CardContent>
+          </Card>
+          <Card className="bg-gray-900 border-gray-800">
+            <CardContent className="p-6">
+              <div className="flex items-center justify-between">
+                <div>
+                  <p className="text-sm text-gray-400 mb-1">Total Revenue</p>
+                  <p className="text-3xl font-bold text-white">${stats.total_revenue || 0}</p>
+                </div>
+                <CreditCard className="w-8 h-8 text-blue-500" />
+              </div>
+            </CardContent>
+          </Card>
+        </div>
+      )}
+
+      {/* Subscriptions Table */}
+      <Card className="bg-gray-900 border-gray-800">
+        <CardContent className="p-0">
+          {loading ? (
+            <div className="text-center py-12 text-gray-400">Loading subscriptions...</div>
+          ) : (
+            <div className="overflow-x-auto">
+              <Table>
+                <TableHeader>
+                  <TableRow className="border-gray-800">
+                    <TableHead className="text-gray-400">ID</TableHead>
+                    <TableHead className="text-gray-400">User</TableHead>
+                    <TableHead className="text-gray-400">Plan</TableHead>
+                    <TableHead className="text-gray-400">Amount</TableHead>
+                    <TableHead className="text-gray-400">Method</TableHead>
+                    <TableHead className="text-gray-400">Status</TableHead>
+                    <TableHead className="text-gray-400">Submitted</TableHead>
+                    <TableHead className="text-gray-400">Actions</TableHead>
+                  </TableRow>
+                </TableHeader>
+                <TableBody>
+                  {subscriptions.map(sub => (
+                    <TableRow key={sub.id} className="border-gray-800">
+                      <TableCell className="text-white">{sub.id}</TableCell>
+                      <TableCell className="text-white">{sub.user_email}</TableCell>
+                      <TableCell className="text-gray-400">{sub.plan_type}</TableCell>
+                      <TableCell className="text-gray-400">{sub.amount} {sub.currency}</TableCell>
+                      <TableCell className="text-gray-400">{sub.payment_method}</TableCell>
+                      <TableCell>
+                        <Badge className={sub.status === 'pending' ? 'bg-yellow-600' : 'bg-gray-600'}>
+                          {sub.status}
+                        </Badge>
+                      </TableCell>
+                      <TableCell className="text-gray-400">
+                        {sub.created_at ? new Date(sub.created_at).toLocaleDateString() : 'N/A'}
+                      </TableCell>
+                      <TableCell>
+                        <DropdownMenu>
+                          <DropdownMenuTrigger asChild>
+                            <Button variant="ghost" size="sm">
+                              <MoreVertical className="w-4 h-4" />
+                            </Button>
+                          </DropdownMenuTrigger>
+                          <DropdownMenuContent align="end">
+                            <DropdownMenuLabel>Actions</DropdownMenuLabel>
+                            <DropdownMenuSeparator />
+                            <DropdownMenuItem onClick={() => { setSelectedSubscription(sub); setShowApproveDialog(true); }}>
+                              <Check className="w-4 h-4 mr-2" />
+                              Approve
+                            </DropdownMenuItem>
+                            <DropdownMenuItem onClick={() => { setSelectedSubscription(sub); setShowRejectDialog(true); }}>
+                              <X className="w-4 h-4 mr-2" />
+                              Reject
+                            </DropdownMenuItem>
+                          </DropdownMenuContent>
+                        </DropdownMenu>
+                      </TableCell>
+                    </TableRow>
+                  ))}
+                </TableBody>
+              </Table>
+            </div>
+          )}
+        </CardContent>
+      </Card>
+
+      {/* Approve Dialog */}
+      <Dialog open={showApproveDialog} onOpenChange={setShowApproveDialog}>
+        <DialogContent className="bg-gray-900 border-gray-800 text-white">
+          <DialogHeader>
+            <DialogTitle>Approve Subscription</DialogTitle>
+            <DialogDescription className="text-gray-400">
+              Approve subscription for {selectedSubscription?.user_email}
+            </DialogDescription>
+          </DialogHeader>
+          <div className="space-y-4">
+            <div>
+              <Label className="text-gray-400">Duration (days)</Label>
+              <Input
+                type="number"
+                value={approvalDuration}
+                onChange={(e) => setApprovalDuration(e.target.value)}
+                className="bg-gray-800 border-gray-700 text-white"
+              />
+            </div>
+          </div>
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setShowApproveDialog(false)}>
+              Cancel
+            </Button>
+            <Button className="bg-green-600 hover:bg-green-700" onClick={handleApprove}>
+              Approve
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
+      {/* Reject Dialog */}
+      <Dialog open={showRejectDialog} onOpenChange={setShowRejectDialog}>
+        <DialogContent className="bg-gray-900 border-gray-800 text-white">
+          <DialogHeader>
+            <DialogTitle>Reject Subscription</DialogTitle>
+            <DialogDescription className="text-gray-400">
+              Reject subscription for {selectedSubscription?.user_email}
+            </DialogDescription>
+          </DialogHeader>
+          <div className="space-y-4">
+            <div>
+              <Label className="text-gray-400">Reason</Label>
+              <Textarea
+                value={rejectionReason}
+                onChange={(e) => setRejectionReason(e.target.value)}
+                placeholder="Enter rejection reason..."
+                className="bg-gray-800 border-gray-700 text-white"
+              />
+            </div>
+          </div>
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setShowRejectDialog(false)}>
+              Cancel
+            </Button>
+            <Button className="bg-red-600 hover:bg-red-700" onClick={handleReject}>
+              Reject
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+    </div>
+  )
+}
+
+// ============================================================================
+// SUPPORT TICKETS TAB COMPONENT
+// ============================================================================
+const TicketsTab = ({ apiCall }) => {
+  const [tickets, setTickets] = useState([])
+  const [stats, setStats] = useState(null)
+  const [loading, setLoading] = useState(true)
+  const [statusFilter, setStatusFilter] = useState('all')
+  const [priorityFilter, setPriorityFilter] = useState('all')
+  const [selectedTicket, setSelectedTicket] = useState(null)
+  const [showDetailDialog, setShowDetailDialog] = useState(false)
+  const [replyMessage, setReplyMessage] = useState('')
+
+  useEffect(() => {
+    fetchData()
+  }, [])
+
+  const fetchData = async () => {
+    try {
+      setLoading(true)
+      const [ticketsData, statsData] = await Promise.all([
+        apiCall('/api/admin/tickets'),
+        apiCall('/api/admin/tickets/stats')
+      ])
+      setTickets(Array.isArray(ticketsData) ? ticketsData : ticketsData.items || [])
+      setStats(statsData)
+    } catch (error) {
+      toast.error('Failed to load tickets')
+      console.error(error)
+    } finally {
+      setLoading(false)
+    }
+  }
+
+  const handleReply = async () => {
+    if (!selectedTicket || !replyMessage.trim()) return
+    
+    try {
+      await apiCall(`/api/admin/tickets/${selectedTicket.id}/reply`, {
+        method: 'POST',
+        body: JSON.stringify({ message: replyMessage })
+      })
+      toast.success('Reply sent successfully')
+      setReplyMessage('')
+      fetchData()
+    } catch (error) {
+      toast.error(error.message)
+    }
+  }
+
+  const handleStatusChange = async (ticketId, newStatus) => {
+    try {
+      await apiCall(`/api/admin/tickets/${ticketId}/status`, {
+        method: 'PATCH',
+        body: JSON.stringify({ status: newStatus })
+      })
+      toast.success('Ticket status updated')
+      fetchData()
+    } catch (error) {
+      toast.error(error.message)
+    }
+  }
+
+  const handlePriorityChange = async (ticketId, newPriority) => {
+    try {
+      await apiCall(`/api/admin/tickets/${ticketId}/priority`, {
+        method: 'PATCH',
+        body: JSON.stringify({ priority: newPriority })
+      })
+      toast.success('Ticket priority updated')
+      fetchData()
+    } catch (error) {
+      toast.error(error.message)
+    }
+  }
+
+  const filteredTickets = tickets.filter(ticket => {
+    const matchesStatus = statusFilter === 'all' || ticket.status === statusFilter
+    const matchesPriority = priorityFilter === 'all' || ticket.priority === priorityFilter
+    return matchesStatus && matchesPriority
+  })
+
+  return (
+    <div className="space-y-4">
+      {/* Stats Cards */}
+      {stats && (
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+          <Card className="bg-gray-900 border-gray-800">
+            <CardContent className="p-6">
+              <div className="flex items-center justify-between">
+                <div>
+                  <p className="text-sm text-gray-400 mb-1">Open Tickets</p>
+                  <p className="text-3xl font-bold text-white">{stats.open || 0}</p>
+                </div>
+                <MessageSquare className="w-8 h-8 text-blue-500" />
+              </div>
+            </CardContent>
+          </Card>
+          <Card className="bg-gray-900 border-gray-800">
+            <CardContent className="p-6">
+              <div className="flex items-center justify-between">
+                <div>
+                  <p className="text-sm text-gray-400 mb-1">In Progress</p>
+                  <p className="text-3xl font-bold text-white">{stats.in_progress || 0}</p>
+                </div>
+                <Clock className="w-8 h-8 text-yellow-500" />
+              </div>
+            </CardContent>
+          </Card>
+          <Card className="bg-gray-900 border-gray-800">
+            <CardContent className="p-6">
+              <div className="flex items-center justify-between">
+                <div>
+                  <p className="text-sm text-gray-400 mb-1">Resolved</p>
+                  <p className="text-3xl font-bold text-white">{stats.resolved || 0}</p>
+                </div>
+                <Check className="w-8 h-8 text-green-500" />
+              </div>
+            </CardContent>
+          </Card>
+        </div>
+      )}
+
+      {/* Filters */}
+      <div className="flex flex-col md:flex-row gap-4">
+        <Select value={statusFilter} onValueChange={setStatusFilter}>
+          <SelectTrigger className="w-[140px] bg-gray-900 border-gray-800 text-white">
+            <SelectValue placeholder="Status" />
+          </SelectTrigger>
+          <SelectContent>
+            <SelectItem value="all">All Status</SelectItem>
+            <SelectItem value="open">Open</SelectItem>
+            <SelectItem value="in_progress">In Progress</SelectItem>
+            <SelectItem value="resolved">Resolved</SelectItem>
+          </SelectContent>
+        </Select>
+
+        <Select value={priorityFilter} onValueChange={setPriorityFilter}>
+          <SelectTrigger className="w-[140px] bg-gray-900 border-gray-800 text-white">
+            <SelectValue placeholder="Priority" />
+          </SelectTrigger>
+          <SelectContent>
+            <SelectItem value="all">All Priorities</SelectItem>
+            <SelectItem value="low">Low</SelectItem>
+            <SelectItem value="medium">Medium</SelectItem>
+            <SelectItem value="high">High</SelectItem>
+            <SelectItem value="critical">Critical</SelectItem>
+          </SelectContent>
+        </Select>
+      </div>
+
+      {/* Tickets Table */}
+      <Card className="bg-gray-900 border-gray-800">
+        <CardContent className="p-0">
+          {loading ? (
+            <div className="text-center py-12 text-gray-400">Loading tickets...</div>
+          ) : (
+            <div className="overflow-x-auto">
+              <Table>
+                <TableHeader>
+                  <TableRow className="border-gray-800">
+                    <TableHead className="text-gray-400">ID</TableHead>
+                    <TableHead className="text-gray-400">Reference</TableHead>
+                    <TableHead className="text-gray-400">User</TableHead>
+                    <TableHead className="text-gray-400">Subject</TableHead>
+                    <TableHead className="text-gray-400">Status</TableHead>
+                    <TableHead className="text-gray-400">Priority</TableHead>
+                    <TableHead className="text-gray-400">Created</TableHead>
+                    <TableHead className="text-gray-400">Actions</TableHead>
+                  </TableRow>
+                </TableHeader>
+                <TableBody>
+                  {filteredTickets.map(ticket => (
+                    <TableRow key={ticket.id} className="border-gray-800">
+                      <TableCell className="text-white">{ticket.id}</TableCell>
+                      <TableCell className="text-white font-mono text-sm">{ticket.ticket_ref}</TableCell>
+                      <TableCell className="text-gray-400">{ticket.user_email}</TableCell>
+                      <TableCell className="text-white">{ticket.subject}</TableCell>
+                      <TableCell>
+                        <Badge className={
+                          ticket.status === 'resolved' ? 'bg-green-600' :
+                          ticket.status === 'in_progress' ? 'bg-blue-600' : 'bg-yellow-600'
+                        }>
+                          {ticket.status}
+                        </Badge>
+                      </TableCell>
+                      <TableCell>
+                        <Badge className={
+                          ticket.priority === 'critical' ? 'bg-red-600' :
+                          ticket.priority === 'high' ? 'bg-orange-600' :
+                          ticket.priority === 'medium' ? 'bg-yellow-600' : 'bg-green-600'
+                        }>
+                          {ticket.priority}
+                        </Badge>
+                      </TableCell>
+                      <TableCell className="text-gray-400">
+                        {ticket.created_at ? new Date(ticket.created_at).toLocaleDateString() : 'N/A'}
+                      </TableCell>
+                      <TableCell>
+                        <DropdownMenu>
+                          <DropdownMenuTrigger asChild>
+                            <Button variant="ghost" size="sm">
+                              <MoreVertical className="w-4 h-4" />
+                            </Button>
+                          </DropdownMenuTrigger>
+                          <DropdownMenuContent align="end">
+                            <DropdownMenuLabel>Actions</DropdownMenuLabel>
+                            <DropdownMenuSeparator />
+                            <DropdownMenuItem onClick={() => { setSelectedTicket(ticket); setShowDetailDialog(true); }}>
+                              <Eye className="w-4 h-4 mr-2" />
+                              View Details
+                            </DropdownMenuItem>
+                          </DropdownMenuContent>
+                        </DropdownMenu>
+                      </TableCell>
+                    </TableRow>
+                  ))}
+                </TableBody>
+              </Table>
+            </div>
+          )}
+        </CardContent>
+      </Card>
+
+      {/* Ticket Detail Dialog */}
+      <Dialog open={showDetailDialog} onOpenChange={setShowDetailDialog}>
+        <DialogContent className="bg-gray-900 border-gray-800 text-white max-w-2xl max-h-[80vh] overflow-y-auto">
+          <DialogHeader>
+            <DialogTitle>{selectedTicket?.subject}</DialogTitle>
+            <DialogDescription className="text-gray-400">
+              {selectedTicket?.ticket_ref}
+            </DialogDescription>
+          </DialogHeader>
+          
+          {selectedTicket && (
+            <div className="space-y-4">
+              {/* Ticket Info */}
+              <div className="grid grid-cols-2 gap-4 p-4 bg-gray-800 rounded">
+                <div>
+                  <p className="text-sm text-gray-400">Status</p>
+                  <Select value={selectedTicket.status} onValueChange={(val) => handleStatusChange(selectedTicket.id, val)}>
+                    <SelectTrigger className="bg-gray-700 border-gray-600 text-white mt-1">
+                      <SelectValue />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="open">Open</SelectItem>
+                      <SelectItem value="in_progress">In Progress</SelectItem>
+                      <SelectItem value="resolved">Resolved</SelectItem>
+                    </SelectContent>
+                  </Select>
+                </div>
+                <div>
+                  <p className="text-sm text-gray-400">Priority</p>
+                  <Select value={selectedTicket.priority} onValueChange={(val) => handlePriorityChange(selectedTicket.id, val)}>
+                    <SelectTrigger className="bg-gray-700 border-gray-600 text-white mt-1">
+                      <SelectValue />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="low">Low</SelectItem>
+                      <SelectItem value="medium">Medium</SelectItem>
+                      <SelectItem value="high">High</SelectItem>
+                      <SelectItem value="critical">Critical</SelectItem>
+                    </SelectContent>
+                  </Select>
+                </div>
+              </div>
+
+              {/* Message */}
+              <div className="p-4 bg-gray-800 rounded">
+                <p className="text-sm text-gray-400 mb-2">Message</p>
+                <p className="text-white">{selectedTicket.message}</p>
+              </div>
+
+              {/* Reply Section */}
+              <div className="space-y-2">
+                <Label className="text-gray-400">Reply</Label>
+                <Textarea
+                  value={replyMessage}
+                  onChange={(e) => setReplyMessage(e.target.value)}
+                  placeholder="Type your reply..."
+                  className="bg-gray-800 border-gray-700 text-white"
+                />
+              </div>
+            </div>
+          )}
+
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setShowDetailDialog(false)}>
+              Close
+            </Button>
+            <Button className="bg-blue-600 hover:bg-blue-700" onClick={handleReply}>
+              Send Reply
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+    </div>
+  )
+}
+
+// ============================================================================
+// AUDIT LOGS TAB COMPONENT
+// ============================================================================
+const AuditLogsTab = ({ apiCall }) => {
+  const [logs, setLogs] = useState([])
+  const [loading, setLoading] = useState(true)
+  const [searchTerm, setSearchTerm] = useState('')
+  const [actionFilter, setActionFilter] = useState('all')
+
+  useEffect(() => {
+    fetchLogs()
+  }, [])
+
+  const fetchLogs = async () => {
+    try {
+      setLoading(true)
+      const data = await apiCall('/api/admin/audit-logs')
+      setLogs(Array.isArray(data) ? data : data.items || [])
+    } catch (error) {
+      toast.error('Failed to load audit logs')
+      console.error(error)
+    } finally {
+      setLoading(false)
+    }
+  }
+
+  const handleExport = async () => {
+    try {
+      const data = await apiCall('/api/admin/audit-logs/export')
+      const csv = data.csv || data
+      const blob = new Blob([csv], { type: 'text/csv' })
+      const url = window.URL.createObjectURL(blob)
+      const a = document.createElement('a')
+      a.href = url
+      a.download = 'audit-logs.csv'
+      a.click()
+      toast.success('Audit logs exported successfully')
+    } catch (error) {
+      toast.error(error.message)
+    }
+  }
+
+  const filteredLogs = logs.filter(log => {
+    const matchesSearch = log.actor?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+                         log.action?.toLowerCase().includes(searchTerm.toLowerCase())
+    const matchesAction = actionFilter === 'all' || log.action === actionFilter
+    return matchesSearch && matchesAction
+  })
+
+  const uniqueActions = [...new Set(logs.map(log => log.action))]
+
+  return (
+    <div className="space-y-4">
+      {/* Header Actions */}
+      <div className="flex flex-col md:flex-row gap-4 items-start md:items-center justify-between">
+        <div className="flex-1 max-w-md">
+          <div className="relative">
+            <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-4 h-4" />
+            <Input
+              placeholder="Search logs..."
+              value={searchTerm}
+              onChange={(e) => setSearchTerm(e.target.value)}
+              className="pl-10 bg-gray-900 border-gray-800 text-white"
+            />
+          </div>
+        </div>
+        
+        <div className="flex gap-2">
+          <Select value={actionFilter} onValueChange={setActionFilter}>
+            <SelectTrigger className="w-[180px] bg-gray-900 border-gray-800 text-white">
+              <SelectValue placeholder="Action" />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="all">All Actions</SelectItem>
+              {uniqueActions.map(action => (
+                <SelectItem key={action} value={action}>{action}</SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
+
+          <Button
+            onClick={handleExport}
+            className="bg-green-600 hover:bg-green-700"
+          >
+            <Download className="w-4 h-4 mr-2" />
+            Export
+          </Button>
+        </div>
+      </div>
+
+      {/* Logs Table */}
+      <Card className="bg-gray-900 border-gray-800">
+        <CardContent className="p-0">
+          {loading ? (
+            <div className="text-center py-12 text-gray-400">Loading audit logs...</div>
+          ) : (
+            <div className="overflow-x-auto">
+              <Table>
+                <TableHeader>
+                  <TableRow className="border-gray-800">
+                    <TableHead className="text-gray-400">ID</TableHead>
+                    <TableHead className="text-gray-400">Actor</TableHead>
+                    <TableHead className="text-gray-400">Action</TableHead>
+                    <TableHead className="text-gray-400">Resource</TableHead>
+                    <TableHead className="text-gray-400">IP Address</TableHead>
+                    <TableHead className="text-gray-400">Status</TableHead>
+                    <TableHead className="text-gray-400">Timestamp</TableHead>
+                  </TableRow>
+                </TableHeader>
+                <TableBody>
+                  {filteredLogs.map(log => (
+                    <TableRow key={log.id} className="border-gray-800">
+                      <TableCell className="text-white">{log.id}</TableCell>
+                      <TableCell className="text-white">{log.actor}</TableCell>
+                      <TableCell className="text-gray-400">{log.action}</TableCell>
+                      <TableCell className="text-gray-400">{log.resource_type}</TableCell>
+                      <TableCell className="text-gray-400 font-mono text-sm">{log.ip_address}</TableCell>
+                      <TableCell>
+                        <Badge className={log.status === 'success' ? 'bg-green-600' : 'bg-red-600'}>
+                          {log.status}
+                        </Badge>
+                      </TableCell>
+                      <TableCell className="text-gray-400">
+                        {log.created_at ? new Date(log.created_at).toLocaleString() : 'N/A'}
+                      </TableCell>
+                    </TableRow>
+                  ))}
+                </TableBody>
+              </Table>
+            </div>
+          )}
+        </CardContent>
+      </Card>
+    </div>
+  )
+}
+
+// ============================================================================
+// SETTINGS TAB COMPONENT
+// ============================================================================
+const SettingsTab = ({ apiCall }) => {
+  const [settings, setSettings] = useState({})
+  const [loading, setLoading] = useState(true)
+  const [editingKey, setEditingKey] = useState(null)
+  const [editingValue, setEditingValue] = useState('')
+
+  useEffect(() => {
+    fetchSettings()
+  }, [])
+
+  const fetchSettings = async () => {
+    try {
+      setLoading(true)
+      const data = await apiCall('/api/admin/settings')
+      setSettings(Array.isArray(data) ? data.reduce((acc, s) => ({ ...acc, [s.setting_key]: s }), {}) : data)
+    } catch (error) {
+      toast.error('Failed to load settings')
+      console.error(error)
+    } finally {
+      setLoading(false)
+    }
+  }
+
+  const handleSaveSetting = async (key) => {
+    try {
+      await apiCall(`/api/admin/settings/${key}`, {
+        method: 'PATCH',
+        body: JSON.stringify({ setting_value: editingValue })
+      })
+      toast.success('Setting updated successfully')
+      setEditingKey(null)
+      setEditingValue('')
+      fetchSettings()
+    } catch (error) {
+      toast.error(error.message)
+    }
+  }
+
+  const settingsArray = Array.isArray(settings) ? settings : Object.values(settings)
+
+  return (
+    <div className="space-y-4">
+      {loading ? (
+        <div className="text-center py-12 text-gray-400">Loading settings...</div>
+      ) : (
+        <div className="grid grid-cols-1 gap-4">
+          {settingsArray.map(setting => (
+            <Card key={setting.setting_key} className="bg-gray-900 border-gray-800">
+              <CardContent className="p-6">
+                <div className="flex items-center justify-between">
+                  <div className="flex-1">
+                    <h3 className="text-white font-semibold mb-2">{setting.setting_key}</h3>
+                    <p className="text-sm text-gray-400 mb-3">{setting.description}</p>
+                    {editingKey === setting.setting_key ? (
+                      <div className="flex gap-2">
+                        <Input
+                          value={editingValue}
+                          onChange={(e) => setEditingValue(e.target.value)}
+                          className="flex-1 bg-gray-800 border-gray-700 text-white"
+                        />
+                        <Button
+                          onClick={() => handleSaveSetting(setting.setting_key)}
+                          className="bg-green-600 hover:bg-green-700"
+                        >
+                          Save
+                        </Button>
+                        <Button
+                          variant="outline"
+                          onClick={() => setEditingKey(null)}
+                        >
+                          Cancel
+                        </Button>
+                      </div>
+                    ) : (
+                      <div className="flex items-center justify-between">
+                        <p className="text-white font-mono">{setting.setting_value}</p>
+                        <Button
+                          variant="outline"
+                          size="sm"
+                          onClick={() => { setEditingKey(setting.setting_key); setEditingValue(setting.setting_value); }}
+                        >
+                          <Edit className="w-4 h-4 mr-2" />
+                          Edit
+                        </Button>
+                      </div>
+                    )}
+                  </div>
+                </div>
+              </CardContent>
+            </Card>
+          ))}
+        </div>
+      )}
+    </div>
+  )
+}
 
 export default AdminPanelComplete
+
