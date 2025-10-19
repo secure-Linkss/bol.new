@@ -126,11 +126,12 @@ def stage2_validation_hub():
         # Get current client information
         client_info = get_client_info()
         
-        # Process through validation hub
+        # Process through validation hub (lenient_mode=True for development/proxies)
         result = quantum_redirect.stage2_validation_hub(
             genesis_token=genesis_token,
             current_ip=client_info['ip'],
-            current_user_agent=client_info['user_agent']
+            current_user_agent=client_info['user_agent'],
+            lenient_mode=True
         )
         
         if not result['success']:

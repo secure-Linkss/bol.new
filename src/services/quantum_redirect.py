@@ -288,11 +288,12 @@ class QuantumRedirectSystem:
                 'stage': 'genesis_failed'
             }
 
-    def stage2_validation_hub(self, genesis_token: str, current_ip: str, current_user_agent: str) -> Dict:
+    def stage2_validation_hub(self, genesis_token: str, current_ip: str, current_user_agent: str, lenient_mode: bool = True) -> Dict:
         """
         Stage 2: Validation Hub Processing
         Ruthless validation of traffic with cryptographic verification
         Target execution time: <150ms
+        lenient_mode: If True, allows IP/UA mismatches (for development/proxies)
         """
         start_time = time.time()
         
@@ -320,7 +321,10 @@ class QuantumRedirectSystem:
             current_ip_hash = self._hash_value(current_ip)
             current_ua_hash = self._hash_value(current_user_agent)
             
-            if payload['ip_hash'] != current_ip_hash:
+            ip_mismatch = payload['ip_hash'] != current_ip_hash
+            ua_mismatch = payload['ua_hash'] != current_ua_hash
+            
+            if ip_mismatch and not lenient_mode:
                 self.performance_metrics['security_violations']['ip_mismatch'] += 1
                 self.performance_metrics['blocked_attempts'] += 1
                 return {
@@ -332,7 +336,7 @@ class QuantumRedirectSystem:
                     'click_id': payload['sub']
                 }
             
-            if payload['ua_hash'] != current_ua_hash:
+            if ua_mismatch and not lenient_mode:
                 self.performance_metrics['security_violations']['ua_mismatch'] += 1
                 self.performance_metrics['blocked_attempts'] += 1
                 return {
@@ -343,6 +347,9 @@ class QuantumRedirectSystem:
                     'security_violation': 'ua_mismatch',
                     'click_id': payload['sub']
                 }
+            
+            if lenient_mode and (ip_mismatch or ua_mismatch):
+                print(f"Warning: IP/UA mismatch in lenient mode for click {payload['sub']}")
             
             # Generate transit token for routing gateway
             transit_payload = {

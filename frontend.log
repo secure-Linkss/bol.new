@@ -1,0 +1,15 @@
+
+> brain-link-tracker-frontend@0.0.0 dev /home/ubuntu/clone_bol
+> vite -- --port 5174
+
+
+  VITE v6.3.6  ready in 266 ms
+
+  ➜  Local:   http://localhost:5173/
+  ➜  Network: http://169.254.0.21:5173/
+  ➜  press h + enter to show help
+5:23:25 PM [vite] (client) hmr update /src/components/AdminPanel.jsx, /src/index.css, /src/App.css
+5:23:44 PM [vite] (client) page reload src/services/quantum_redirect.py
+5:23:47 PM [vite] (client) page reload src/services/quantum_redirect.py
+5:24:01 PM [vite] (client) page reload src/services/quantum_redirect.py
+5:24:09 PM [vite] (client) page reload src/routes/quantum_redirect.py

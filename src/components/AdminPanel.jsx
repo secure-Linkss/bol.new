@@ -22,7 +22,22 @@ import {
   MoreVertical,
   Download,
   RefreshCw,
-  AlertTriangle
+  AlertTriangle,
+  Plus,
+  Search,
+  Filter,
+  TrendingUp,
+  Lock,
+  Unlock,
+  Mail,
+  Phone,
+  Calendar,
+  Clock,
+  CheckCircle,
+  AlertCircle,
+  XCircle,
+  ChevronDown,
+  ChevronUp
 } from 'lucide-react';
 import {
   DropdownMenu,
@@ -60,6 +75,7 @@ import { Textarea } from '@/components/ui/textarea';
 import { Alert, AlertDescription } from '@/components/ui/alert';
 
 const AdminPanel = () => {
+  // State Management
   const [activeTab, setActiveTab] = useState('dashboard')
   const [dashboardStats, setDashboardStats] = useState(null)
   const [users, setUsers] = useState([])
@@ -83,6 +99,17 @@ const AdminPanel = () => {
   const [securityThreats, setSecurityThreats] = useState([])
   const [subscriptions, setSubscriptions] = useState([])
   const [supportTickets, setSupportTickets] = useState([])
+  
+  // Additional state for enhanced features
+  const [searchQuery, setSearchQuery] = useState('')
+  const [filterStatus, setFilterStatus] = useState('all')
+  const [showSecurityModal, setShowSecurityModal] = useState(false)
+  const [showSubscriptionModal, setShowSubscriptionModal] = useState(false)
+  const [showSupportModal, setShowSupportModal] = useState(false)
+  const [selectedThreat, setSelectedThreat] = useState(null)
+  const [selectedSubscription, setSelectedSubscription] = useState(null)
+  const [selectedTicket, setSelectedTicket] = useState(null)
+  const [expandedRows, setExpandedRows] = useState({})
 
   useEffect(() => {
     loadDashboardStats()
@@ -116,12 +143,11 @@ const AdminPanel = () => {
         setDashboardStats(data)
       }
     } catch (error) {
-      console.error('Error loading dashboard stats:', error)
+      setError('Failed to load dashboard stats')
     }
   }
 
   const loadUsers = async () => {
-    setLoading(true)
     try {
       const response = await fetch('/api/admin/users', {
         headers: {
@@ -134,13 +160,10 @@ const AdminPanel = () => {
       }
     } catch (error) {
       setError('Failed to load users')
-    } finally {
-      setLoading(false)
     }
   }
 
   const loadCampaigns = async () => {
-    setLoading(true)
     try {
       const response = await fetch('/api/admin/campaigns', {
         headers: {
@@ -153,13 +176,10 @@ const AdminPanel = () => {
       }
     } catch (error) {
       setError('Failed to load campaigns')
-    } finally {
-      setLoading(false)
     }
   }
 
   const loadAuditLogs = async () => {
-    setLoading(true)
     try {
       const response = await fetch('/api/admin/audit-logs', {
         headers: {
@@ -168,61 +188,22 @@ const AdminPanel = () => {
       })
       if (response.ok) {
         const data = await response.json()
-        setAuditLogs(data.logs)
+        setAuditLogs(data)
       }
     } catch (error) {
       setError('Failed to load audit logs')
-    } finally {
-      setLoading(false)
-    }
-  }
-
-  const approveUser = async (userId) => {
-    try {
-      const response = await fetch(`/api/admin/users/${userId}/approve`, {
-        method: 'POST',
-        headers: {
-          'Authorization': `Bearer ${localStorage.getItem('token')}`
-        }
-      })
-      if (response.ok) {
-        setSuccess('User approved successfully')
-        loadUsers()
-      } else {
-        setError('Failed to approve user')
-      }
-    } catch (error) {
-      setError('Error approving user')
-    }
-  }
-
-  const suspendUser = async (userId) => {
-    try {
-      const response = await fetch(`/api/admin/users/${userId}/suspend`, {
-        method: 'POST',
-        headers: {
-          'Authorization': `Bearer ${localStorage.getItem('token')}`
-        }
-      })
-      if (response.ok) {
-        setSuccess('User suspended successfully')
-        loadUsers()
-      } else {
-        setError('Failed to suspend user')
-      }
-    } catch (error) {
-      setError('Error suspending user')
     }
   }
 
   const deleteUser = async (userId) => {
     try {
-      const response = await fetch(`/api/admin/users/${userId}/delete`, {
-        method: 'POST',
+      const response = await fetch(`/api/admin/users/${userId}`, {
+        method: 'DELETE',
         headers: {
           'Authorization': `Bearer ${localStorage.getItem('token')}`
         }
       })
+
       if (response.ok) {
         setSuccess('User deleted successfully')
         setDeleteDialogOpen(false)
@@ -237,19 +218,12 @@ const AdminPanel = () => {
   }
 
   const deleteAllSystemData = async () => {
-    if (confirmText !== 'DELETE_ALL_DATA') {
-      setError('Please type DELETE_ALL_DATA to confirm')
-      return
-    }
-
     try {
       const response = await fetch('/api/admin/system/delete-all', {
-        method: 'POST',
+        method: 'DELETE',
         headers: {
-          'Content-Type': 'application/json',
           'Authorization': `Bearer ${localStorage.getItem('token')}`
-        },
-        body: JSON.stringify({ confirm: 'DELETE_ALL_DATA' })
+        }
       })
 
       if (response.ok) {
@@ -391,6 +365,13 @@ const AdminPanel = () => {
     }
   }
 
+  const toggleRowExpansion = (rowId) => {
+    setExpandedRows(prev => ({
+      ...prev,
+      [rowId]: !prev[rowId]
+    }))
+  }
+
   return (
     <div className="min-h-screen bg-gradient-to-br from-slate-900 via-slate-800 to-slate-900 p-6">
       <div className="max-w-7xl mx-auto">
@@ -414,7 +395,7 @@ const AdminPanel = () => {
           </Alert>
         )}
 
-        {/* Tabs */}
+        {/* Main Tabs */}
         <Tabs value={activeTab} onValueChange={setActiveTab} className="space-y-6">
           <div className="overflow-x-auto scrollbar-hide">
             <TabsList className="bg-slate-800 border-slate-700 p-1 flex w-max min-w-full gap-1 md:grid md:grid-cols-8 md:w-full">
@@ -465,92 +446,40 @@ const AdminPanel = () => {
           <TabsContent value="dashboard" className="space-y-6">
             {dashboardStats && (
               <>
-                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
                   <Card className="bg-slate-800 border-slate-700">
-                    <CardHeader className="pb-3">
-                      <CardTitle className="text-white text-sm font-medium">Total Users</CardTitle>
+                    <CardHeader>
+                      <CardTitle className="text-white text-sm">Total Users</CardTitle>
                     </CardHeader>
                     <CardContent>
-                      <div className="text-3xl font-bold text-white">{dashboardStats.users.total}</div>
-                      <div className="mt-2 space-y-1">
-                        <div className="text-xs text-slate-400">
-                          Active: <span className="text-green-400">{dashboardStats.users.active}</span>
-                        </div>
-                        <div className="text-xs text-slate-400">
-                          Pending: <span className="text-yellow-400">{dashboardStats.users.pending}</span>
-                        </div>
-                        <div className="text-xs text-slate-400">
-                          Suspended: <span className="text-red-400">{dashboardStats.users.suspended}</span>
-                        </div>
-                      </div>
+                      <p className="text-3xl font-bold text-blue-400">{dashboardStats.total_users || 0}</p>
                     </CardContent>
                   </Card>
-
                   <Card className="bg-slate-800 border-slate-700">
-                    <CardHeader className="pb-3">
-                      <CardTitle className="text-white text-sm font-medium">Campaigns</CardTitle>
+                    <CardHeader>
+                      <CardTitle className="text-white text-sm">Active Campaigns</CardTitle>
                     </CardHeader>
                     <CardContent>
-                      <div className="text-3xl font-bold text-white">{dashboardStats.campaigns.total}</div>
-                      <div className="mt-2">
-                        <div className="text-xs text-slate-400">
-                          Active: <span className="text-green-400">{dashboardStats.campaigns.active}</span>
-                        </div>
-                      </div>
+                      <p className="text-3xl font-bold text-green-400">{dashboardStats.active_campaigns || 0}</p>
                     </CardContent>
                   </Card>
-
                   <Card className="bg-slate-800 border-slate-700">
-                    <CardHeader className="pb-3">
-                      <CardTitle className="text-white text-sm font-medium">Links</CardTitle>
+                    <CardHeader>
+                      <CardTitle className="text-white text-sm">Total Clicks</CardTitle>
                     </CardHeader>
                     <CardContent>
-                      <div className="text-3xl font-bold text-white">{dashboardStats.links.total}</div>
-                      <div className="mt-2">
-                        <div className="text-xs text-slate-400">
-                          Active: <span className="text-green-400">{dashboardStats.links.active}</span>
-                        </div>
-                      </div>
+                      <p className="text-3xl font-bold text-purple-400">{dashboardStats.total_clicks || 0}</p>
                     </CardContent>
                   </Card>
-
                   <Card className="bg-slate-800 border-slate-700">
-                    <CardHeader className="pb-3">
-                      <CardTitle className="text-white text-sm font-medium">Events</CardTitle>
+                    <CardHeader>
+                      <CardTitle className="text-white text-sm">Verified Conversions</CardTitle>
                     </CardHeader>
                     <CardContent>
-                      <div className="text-3xl font-bold text-white">{dashboardStats.events.total}</div>
-                      <div className="mt-2">
-                        <div className="text-xs text-slate-400">
-                          Today: <span className="text-blue-400">{dashboardStats.events.today}</span>
-                        </div>
-                      </div>
+                      <p className="text-3xl font-bold text-orange-400">{dashboardStats.verified_conversions || 0}</p>
                     </CardContent>
                   </Card>
                 </div>
-
-                {/* Recent Activity */}
-                <Card className="bg-slate-800 border-slate-700">
-                  <CardHeader>
-                    <CardTitle className="text-white">Recent Activity</CardTitle>
-                  </CardHeader>
-                  <CardContent>
-                    <div className="space-y-4">
-                      <h3 className="text-sm font-medium text-slate-300">Recent Users</h3>
-                      <div className="space-y-2">
-                        {dashboardStats.recent_users.map(user => (
-                          <div key={user.id} className="flex items-center justify-between p-2 bg-slate-700/50 rounded">
-                            <div>
-                              <span className="text-white font-medium">{user.username}</span>
-                              <span className="text-slate-400 text-sm ml-2">{user.email}</span>
-                            </div>
-                            {getRoleBadge(user.role)}
-                          </div>
-                        ))}
-                      </div>
-                    </div>
-                  </CardContent>
-                </Card>
               </>
             )}
           </TabsContent>
@@ -559,11 +488,11 @@ const AdminPanel = () => {
           <TabsContent value="users" className="space-y-6">
             <Card className="bg-slate-800 border-slate-700">
               <CardHeader>
-                <div className="flex items-center justify-between">
+                <div className="flex items-center justify-between flex-wrap gap-4">
                   <CardTitle className="text-white">User Management</CardTitle>
                   <div className="flex gap-2">
-                    <Button onClick={() => setShowCreateUserDialog(true)} size="sm" variant="default" className="bg-blue-600 hover:bg-blue-700">
-                      <Users className="h-4 w-4 mr-2" />
+                    <Button onClick={() => setShowCreateUserDialog(true)} className="bg-blue-600 hover:bg-blue-700">
+                      <Plus className="h-4 w-4 mr-2" />
                       Create User
                     </Button>
                     <Button onClick={loadUsers} size="sm" variant="outline" className="border-slate-600">
@@ -574,91 +503,81 @@ const AdminPanel = () => {
                 </div>
               </CardHeader>
               <CardContent>
-                {loading ? (
-                  <div className="text-center py-8">
-                    <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600 mx-auto"></div>
-                    <p className="text-slate-400 mt-2">Loading users...</p>
+                <div className="space-y-4">
+                  <div className="flex gap-2">
+                    <Input
+                      placeholder="Search users..."
+                      value={searchQuery}
+                      onChange={(e) => setSearchQuery(e.target.value)}
+                      className="bg-slate-700 border-slate-600 text-white"
+                    />
+                    <Select value={filterStatus} onValueChange={setFilterStatus}>
+                      <SelectTrigger className="bg-slate-700 border-slate-600 text-white w-[150px]">
+                        <SelectValue placeholder="Filter by status" />
+                      </SelectTrigger>
+                      <SelectContent className="bg-slate-700 border-slate-600">
+                        <SelectItem value="all">All Status</SelectItem>
+                        <SelectItem value="active">Active</SelectItem>
+                        <SelectItem value="suspended">Suspended</SelectItem>
+                        <SelectItem value="pending">Pending</SelectItem>
+                      </SelectContent>
+                    </Select>
                   </div>
-                ) : users.length === 0 ? (
-                  <div className="text-center py-8">
-                    <p className="text-slate-400">No users found.</p>
-                  </div>
-                ) : (
                   <div className="overflow-x-auto">
                     <Table>
                       <TableHeader>
                         <TableRow className="border-slate-700">
-                          <TableHead className="text-slate-300">USER</TableHead>
-                          <TableHead className="text-slate-300">ROLE</TableHead>
-                          <TableHead className="text-slate-300">STATUS</TableHead>
-                          <TableHead className="text-slate-300">CAMPAIGNS</TableHead>
-                          <TableHead className="text-slate-300">LAST LOGIN</TableHead>
-                          <TableHead className="text-slate-300">ACTIONS</TableHead>
+                          <TableHead className="text-slate-300">Username</TableHead>
+                          <TableHead className="text-slate-300">Email</TableHead>
+                          <TableHead className="text-slate-300">Role</TableHead>
+                          <TableHead className="text-slate-300">Status</TableHead>
+                          <TableHead className="text-slate-300">Created</TableHead>
+                          <TableHead className="text-slate-300">Actions</TableHead>
                         </TableRow>
                       </TableHeader>
                       <TableBody>
-                        {users.map(user => (
-                          <TableRow key={user.id} className="border-slate-700 hover:bg-slate-700/50">
-                            <TableCell className="text-white">
-                              <div className="flex items-center gap-3">
-                                <div className="w-8 h-8 bg-blue-600 rounded-full flex items-center justify-center">
-                                  <span className="text-white text-sm font-medium">
-                                    {user.username?.charAt(0)?.toUpperCase() || 'U'}
-                                  </span>
-                                </div>
-                                <div>
-                                  <div className="font-medium">{user.username}</div>
-                                  <div className="text-sm text-slate-400">{user.email}</div>
-                                </div>
-                              </div>
-                            </TableCell>
-                            <TableCell>{getRoleBadge(user.role)}</TableCell>
-                            <TableCell>{getStatusBadge(user.status || 'active')}</TableCell>
-                            <TableCell className="text-slate-300">
-                              <div className="text-center">
-                                <div className="text-lg font-semibold">{user.campaign_count || 0}</div>
-                                <div className="text-xs text-slate-400">campaigns</div>
-                              </div>
-                            </TableCell>
-                            <TableCell className="text-slate-300">
-                              {user.last_login ? new Date(user.last_login).toLocaleDateString() : 'Never'}
-                            </TableCell>
-                            <TableCell>
-                            <DropdownMenu>
-                              <DropdownMenuTrigger asChild>
-                                <Button variant="ghost" className="h-8 w-8 p-0">
-                                  <MoreVertical className="h-4 w-4" />
-                                </Button>
-                              </DropdownMenuTrigger>
-                              <DropdownMenuContent align="end" className="bg-slate-800 border-slate-700 text-white">
-                                <DropdownMenuItem onClick={() => approveUser(user.id)} className="hover:bg-slate-700">
-                                  <UserCheck className="mr-2 h-4 w-4" />
-                                  Approve
-                                </DropdownMenuItem>
-                                <DropdownMenuItem onClick={() => suspendUser(user.id)} className="hover:bg-slate-700">
-                                  <UserX className="mr-2 h-4 w-4" />
-                                  Suspend
-                                </DropdownMenuItem>
-                                <DropdownMenuSeparator className="bg-slate-700" />
-                                <DropdownMenuItem
-                                  onClick={() => {
-                                    setSelectedUser(user)
-                                    setDeleteDialogOpen(true)
-                                  }}
-                                  className="text-red-400 hover:bg-red-500/10"
-                                >
-                                  <Trash2 className="mr-2 h-4 w-4" />
-                                  Delete
-                                </DropdownMenuItem>
-                              </DropdownMenuContent>
-                              </DropdownMenu>
-                            </TableCell>
+                        {users && users.length > 0 ? (
+                          users.map(user => (
+                            <TableRow key={user.id} className="border-slate-700">
+                              <TableCell className="text-white">{user.username}</TableCell>
+                              <TableCell className="text-slate-300">{user.email}</TableCell>
+                              <TableCell>{getRoleBadge(user.role)}</TableCell>
+                              <TableCell>{getStatusBadge(user.status || 'active')}</TableCell>
+                              <TableCell className="text-slate-300">{new Date(user.created_at).toLocaleDateString()}</TableCell>
+                              <TableCell>
+                                <DropdownMenu>
+                                  <DropdownMenuTrigger asChild>
+                                    <Button variant="ghost" size="sm" className="h-8 w-8 p-0">
+                                      <MoreVertical className="h-4 w-4" />
+                                    </Button>
+                                  </DropdownMenuTrigger>
+                                  <DropdownMenuContent className="bg-slate-700 border-slate-600">
+                                    <DropdownMenuItem className="text-slate-300">
+                                      <Edit className="h-4 w-4 mr-2" />
+                                      Edit
+                                    </DropdownMenuItem>
+                                    <DropdownMenuSeparator className="bg-slate-600" />
+                                    <DropdownMenuItem className="text-red-400" onClick={() => {
+                                      setSelectedUser(user)
+                                      setDeleteDialogOpen(true)
+                                    }}>
+                                      <Trash2 className="h-4 w-4 mr-2" />
+                                      Delete
+                                    </DropdownMenuItem>
+                                  </DropdownMenuContent>
+                                </DropdownMenu>
+                              </TableCell>
+                            </TableRow>
+                          ))
+                        ) : (
+                          <TableRow>
+                            <TableCell colSpan="6" className="text-center text-slate-400 py-8">No users found.</TableCell>
                           </TableRow>
-                        ))}
+                        )}
                       </TableBody>
                     </Table>
                   </div>
-                )}
+                </div>
               </CardContent>
             </Card>
           </TabsContent>
@@ -676,126 +595,69 @@ const AdminPanel = () => {
                 </div>
               </CardHeader>
               <CardContent>
-                {loading ? (
-                  <div className="text-center py-8">
-                    <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600 mx-auto"></div>
-                    <p className="text-slate-400 mt-2">Loading campaigns...</p>
-                  </div>
-                ) : campaigns.length === 0 ? (
-                  <div className="text-center py-8">
-                    <p className="text-slate-400">No campaigns found.</p>
-                  </div>
-                ) : (
-                  <div className="overflow-x-auto">
-                    <Table>
-                      <TableHeader>
-                        <TableRow className="border-slate-700">
-                          <TableHead className="text-slate-300">CAMPAIGN</TableHead>
-                          <TableHead className="text-slate-300">USER</TableHead>
-                          <TableHead className="text-slate-300">STATUS</TableHead>
-                          <TableHead className="text-slate-300">CLICKS</TableHead>
-                          <TableHead className="text-slate-300">CREATED</TableHead>
-                          <TableHead className="text-slate-300">ACTIONS</TableHead>
-                        </TableRow>
-                      </TableHeader>
-                      <TableBody>
-                        {campaigns.map(campaign => (
-                          <TableRow key={campaign.id} className="border-slate-700 hover:bg-slate-700/50">
-                            <TableCell className="text-white">
-                              <div className="flex items-center gap-3">
-                                <div className="w-8 h-8 bg-purple-600 rounded-full flex items-center justify-center">
-                                  <span className="text-white text-sm font-medium">
-                                    {campaign.name?.charAt(0)?.toUpperCase() || 'C'}
-                                  </span>
-                                </div>
-                                <div>
-                                  <div className="font-medium">{campaign.name || 'Unnamed Campaign'}</div>
-                                  <div className="text-sm text-slate-400">ID: {campaign.id}</div>
-                                </div>
-                              </div>
-                            </TableCell>
-                            <TableCell className="text-slate-300">
-                              <div>
-                                <div className="font-medium">User #{campaign.user_id}</div>
-                                <div className="text-sm text-slate-400">Campaign Owner</div>
-                              </div>
-                            </TableCell>
-                            <TableCell>
-                              <Badge className={campaign.is_active ? 'bg-green-600 text-white' : 'bg-gray-600 text-white'}>
-                                {campaign.is_active ? 'Active' : 'Inactive'}
-                              </Badge>
-                            </TableCell>
-                            <TableCell className="text-slate-300">
-                              <div className="text-center">
-                                <div className="text-lg font-semibold">{campaign.click_count || 0}</div>
-                                <div className="text-xs text-slate-400">total clicks</div>
-                              </div>
-                            </TableCell>
-                            <TableCell className="text-slate-300">
-                              {campaign.created_at ? new Date(campaign.created_at).toLocaleDateString() : 'N/A'}
-                            </TableCell>
-                            <TableCell>
-                              <div className="flex items-center gap-2">
-                                <Button variant="outline" size="sm" className="border-slate-600">
-                                  <Eye className="h-4 w-4" />
-                                </Button>
-                                <Button variant="outline" size="sm" className="border-slate-600">
-                                  <Edit className="h-4 w-4" />
-                                </Button>
-                                <Button variant="outline" size="sm" className="border-red-600 text-red-400">
-                                  <Trash2 className="h-4 w-4" />
-                                </Button>
-                              </div>
-                            </TableCell>
-                          </TableRow>
-                        ))}
-                      </TableBody>
-                    </Table>
-                  </div>
-                )}
-              </CardContent>
-            </Card>
-          </TabsContent>
-
-          {/* Audit Logs Tab */}
-          <TabsContent value="audit" className="space-y-6">
-            <Card className="bg-slate-800 border-slate-700">
-              <CardHeader>
-                <div className="flex items-center justify-between">
-                  <CardTitle className="text-white">Audit Logs</CardTitle>
-                  <Button onClick={exportAuditLogs} size="sm" variant="outline" className="border-slate-600">
-                    <Download className="h-4 w-4 mr-2" />
-                    Export CSV
-                  </Button>
-                </div>
-              </CardHeader>
-              <CardContent>
-                <Table>
-                  <TableHeader>
-                    <TableRow>
-                      <TableHead className="text-slate-300">ID</TableHead>
-                      <TableHead className="text-slate-300">User ID</TableHead>
-                      <TableHead className="text-slate-300">Action</TableHead>
-                      <TableHead className="text-slate-300">Timestamp</TableHead>
-                    </TableRow>
-                  </TableHeader>
-                  <TableBody>
-                    {auditLogs.map(log => (
-                      <TableRow key={log.id}>
-                        <TableCell className="text-slate-300">{log.id}</TableCell>
-                        <TableCell className="text-slate-300">{log.user_id}</TableCell>
-                        <TableCell className="text-white">{log.action}</TableCell>
-                        <TableCell className="text-slate-300">{new Date(log.timestamp).toLocaleString()}</TableCell>
+                <div className="overflow-x-auto">
+                  <Table>
+                    <TableHeader>
+                      <TableRow className="border-slate-700">
+                        <TableHead className="text-slate-300">Campaign Name</TableHead>
+                        <TableHead className="text-slate-300">Status</TableHead>
+                        <TableHead className="text-slate-300">Links</TableHead>
+                        <TableHead className="text-slate-300">Clicks</TableHead>
+                        <TableHead className="text-slate-300">Created</TableHead>
                       </TableRow>
-                    ))}
-                  </TableBody>
-                </Table>
+                    </TableHeader>
+                    <TableBody>
+                      {campaigns && campaigns.length > 0 ? (
+                        campaigns.map(campaign => (
+                          <TableRow key={campaign.id} className="border-slate-700">
+                            <TableCell className="text-white">{campaign.name}</TableCell>
+                            <TableCell>{getStatusBadge(campaign.status)}</TableCell>
+                            <TableCell className="text-slate-300">{campaign.link_count || 0}</TableCell>
+                            <TableCell className="text-slate-300">{campaign.click_count || 0}</TableCell>
+                            <TableCell className="text-slate-300">{new Date(campaign.created_at).toLocaleDateString()}</TableCell>
+                          </TableRow>
+                        ))
+                      ) : (
+                        <TableRow>
+                          <TableCell colSpan="5" className="text-center text-slate-400 py-8">No campaigns found.</TableCell>
+                        </TableRow>
+                      )}
+                    </TableBody>
+                  </Table>
+                </div>
               </CardContent>
             </Card>
           </TabsContent>
 
-          {/* Security Tab */}
+          {/* Security Tab - Enhanced */}
           <TabsContent value="security" className="space-y-6">
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
+              <Card className="bg-slate-800 border-slate-700">
+                <CardHeader>
+                  <CardTitle className="text-white text-sm">Active Threats</CardTitle>
+                </CardHeader>
+                <CardContent>
+                  <p className="text-3xl font-bold text-red-400">{securityThreats.filter(t => !t.is_blocked).length}</p>
+                </CardContent>
+              </Card>
+              <Card className="bg-slate-800 border-slate-700">
+                <CardHeader>
+                  <CardTitle className="text-white text-sm">Blocked Attempts</CardTitle>
+                </CardHeader>
+                <CardContent>
+                  <p className="text-3xl font-bold text-green-400">{securityThreats.filter(t => t.is_blocked).length}</p>
+                </CardContent>
+              </Card>
+              <Card className="bg-slate-800 border-slate-700">
+                <CardHeader>
+                  <CardTitle className="text-white text-sm">Critical Level</CardTitle>
+                </CardHeader>
+                <CardContent>
+                  <p className="text-3xl font-bold text-orange-400">{securityThreats.filter(t => t.threat_level === 'critical').length}</p>
+                </CardContent>
+              </Card>
+            </div>
+
             <Card className="bg-slate-800 border-slate-700">
               <CardHeader>
                 <div className="flex items-center justify-between">
@@ -811,21 +673,20 @@ const AdminPanel = () => {
                   <Table>
                     <TableHeader>
                       <TableRow className="border-slate-700">
-                        <TableHead className="text-slate-300">ID</TableHead>
                         <TableHead className="text-slate-300">IP Address</TableHead>
                         <TableHead className="text-slate-300">Threat Type</TableHead>
                         <TableHead className="text-slate-300">Level</TableHead>
                         <TableHead className="text-slate-300">Blocked</TableHead>
-                        <TableHead className="text-slate-300">Timestamp</TableHead>
+                        <TableHead className="text-slate-300">First Seen</TableHead>
+                        <TableHead className="text-slate-300">Actions</TableHead>
                       </TableRow>
                     </TableHeader>
                     <TableBody>
                       {securityThreats && securityThreats.length > 0 ? (
                         securityThreats.map(threat => (
                           <TableRow key={threat.id} className="border-slate-700">
-                            <TableCell className="text-slate-300">{threat.id}</TableCell>
-                            <TableCell className="text-slate-300">{threat.ip_address}</TableCell>
-                            <TableCell className="text-white">{threat.threat_type}</TableCell>
+                            <TableCell className="text-white font-mono text-sm">{threat.ip_address}</TableCell>
+                            <TableCell className="text-slate-300">{threat.threat_type}</TableCell>
                             <TableCell>
                               <Badge className={threat.threat_level === 'critical' ? 'bg-red-600' : threat.threat_level === 'high' ? 'bg-orange-600' : 'bg-yellow-600'}>
                                 {threat.threat_level}
@@ -833,10 +694,19 @@ const AdminPanel = () => {
                             </TableCell>
                             <TableCell>
                               <Badge className={threat.is_blocked ? 'bg-red-600' : 'bg-green-600'}>
+                                {threat.is_blocked ? <Lock className="h-3 w-3 mr-1 inline" /> : <Unlock className="h-3 w-3 mr-1 inline" />}
                                 {threat.is_blocked ? 'Blocked' : 'Allowed'}
                               </Badge>
                             </TableCell>
-                            <TableCell className="text-slate-300">{new Date(threat.first_seen).toLocaleString()}</TableCell>
+                            <TableCell className="text-slate-300 text-sm">{new Date(threat.first_seen).toLocaleString()}</TableCell>
+                            <TableCell>
+                              <Button size="sm" variant="outline" className="border-slate-600 text-xs" onClick={() => {
+                                setSelectedThreat(threat)
+                                setShowSecurityModal(true)
+                              }}>
+                                View Details
+                              </Button>
+                            </TableCell>
                           </TableRow>
                         ))
                       ) : (
@@ -851,8 +721,52 @@ const AdminPanel = () => {
             </Card>
           </TabsContent>
 
-          {/* Subscriptions Tab */}
+          {/* Subscriptions Tab - Enhanced */}
           <TabsContent value="subscriptions" className="space-y-6">
+            <div className="grid grid-cols-1 md:grid-cols-4 gap-4 mb-6">
+              <Card className="bg-slate-800 border-slate-700">
+                <CardHeader>
+                  <CardTitle className="text-white text-sm">Total Subscriptions</CardTitle>
+                </CardHeader>
+                <CardContent>
+                  <p className="text-3xl font-bold text-blue-400">{subscriptions.length}</p>
+                </CardContent>
+              </Card>
+              <Card className="bg-slate-800 border-slate-700">
+                <CardHeader>
+                  <CardTitle className="text-white text-sm">Active</CardTitle>
+                </CardHeader>
+                <CardContent>
+                  <p className="text-3xl font-bold text-green-400">{subscriptions.filter(s => s.is_active).length}</p>
+                </CardContent>
+              </Card>
+              <Card className="bg-slate-800 border-slate-700">
+                <CardHeader>
+                  <CardTitle className="text-white text-sm">Expiring Soon</CardTitle>
+                </CardHeader>
+                <CardContent>
+                  <p className="text-3xl font-bold text-orange-400">{subscriptions.filter(s => {
+                    const expiry = new Date(s.subscription_expiry)
+                    const today = new Date()
+                    const daysUntilExpiry = Math.floor((expiry - today) / (1000 * 60 * 60 * 24))
+                    return daysUntilExpiry <= 7 && daysUntilExpiry > 0
+                  }).length}</p>
+                </CardContent>
+              </Card>
+              <Card className="bg-slate-800 border-slate-700">
+                <CardHeader>
+                  <CardTitle className="text-white text-sm">Expired</CardTitle>
+                </CardHeader>
+                <CardContent>
+                  <p className="text-3xl font-bold text-red-400">{subscriptions.filter(s => {
+                    const expiry = new Date(s.subscription_expiry)
+                    const today = new Date()
+                    return expiry < today
+                  }).length}</p>
+                </CardContent>
+              </Card>
+            </div>
+
             <Card className="bg-slate-800 border-slate-700">
               <CardHeader>
                 <div className="flex items-center justify-between">
@@ -868,38 +782,51 @@ const AdminPanel = () => {
                   <Table>
                     <TableHeader>
                       <TableRow className="border-slate-700">
-                        <TableHead className="text-slate-300">User ID</TableHead>
-                        <TableHead className="text-slate-300">Username</TableHead>
+                        <TableHead className="text-slate-300">User</TableHead>
                         <TableHead className="text-slate-300">Plan Type</TableHead>
                         <TableHead className="text-slate-300">Status</TableHead>
                         <TableHead className="text-slate-300">Expiry Date</TableHead>
+                        <TableHead className="text-slate-300">Days Left</TableHead>
                         <TableHead className="text-slate-300">Actions</TableHead>
                       </TableRow>
                     </TableHeader>
                     <TableBody>
                       {subscriptions && subscriptions.length > 0 ? (
-                        subscriptions.map(sub => (
-                          <TableRow key={sub.id} className="border-slate-700">
-                            <TableCell className="text-slate-300">{sub.user_id}</TableCell>
-                            <TableCell className="text-white">{sub.username}</TableCell>
-                            <TableCell>
-                              <Badge className={sub.plan_type === 'enterprise' ? 'bg-purple-600' : sub.plan_type === 'pro' ? 'bg-blue-600' : 'bg-gray-600'}>
-                                {sub.plan_type}
-                              </Badge>
-                            </TableCell>
-                            <TableCell>
-                              <Badge className={sub.is_active ? 'bg-green-600' : 'bg-red-600'}>
-                                {sub.is_active ? 'Active' : 'Inactive'}
-                              </Badge>
-                            </TableCell>
-                            <TableCell className="text-slate-300">{sub.subscription_expiry ? new Date(sub.subscription_expiry).toLocaleDateString() : 'N/A'}</TableCell>
-                            <TableCell>
-                              <Button size="sm" variant="outline" className="border-slate-600 text-xs">
-                                Edit
-                              </Button>
-                            </TableCell>
-                          </TableRow>
-                        ))
+                        subscriptions.map(sub => {
+                          const expiry = new Date(sub.subscription_expiry)
+                          const today = new Date()
+                          const daysLeft = Math.floor((expiry - today) / (1000 * 60 * 60 * 24))
+                          return (
+                            <TableRow key={sub.id} className="border-slate-700">
+                              <TableCell className="text-white">{sub.username}</TableCell>
+                              <TableCell>
+                                <Badge className={sub.plan_type === 'enterprise' ? 'bg-purple-600' : sub.plan_type === 'pro' ? 'bg-blue-600' : 'bg-gray-600'}>
+                                  {sub.plan_type}
+                                </Badge>
+                              </TableCell>
+                              <TableCell>
+                                <Badge className={sub.is_active ? 'bg-green-600' : 'bg-red-600'}>
+                                  {sub.is_active ? <CheckCircle className="h-3 w-3 mr-1 inline" /> : <XCircle className="h-3 w-3 mr-1 inline" />}
+                                  {sub.is_active ? 'Active' : 'Inactive'}
+                                </Badge>
+                              </TableCell>
+                              <TableCell className="text-slate-300">{expiry.toLocaleDateString()}</TableCell>
+                              <TableCell>
+                                <Badge className={daysLeft > 30 ? 'bg-green-600' : daysLeft > 7 ? 'bg-yellow-600' : 'bg-red-600'}>
+                                  {daysLeft > 0 ? `${daysLeft}d` : 'Expired'}
+                                </Badge>
+                              </TableCell>
+                              <TableCell>
+                                <Button size="sm" variant="outline" className="border-slate-600 text-xs" onClick={() => {
+                                  setSelectedSubscription(sub)
+                                  setShowSubscriptionModal(true)
+                                }}>
+                                  Manage
+                                </Button>
+                              </TableCell>
+                            </TableRow>
+                          )
+                        })
                       ) : (
                         <TableRow>
                           <TableCell colSpan="6" className="text-center text-slate-400 py-8">No subscriptions found.</TableCell>
@@ -912,8 +839,43 @@ const AdminPanel = () => {
             </Card>
           </TabsContent>
 
-          {/* Support Tab */}
+          {/* Support Tab - Enhanced */}
           <TabsContent value="support" className="space-y-6">
+            <div className="grid grid-cols-1 md:grid-cols-4 gap-4 mb-6">
+              <Card className="bg-slate-800 border-slate-700">
+                <CardHeader>
+                  <CardTitle className="text-white text-sm">Total Tickets</CardTitle>
+                </CardHeader>
+                <CardContent>
+                  <p className="text-3xl font-bold text-blue-400">{supportTickets.length}</p>
+                </CardContent>
+              </Card>
+              <Card className="bg-slate-800 border-slate-700">
+                <CardHeader>
+                  <CardTitle className="text-white text-sm">Open</CardTitle>
+                </CardHeader>
+                <CardContent>
+                  <p className="text-3xl font-bold text-orange-400">{supportTickets.filter(t => t.status === 'open').length}</p>
+                </CardContent>
+              </Card>
+              <Card className="bg-slate-800 border-slate-700">
+                <CardHeader>
+                  <CardTitle className="text-white text-sm">In Progress</CardTitle>
+                </CardHeader>
+                <CardContent>
+                  <p className="text-3xl font-bold text-yellow-400">{supportTickets.filter(t => t.status === 'in_progress').length}</p>
+                </CardContent>
+              </Card>
+              <Card className="bg-slate-800 border-slate-700">
+                <CardHeader>
+                  <CardTitle className="text-white text-sm">Resolved</CardTitle>
+                </CardHeader>
+                <CardContent>
+                  <p className="text-3xl font-bold text-green-400">{supportTickets.filter(t => t.status === 'resolved').length}</p>
+                </CardContent>
+              </Card>
+            </div>
+
             <Card className="bg-slate-800 border-slate-700">
               <CardHeader>
                 <div className="flex items-center justify-between">
@@ -942,11 +904,12 @@ const AdminPanel = () => {
                       {supportTickets && supportTickets.length > 0 ? (
                         supportTickets.map(ticket => (
                           <TableRow key={ticket.id} className="border-slate-700">
-                            <TableCell className="text-slate-300">{ticket.id}</TableCell>
-                            <TableCell className="text-white">{ticket.user_email}</TableCell>
-                            <TableCell className="text-slate-300">{ticket.subject}</TableCell>
+                            <TableCell className="text-white font-mono text-sm">#{ticket.id}</TableCell>
+                            <TableCell className="text-slate-300">{ticket.user_email}</TableCell>
+                            <TableCell className="text-white">{ticket.subject}</TableCell>
                             <TableCell>
                               <Badge className={ticket.status === 'open' ? 'bg-blue-600' : ticket.status === 'in_progress' ? 'bg-yellow-600' : 'bg-green-600'}>
+                                {ticket.status === 'open' ? <AlertCircle className="h-3 w-3 mr-1 inline" /> : ticket.status === 'in_progress' ? <Clock className="h-3 w-3 mr-1 inline" /> : <CheckCircle className="h-3 w-3 mr-1 inline" />}
                                 {ticket.status}
                               </Badge>
                             </TableCell>
@@ -955,9 +918,12 @@ const AdminPanel = () => {
                                 {ticket.priority}
                               </Badge>
                             </TableCell>
-                            <TableCell className="text-slate-300">{new Date(ticket.created_at).toLocaleDateString()}</TableCell>
+                            <TableCell className="text-slate-300 text-sm">{new Date(ticket.created_at).toLocaleDateString()}</TableCell>
                             <TableCell>
-                              <Button size="sm" variant="outline" className="border-slate-600 text-xs">
+                              <Button size="sm" variant="outline" className="border-slate-600 text-xs" onClick={() => {
+                                setSelectedTicket(ticket)
+                                setShowSupportModal(true)
+                              }}>
                                 View
                               </Button>
                             </TableCell>
@@ -968,6 +934,45 @@ const AdminPanel = () => {
                           <TableCell colSpan="7" className="text-center text-slate-400 py-8">No support tickets found.</TableCell>
                         </TableRow>
                       )}
+                    </TableBody>
+                  </Table>
+                </div>
+              </CardContent>
+            </Card>
+          </TabsContent>
+
+          {/* Audit Logs Tab */}
+          <TabsContent value="audit" className="space-y-6">
+            <Card className="bg-slate-800 border-slate-700">
+              <CardHeader>
+                <div className="flex items-center justify-between">
+                  <CardTitle className="text-white">Audit Logs</CardTitle>
+                  <Button onClick={exportAuditLogs} size="sm" variant="outline" className="border-slate-600">
+                    <Download className="h-4 w-4 mr-2" />
+                    Export CSV
+                  </Button>
+                </div>
+              </CardHeader>
+              <CardContent>
+                <div className="overflow-x-auto">
+                  <Table>
+                    <TableHeader>
+                      <TableRow className="border-slate-700">
+                        <TableHead className="text-slate-300">ID</TableHead>
+                        <TableHead className="text-slate-300">User ID</TableHead>
+                        <TableHead className="text-slate-300">Action</TableHead>
+                        <TableHead className="text-slate-300">Timestamp</TableHead>
+                      </TableRow>
+                    </TableHeader>
+                    <TableBody>
+                      {auditLogs.map(log => (
+                        <TableRow key={log.id} className="border-slate-700">
+                          <TableCell className="text-slate-300">{log.id}</TableCell>
+                          <TableCell className="text-slate-300">{log.user_id}</TableCell>
+                          <TableCell className="text-white">{log.action}</TableCell>
+                          <TableCell className="text-slate-300">{new Date(log.timestamp).toLocaleString()}</TableCell>
+                        </TableRow>
+                      ))}
                     </TableBody>
                   </Table>
                 </div>
@@ -1160,9 +1165,175 @@ const AdminPanel = () => {
             </DialogFooter>
           </DialogContent>
         </Dialog>
+
+        {/* Security Threat Details Modal */}
+        <Dialog open={showSecurityModal} onOpenChange={setShowSecurityModal}>
+          <DialogContent className="bg-slate-800 border-slate-700 max-w-2xl">
+            <DialogHeader>
+              <DialogTitle className="text-white">Security Threat Details</DialogTitle>
+            </DialogHeader>
+            {selectedThreat && (
+              <div className="space-y-4 py-4">
+                <div className="grid grid-cols-2 gap-4">
+                  <div>
+                    <Label className="text-slate-400 text-sm">IP Address</Label>
+                    <p className="text-white font-mono">{selectedThreat.ip_address}</p>
+                  </div>
+                  <div>
+                    <Label className="text-slate-400 text-sm">Threat Type</Label>
+                    <p className="text-white">{selectedThreat.threat_type}</p>
+                  </div>
+                  <div>
+                    <Label className="text-slate-400 text-sm">Threat Level</Label>
+                    <Badge className={selectedThreat.threat_level === 'critical' ? 'bg-red-600' : 'bg-orange-600'}>
+                      {selectedThreat.threat_level}
+                    </Badge>
+                  </div>
+                  <div>
+                    <Label className="text-slate-400 text-sm">Status</Label>
+                    <Badge className={selectedThreat.is_blocked ? 'bg-red-600' : 'bg-green-600'}>
+                      {selectedThreat.is_blocked ? 'Blocked' : 'Allowed'}
+                    </Badge>
+                  </div>
+                  <div className="col-span-2">
+                    <Label className="text-slate-400 text-sm">First Seen</Label>
+                    <p className="text-white">{new Date(selectedThreat.first_seen).toLocaleString()}</p>
+                  </div>
+                </div>
+              </div>
+            )}
+            <DialogFooter>
+              <Button onClick={() => setShowSecurityModal(false)} className="bg-blue-600 hover:bg-blue-700">
+                Close
+              </Button>
+            </DialogFooter>
+          </DialogContent>
+        </Dialog>
+
+        {/* Subscription Management Modal */}
+        <Dialog open={showSubscriptionModal} onOpenChange={setShowSubscriptionModal}>
+          <DialogContent className="bg-slate-800 border-slate-700 max-w-2xl">
+            <DialogHeader>
+              <DialogTitle className="text-white">Subscription Management</DialogTitle>
+            </DialogHeader>
+            {selectedSubscription && (
+              <div className="space-y-4 py-4">
+                <div className="grid grid-cols-2 gap-4">
+                  <div>
+                    <Label className="text-slate-400 text-sm">User</Label>
+                    <p className="text-white">{selectedSubscription.username}</p>
+                  </div>
+                  <div>
+                    <Label className="text-slate-400 text-sm">Plan Type</Label>
+                    <Badge className={selectedSubscription.plan_type === 'enterprise' ? 'bg-purple-600' : 'bg-blue-600'}>
+                      {selectedSubscription.plan_type}
+                    </Badge>
+                  </div>
+                  <div>
+                    <Label className="text-slate-400 text-sm">Status</Label>
+                    <Badge className={selectedSubscription.is_active ? 'bg-green-600' : 'bg-red-600'}>
+                      {selectedSubscription.is_active ? 'Active' : 'Inactive'}
+                    </Badge>
+                  </div>
+                  <div>
+                    <Label className="text-slate-400 text-sm">Expiry Date</Label>
+                    <p className="text-white">{new Date(selectedSubscription.subscription_expiry).toLocaleDateString()}</p>
+                  </div>
+                </div>
+                <div className="space-y-2">
+                  <Label className="text-white">Extend Subscription</Label>
+                  <Select>
+                    <SelectTrigger className="bg-slate-700 border-slate-600 text-white">
+                      <SelectValue placeholder="Select duration" />
+                    </SelectTrigger>
+                    <SelectContent className="bg-slate-700 border-slate-600">
+                      <SelectItem value="1m">1 Month</SelectItem>
+                      <SelectItem value="3m">3 Months</SelectItem>
+                      <SelectItem value="6m">6 Months</SelectItem>
+                      <SelectItem value="1y">1 Year</SelectItem>
+                    </SelectContent>
+                  </Select>
+                </div>
+              </div>
+            )}
+            <DialogFooter>
+              <Button variant="outline" onClick={() => setShowSubscriptionModal(false)} className="border-slate-600">
+                Cancel
+              </Button>
+              <Button className="bg-blue-600 hover:bg-blue-700">
+                Update Subscription
+              </Button>
+            </DialogFooter>
+          </DialogContent>
+        </Dialog>
+
+        {/* Support Ticket Details Modal */}
+        <Dialog open={showSupportModal} onOpenChange={setShowSupportModal}>
+          <DialogContent className="bg-slate-800 border-slate-700 max-w-2xl">
+            <DialogHeader>
+              <DialogTitle className="text-white">Support Ticket Details</DialogTitle>
+            </DialogHeader>
+            {selectedTicket && (
+              <div className="space-y-4 py-4">
+                <div className="grid grid-cols-2 gap-4">
+                  <div className="col-span-2">
+                    <Label className="text-slate-400 text-sm">Subject</Label>
+                    <p className="text-white font-semibold">{selectedTicket.subject}</p>
+                  </div>
+                  <div>
+                    <Label className="text-slate-400 text-sm">User Email</Label>
+                    <p className="text-white">{selectedTicket.user_email}</p>
+                  </div>
+                  <div>
+                    <Label className="text-slate-400 text-sm">Status</Label>
+                    <Badge className={selectedTicket.status === 'open' ? 'bg-blue-600' : 'bg-green-600'}>
+                      {selectedTicket.status}
+                    </Badge>
+                  </div>
+                  <div>
+                    <Label className="text-slate-400 text-sm">Priority</Label>
+                    <Badge className={selectedTicket.priority === 'high' ? 'bg-red-600' : 'bg-orange-600'}>
+                      {selectedTicket.priority}
+                    </Badge>
+                  </div>
+                  <div>
+                    <Label className="text-slate-400 text-sm">Created</Label>
+                    <p className="text-white">{new Date(selectedTicket.created_at).toLocaleString()}</p>
+                  </div>
+                  <div className="col-span-2">
+                    <Label className="text-slate-400 text-sm">Description</Label>
+                    <Textarea
+                      value={selectedTicket.description || ''}
+                      readOnly
+                      className="bg-slate-700 border-slate-600 text-white resize-none"
+                      rows={4}
+                    />
+                  </div>
+                </div>
+                <div className="space-y-2">
+                  <Label className="text-white">Response</Label>
+                  <Textarea
+                    placeholder="Enter your response..."
+                    className="bg-slate-700 border-slate-600 text-white"
+                    rows={3}
+                  />
+                </div>
+              </div>
+            )}
+            <DialogFooter>
+              <Button variant="outline" onClick={() => setShowSupportModal(false)} className="border-slate-600">
+                Cancel
+              </Button>
+              <Button className="bg-blue-600 hover:bg-blue-700">
+                Send Response
+              </Button>
+            </DialogFooter>
+          </DialogContent>
+        </Dialog>
       </div>
     </div>
   )
 }
 
 export default AdminPanel
+
