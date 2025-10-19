@@ -6,6 +6,7 @@ from src.models.user import User
 from src.models.campaign import Campaign
 from src.models.audit_log import AuditLog
 from src.models.link import Link
+from src.models.domain import Domain
 from datetime import datetime, timedelta
 
 admin_bp = Blueprint("admin", __name__)
@@ -597,3 +598,207 @@ def delete_all_system_data(current_user):
         print(f"Error deleting system data: {e}")
         db.session.rollback()
         return jsonify({"error": str(e)}), 500
+
+
+
+# ==================== DOMAIN MANAGEMENT ====================
+
+@admin_bp.route('/domains', methods=['GET'])
+@admin_required
+def get_domains(current_user):
+    """Get all domains (admin can see all, users see their own)"""
+    try:
+        if current_user.role == 'main_admin':
+            domains = Domain.query.all()
+        else:
+            domains = Domain.query.filter_by(created_by=current_user.id).all()
+        
+        return jsonify([domain.to_dict() for domain in domains])
+    except Exception as e:
+        return jsonify({'error': str(e)}), 500
+
+
+@admin_bp.route('/domains', methods=['POST'])
+@admin_required
+def create_domain(current_user):
+    """Create a new domain"""
+    try:
+        data = request.get_json()
+        
+        # Validate required fields
+        if not data.get('domain'):
+            return jsonify({'error': 'Domain name is required'}), 400
+        
+        # Check if domain already exists
+        existing = Domain.query.filter_by(domain=data['domain']).first()
+        if existing:
+            return jsonify({'error': 'Domain already exists'}), 409
+        
+        # Create new domain
+        domain = Domain(
+            domain=data['domain'],
+            domain_type=data.get('domain_type', 'custom'),
+            description=data.get('description', ''),
+            is_active=data.get('is_active', True),
+            api_key=data.get('api_key'),
+            api_secret=data.get('api_secret'),
+            created_by=current_user.id
+        )
+        
+        db.session.add(domain)
+        db.session.commit()
+        
+        # Log action
+        log_admin_action(current_user.id, 'CREATED_DOMAIN', domain.id, 'domain')
+        
+        return jsonify(domain.to_dict()), 201
+    except Exception as e:
+        db.session.rollback()
+        return jsonify({'error': str(e)}), 500
+
+
+@admin_bp.route('/domains/<int:domain_id>', methods=['GET'])
+@admin_required
+def get_domain(current_user, domain_id):
+    """Get a specific domain"""
+    try:
+        domain = Domain.query.get(domain_id)
+        if not domain:
+            return jsonify({'error': 'Domain not found'}), 404
+        
+        # Check permissions
+        if current_user.role != 'main_admin' and domain.created_by != current_user.id:
+            return jsonify({'error': 'Unauthorized'}), 403
+        
+        return jsonify(domain.to_dict())
+    except Exception as e:
+        return jsonify({'error': str(e)}), 500
+
+
+@admin_bp.route('/domains/<int:domain_id>', methods=['PUT'])
+@admin_required
+def update_domain(current_user, domain_id):
+    """Update a domain"""
+    try:
+        domain = Domain.query.get(domain_id)
+        if not domain:
+            return jsonify({'error': 'Domain not found'}), 404
+        
+        # Check permissions
+        if current_user.role != 'main_admin' and domain.created_by != current_user.id:
+            return jsonify({'error': 'Unauthorized'}), 403
+        
+        data = request.get_json()
+        
+        # Update fields
+        if 'domain' in data:
+            # Check if new domain already exists
+            existing = Domain.query.filter_by(domain=data['domain']).filter(Domain.id != domain_id).first()
+            if existing:
+                return jsonify({'error': 'Domain already exists'}), 409
+            domain.domain = data['domain']
+        
+        if 'description' in data:
+            domain.description = data['description']
+        
+        if 'is_active' in data:
+            domain.is_active = data['is_active']
+        
+        if 'api_key' in data:
+            domain.api_key = data['api_key']
+        
+        if 'api_secret' in data:
+            domain.api_secret = data['api_secret']
+        
+        domain.updated_at = datetime.utcnow()
+        db.session.commit()
+        
+        # Log action
+        log_admin_action(current_user.id, 'UPDATED_DOMAIN', domain.id, 'domain')
+        
+        return jsonify(domain.to_dict())
+    except Exception as e:
+        db.session.rollback()
+        return jsonify({'error': str(e)}), 500
+
+
+@admin_bp.route('/domains/<int:domain_id>', methods=['DELETE'])
+@admin_required
+def delete_domain(current_user, domain_id):
+    """Delete a domain"""
+    try:
+        domain = Domain.query.get(domain_id)
+        if not domain:
+            return jsonify({'error': 'Domain not found'}), 404
+        
+        # Check permissions - only main_admin can delete
+        if current_user.role != 'main_admin':
+            return jsonify({'error': 'Only main admin can delete domains'}), 403
+        
+        # Check if domain has active links
+        active_links = Link.query.filter_by(domain=domain.domain, status='active').count()
+        if active_links > 0:
+            return jsonify({'error': f'Cannot delete domain with {active_links} active links'}), 409
+        
+        db.session.delete(domain)
+        db.session.commit()
+        
+        # Log action
+        log_admin_action(current_user.id, 'DELETED_DOMAIN', domain_id, 'domain')
+        
+        return jsonify({'message': 'Domain deleted successfully'})
+    except Exception as e:
+        db.session.rollback()
+        return jsonify({'error': str(e)}), 500
+
+
+@admin_bp.route('/domains/<int:domain_id>/verify', methods=['POST'])
+@admin_required
+def verify_domain(current_user, domain_id):
+    """Verify a domain (for DNS verification)"""
+    try:
+        domain = Domain.query.get(domain_id)
+        if not domain:
+            return jsonify({'error': 'Domain not found'}), 404
+        
+        # Check permissions
+        if current_user.role != 'main_admin' and domain.created_by != current_user.id:
+            return jsonify({'error': 'Unauthorized'}), 403
+        
+        # Mark as verified
+        domain.is_verified = True
+        domain.verified_at = datetime.utcnow()
+        db.session.commit()
+        
+        # Log action
+        log_admin_action(current_user.id, 'VERIFIED_DOMAIN', domain.id, 'domain')
+        
+        return jsonify({'message': 'Domain verified successfully', 'domain': domain.to_dict()})
+    except Exception as e:
+        db.session.rollback()
+        return jsonify({'error': str(e)}), 500
+
+
+@admin_bp.route('/domains/stats', methods=['GET'])
+@admin_required
+def get_domains_stats(current_user):
+    """Get domain statistics"""
+    try:
+        if current_user.role == 'main_admin':
+            total_domains = Domain.query.count()
+            active_domains = Domain.query.filter_by(is_active=True).count()
+            verified_domains = Domain.query.filter_by(is_verified=True).count()
+        else:
+            total_domains = Domain.query.filter_by(created_by=current_user.id).count()
+            active_domains = Domain.query.filter_by(created_by=current_user.id, is_active=True).count()
+            verified_domains = Domain.query.filter_by(created_by=current_user.id, is_verified=True).count()
+        
+        return jsonify({
+            'total_domains': total_domains,
+            'active_domains': active_domains,
+            'verified_domains': verified_domains,
+            'inactive_domains': total_domains - active_domains
+        })
+    except Exception as e:
+        return jsonify({'error': str(e)}), 500
+

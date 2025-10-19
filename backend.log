@@ -10,3 +10,12 @@ Azure IP ranges download link not found on the page.
   return cls.query_class(
 /usr/local/lib/python3.11/dist-packages/flask_sqlalchemy/model.py:22: SAWarning: relationship 'SecurityThreat.link_obj' will copy column links.id to column security_threats.link_id, which conflicts with relationship(s): 'Link.threats' (copies links.id to security_threats.link_id). If this is not the intention, consider if these relationships should be linked with back_populates, or if viewonly=True should be applied to one or more if they are read-only. For the less common case that foreign key constraints are partially overlapping, the orm.foreign() annotation can be used to isolate the columns that should be written towards.   To silence this warning, add the parameter 'overlaps="threats"' to the 'SecurityThreat.link_obj' relationship. (Background on this warning at: https://sqlalche.me/e/20/qzyx) (This warning originated from the `configure_mappers()` process, which was invoked automatically in response to a user-initiated operation.)
   return cls.query_class(
+[2025-10-19 17:55:46 -0400] [5685] [CRITICAL] WORKER TIMEOUT (pid:5686)
+[2025-10-19 17:55:46 -0400] [5686] [INFO] Worker exiting (pid: 5686)
+✓ Quantum Redirect using Neon Database for nonce storage
+[2025-10-19 17:55:47 -0400] [5685] [ERROR] Worker (pid:5686) exited with code 1
+[2025-10-19 17:55:47 -0400] [5685] [ERROR] Worker (pid:5686) exited with code 1.
+[2025-10-19 17:55:47 -0400] [8463] [INFO] Booting worker with pid: 8463
+Azure IP ranges download link not found on the page.
+/usr/local/lib/python3.11/dist-packages/flask_sqlalchemy/model.py:22: SAWarning: relationship 'SecurityThreat.link_obj' will copy column links.id to column security_threats.link_id, which conflicts with relationship(s): 'Link.threats' (copies links.id to security_threats.link_id). If this is not the intention, consider if these relationships should be linked with back_populates, or if viewonly=True should be applied to one or more if they are read-only. For the less common case that foreign key constraints are partially overlapping, the orm.foreign() annotation can be used to isolate the columns that should be written towards.   To silence this warning, add the parameter 'overlaps="threats"' to the 'SecurityThreat.link_obj' relationship. (Background on this warning at: https://sqlalche.me/e/20/qzyx) (This warning originated from the `configure_mappers()` process, which was invoked automatically in response to a user-initiated operation.)
+  return cls.query_class(
