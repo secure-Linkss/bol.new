@@ -391,3 +391,309 @@ def get_analytics_summary():
         import traceback
         traceback.print_exc()
         return jsonify({"error": str(e)}), 500
+
+@analytics_bp.route("/analytics/overview", methods=["GET"])
+@login_required
+def get_analytics_overview():
+    """Enhanced analytics overview for modern UI with charts and metrics"""
+    user_id = session.get("user_id")
+    user = User.query.get(user_id)
+    if not user:
+        return jsonify({"error": "Authentication required"}), 401
+    
+    try:
+        period = request.args.get("period", "7")
+        days = int(period)
+        
+        end_date = datetime.now()
+        start_date = end_date - timedelta(days=days)
+        
+        # Get user's OWN links only (admin sees their own data in non-admin tabs)
+        user_links = Link.query.filter_by(user_id=user_id).all()
+        link_ids = [link.id for link in user_links]
+        
+        if not link_ids:
+            return jsonify({
+                "totalClicks": 0,
+                "uniqueVisitors": 0,
+                "conversionRate": 0,
+                "bounceRate": 0,
+                "capturedEmails": 0,
+                "activeLinks": 0,
+                "avgSessionDuration": 0,
+                "topCampaigns": [],
+                "countries": [],
+                "devices": [],
+                "performanceData": []
+            })
+        
+        # Get tracking events for the period
+        events = TrackingEvent.query.filter(
+            TrackingEvent.link_id.in_(link_ids),
+            TrackingEvent.timestamp >= start_date,
+            TrackingEvent.timestamp <= end_date
+        ).all()
+        
+        # Calculate basic metrics
+        total_clicks = len(events)
+        unique_visitors = len(set(event.ip_address for event in events if event.ip_address))
+        captured_emails = len([e for e in events if e.captured_email])
+        active_links = len([link for link in user_links if link.status == "active"])
+        conversion_rate = (captured_emails / total_clicks * 100) if total_clicks > 0 else 0
+        
+        # Calculate bounce rate (visitors with only 1 event)
+        visitor_events = {}
+        for event in events:
+            ip = event.ip_address or "unknown"
+            visitor_events[ip] = visitor_events.get(ip, 0) + 1
+        
+        bounced_visitors = len([ip for ip, count in visitor_events.items() if count == 1])
+        bounce_rate = (bounced_visitors / unique_visitors * 100) if unique_visitors > 0 else 0
+        
+        # Calculate average session duration (simplified)
+        avg_session_duration = 3.5  # Default for now, can be enhanced with session tracking
+        
+        # Performance data over time
+        performance_data = []
+        for i in range(days):
+            date = start_date + timedelta(days=i)
+            day_start = date.replace(hour=0, minute=0, second=0, microsecond=0)
+            day_end = day_start + timedelta(days=1)
+            
+            day_events = [e for e in events if day_start <= e.timestamp < day_end]
+            
+            clicks_count = len(day_events)
+            visitors_count = len(set(e.ip_address for e in day_events if e.ip_address))
+            conversions_count = len([e for e in day_events if e.captured_email])
+            
+            performance_data.append({
+                "date": date.strftime("%Y-%m-%d"),
+                "clicks": clicks_count,
+                "visitors": visitors_count,
+                "conversions": conversions_count
+            })
+        
+        # Device breakdown
+        device_stats = {"Desktop": 0, "Mobile": 0, "Tablet": 0}
+        for event in events:
+            device = event.device_type or "Desktop"
+            if device in device_stats:
+                device_stats[device] += 1
+        
+        total_device_events = sum(device_stats.values())
+        devices = [
+            {
+                "name": "Desktop",
+                "value": device_stats["Desktop"],
+                "percentage": round((device_stats["Desktop"] / total_device_events * 100) if total_device_events > 0 else 0, 1),
+                "color": "#3b82f6"
+            },
+            {
+                "name": "Mobile",
+                "value": device_stats["Mobile"],
+                "percentage": round((device_stats["Mobile"] / total_device_events * 100) if total_device_events > 0 else 0, 1),
+                "color": "#10b981"
+            },
+            {
+                "name": "Tablet",
+                "value": device_stats["Tablet"],
+                "percentage": round((device_stats["Tablet"] / total_device_events * 100) if total_device_events > 0 else 0, 1),
+                "color": "#f59e0b"
+            }
+        ]
+        
+        # Country breakdown
+        country_stats = {}
+        for event in events:
+            country = event.country or "Unknown"
+            if country not in country_stats:
+                country_stats[country] = 0
+            country_stats[country] += 1
+        
+        # Country flags mapping
+        country_flags = {
+            "United States": "🇺🇸",
+            "United Kingdom": "🇬🇧",
+            "Canada": "🇨🇦",
+            "Germany": "🇩🇪",
+            "France": "🇫🇷",
+            "Australia": "🇦🇺",
+            "India": "🇮🇳",
+            "Brazil": "🇧🇷",
+            "Japan": "🇯🇵",
+            "China": "🇨🇳",
+            "Unknown": "🌍"
+        }
+        
+        countries = []
+        for country, clicks in sorted(country_stats.items(), key=lambda x: x[1], reverse=True)[:10]:
+            percentage = (clicks / total_clicks * 100) if total_clicks > 0 else 0
+            countries.append({
+                "name": country,
+                "flag": country_flags.get(country, "🌍"),
+                "clicks": clicks,
+                "percentage": round(percentage, 1)
+            })
+        
+        # Top campaigns
+        campaign_stats = {}
+        for event in events:
+            link = next((l for l in user_links if l.id == event.link_id), None)
+            if link:
+                campaign_name = link.campaign_name or f"Link {link.short_code}"
+                if campaign_name not in campaign_stats:
+                    campaign_stats[campaign_name] = {
+                        "clicks": 0,
+                        "conversions": 0
+                    }
+                campaign_stats[campaign_name]["clicks"] += 1
+                if event.captured_email:
+                    campaign_stats[campaign_name]["conversions"] += 1
+        
+        top_campaigns = []
+        for name, stats in sorted(campaign_stats.items(), key=lambda x: x[1]["clicks"], reverse=True)[:10]:
+            rate = (stats["conversions"] / stats["clicks"] * 100) if stats["clicks"] > 0 else 0
+            top_campaigns.append({
+                "name": name,
+                "clicks": stats["clicks"],
+                "conversions": stats["conversions"],
+                "rate": round(rate, 1),
+                "status": "active" if stats["clicks"] > 0 else "idle"
+            })
+        
+        return jsonify({
+            "totalClicks": total_clicks,
+            "uniqueVisitors": unique_visitors,
+            "conversionRate": round(conversion_rate, 1),
+            "bounceRate": round(bounce_rate, 1),
+            "capturedEmails": captured_emails,
+            "activeLinks": active_links,
+            "avgSessionDuration": avg_session_duration,
+            "topCampaigns": top_campaigns,
+            "countries": countries,
+            "devices": devices,
+            "performanceData": performance_data
+        })
+        
+    except Exception as e:
+        print(f"Error fetching analytics overview: {e}")
+        import traceback
+        traceback.print_exc()
+        return jsonify({"error": f"Failed to fetch analytics: {str(e)}"}), 500
+
+@analytics_bp.route("/analytics/geography", methods=["GET"])
+@login_required
+def get_geography_analytics():
+    """Get geographic analytics for user's tracking links"""
+    user_id = session.get("user_id")
+    user = User.query.get(user_id)
+    if not user:
+        return jsonify({"error": "Authentication required"}), 401
+    
+    try:
+        period = request.args.get("period", "7")
+        days = int(period)
+        
+        end_date = datetime.now()
+        start_date = end_date - timedelta(days=days)
+        
+        # Get user's OWN links only
+        user_links = Link.query.filter_by(user_id=user_id).all()
+        link_ids = [link.id for link in user_links]
+        
+        if not link_ids:
+            return jsonify({
+                "countries": [],
+                "cities": [],
+                "totalCountries": 0,
+                "totalCities": 0,
+                "topCountry": None,
+                "topCity": None
+            })
+        
+        # Get tracking events for the period
+        events = TrackingEvent.query.filter(
+            TrackingEvent.link_id.in_(link_ids),
+            TrackingEvent.timestamp >= start_date,
+            TrackingEvent.timestamp <= end_date
+        ).all()
+        
+        # Country stats
+        country_stats = {}
+        city_stats = {}
+        
+        for event in events:
+            # Country
+            country = event.country or "Unknown"
+            if country not in country_stats:
+                country_stats[country] = 0
+            country_stats[country] += 1
+            
+            # City
+            city = event.city or "Unknown"
+            if city not in city_stats:
+                city_stats[city] = {
+                    "clicks": 0,
+                    "country": country
+                }
+            city_stats[city]["clicks"] += 1
+        
+        # Country flags mapping
+        country_flags = {
+            "United States": "🇺🇸",
+            "United Kingdom": "🇬🇧",
+            "Canada": "🇨🇦",
+            "Germany": "🇩🇪",
+            "France": "🇫🇷",
+            "Australia": "🇦🇺",
+            "India": "🇮🇳",
+            "Brazil": "🇧🇷",
+            "Japan": "🇯🇵",
+            "China": "🇨🇳",
+            "Mexico": "🇲🇽",
+            "Spain": "🇪🇸",
+            "Italy": "🇮🇹",
+            "Netherlands": "🇳🇱",
+            "Switzerland": "🇨🇭",
+            "Unknown": "🌍"
+        }
+        
+        # Format countries data
+        total_clicks = len(events)
+        countries = []
+        for country, clicks in sorted(country_stats.items(), key=lambda x: x[1], reverse=True):
+            percentage = (clicks / total_clicks * 100) if total_clicks > 0 else 0
+            countries.append({
+                "name": country,
+                "flag": country_flags.get(country, "🌍"),
+                "clicks": clicks,
+                "percentage": round(percentage, 1)
+            })
+        
+        # Format cities data
+        cities = []
+        for city, data in sorted(city_stats.items(), key=lambda x: x[1]["clicks"], reverse=True):
+            cities.append({
+                "name": city,
+                "country": data["country"],
+                "clicks": data["clicks"]
+            })
+        
+        # Get top country and city
+        top_country = countries[0] if countries else None
+        top_city = cities[0] if cities else None
+        
+        return jsonify({
+            "countries": countries,
+            "cities": cities,
+            "totalCountries": len(countries),
+            "totalCities": len(cities),
+            "topCountry": top_country,
+            "topCity": top_city
+        })
+        
+    except Exception as e:
+        print(f"Error fetching geography analytics: {e}")
+        import traceback
+        traceback.print_exc()
+        return jsonify({"error": f"Failed to fetch geography data: {str(e)}"}), 500

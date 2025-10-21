@@ -1,16 +1,33 @@
-import { useState, useEffect, useRef } from 'react'
-import InteractiveMap from './InteractiveMap'
-import { enrichGeoData } from '../utils/geocoding'
+import React, { useState, useEffect } from 'react'
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from './ui/card'
+import { Button } from './ui/button'
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from './ui/select'
+import { Badge } from './ui/badge'
+import { Progress } from './ui/progress'
+import {
+  Globe,
+  MapPin,
+  Users,
+  TrendingUp,
+  RefreshCw,
+  Download,
+  Navigation
+} from 'lucide-react'
+import { 
+  ComposableMap, 
+  Geographies, 
+  Geography as GeoComponent, 
+  Marker 
+} from 'react-simple-maps'
+
+const geoUrl = "https://raw.githubusercontent.com/deldersveld/topojson/master/world-countries.json"
 
 const Geography = () => {
-  const [timeRange, setTimeRange] = useState('7d')
+  const [timeRange, setTimeRange] = useState('7')
   const [loading, setLoading] = useState(true)
-  const [selectedCountry, setSelectedCountry] = useState(null)
   const [geoData, setGeoData] = useState({
     countries: [],
-    cities: []
-  })
-  const [stats, setStats] = useState({
+    cities: [],
     totalCountries: 0,
     totalCities: 0,
     topCountry: null,
@@ -24,55 +41,16 @@ const Geography = () => {
   const fetchGeographyData = async () => {
     setLoading(true)
     try {
-      // Fetch countries analytics
-      const countriesResponse = await fetch('/api/analytics/countries', {
+      const response = await fetch(`/api/analytics/geography?period=${timeRange}`, {
         headers: {
           'Authorization': `Bearer ${localStorage.getItem('token')}`
         }
       })
-      
-      // Fetch cities analytics
-      const citiesResponse = await fetch('/api/analytics/cities', {
-        headers: {
-          'Authorization': `Bearer ${localStorage.getItem('token')}`
-        }
-      })
-      
-      if (countriesResponse.ok) {
-        const countriesData = await countriesResponse.json()
-        
-        // Calculate stats
-        const totalCountries = countriesData.length
-        const topCountry = countriesData.length > 0 ? countriesData[0] : null
-        
-        // Fetch cities data from API
-        let cities = []
-        let totalCities = 0
-        let topCity = null
-        
-        if (citiesResponse.ok) {
-          const citiesData = await citiesResponse.json()
-          cities = citiesData.slice(0, 5) // Top 5 cities
-          totalCities = citiesData.length
-          topCity = citiesData.length > 0 ? citiesData[0] : null
-        }
-        
-        // Enrich data with coordinates
-        const enrichedData = enrichGeoData({
-          countries: countriesData,
-          cities: cities
-        })
-        
-        setGeoData(enrichedData)
-        
-        setStats({
-          totalCountries,
-          totalCities,
-          topCountry,
-          topCity
-        })
-      }
 
+      if (response.ok) {
+        const data = await response.json()
+        setGeoData(data)
+      }
     } catch (error) {
       console.error('Error fetching geography data:', error)
     } finally {
@@ -85,225 +63,223 @@ const Geography = () => {
   }
 
   const handleExport = () => {
-    // Implement export functionality
-    console.log('Export geography data')
-  }
-
-  if (loading) {
-    return (
-      <div className="p-6 space-y-6 bg-slate-900 min-h-screen">
-        <div className="animate-pulse">
-          <div className="h-8 bg-slate-700 rounded w-1/4 mb-6"></div>
-          <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-6">
-            {[1, 2, 3, 4].map(i => (
-              <div key={i} className="h-24 bg-slate-700 rounded"></div>
-            ))}
-          </div>
-          <div className="h-96 bg-slate-700 rounded mb-6"></div>
-        </div>
-      </div>
-    )
+    const csvData = [
+      ['Country', 'Clicks', 'Percentage'],
+      ...geoData.countries.map(c => [c.name, c.clicks, `${c.percentage}%`])
+    ]
+    
+    const csvContent = csvData.map(row => row.join(',')).join('\n')
+    const blob = new Blob([csvContent], { type: 'text/csv' })
+    const url = window.URL.createObjectURL(blob)
+    const a = document.createElement('a')
+    a.href = url
+    a.download = `geography-${new Date().toISOString().split('T')[0]}.csv`
+    document.body.appendChild(a)
+    a.click()
+    document.body.removeChild(a)
+    window.URL.revokeObjectURL(url)
   }
 
   return (
-    <div className="p-6 space-y-6 bg-slate-900 min-h-screen">
+    <div className="space-y-6">
       {/* Header */}
-      <div className="flex items-center justify-between">
-        <div className="flex items-center gap-3">
-          <div className="h-8 w-8 bg-green-400 rounded-lg flex items-center justify-center">
-            <span className="text-slate-900 font-bold">🌍</span>
-          </div>
-          <div>
-            <h1 className="text-2xl font-bold text-white">Geography</h1>
-            <p className="text-slate-400">Geographic distribution of your traffic</p>
-          </div>
-        </div>
-        
+      <div className="mb-8">
+        <h1 className="text-3xl font-bold text-white mb-2">Geographic Analytics</h1>
+        <p className="text-slate-400">Global traffic distribution and insights</p>
+      </div>
+
+      {/* Controls */}
+      <div className="flex flex-col sm:flex-row gap-4 mb-8">
+        <Select value={timeRange} onValueChange={setTimeRange}>
+          <SelectTrigger className="w-full sm:w-[180px] bg-slate-800 border-slate-700 text-white">
+            <SelectValue placeholder="Select time range" />
+          </SelectTrigger>
+          <SelectContent className="bg-slate-800 border-slate-700">
+            <SelectItem value="1">Last 24 hours</SelectItem>
+            <SelectItem value="7">Last 7 days</SelectItem>
+            <SelectItem value="30">Last 30 days</SelectItem>
+            <SelectItem value="90">Last 90 days</SelectItem>
+          </SelectContent>
+        </Select>
         <div className="flex gap-2">
-          <select 
-            value={timeRange}
-            onChange={(e) => setTimeRange(e.target.value)}
-            className="bg-slate-800 border border-slate-600 text-white rounded-lg px-4 py-2"
-          >
-            <option value="24h">Last 24 Hours</option>
-            <option value="7d">Last 7 Days</option>
-            <option value="30d">Last 30 Days</option>
-            <option value="90d">Last 90 Days</option>
-          </select>
-          <button 
-            onClick={handleRefresh}
-            className="px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-lg"
-          >
-            🔄 Refresh
-          </button>
-          <button 
-            onClick={handleExport}
-            className="px-4 py-2 bg-green-600 hover:bg-green-700 text-white rounded-lg"
-          >
-            📥 Export
-          </button>
+          <Button variant="outline" size="sm" onClick={handleRefresh} className="border-slate-600 text-slate-300 hover:bg-slate-700">
+            <RefreshCw className="h-4 w-4 mr-2" />
+            Refresh
+          </Button>
+          <Button variant="outline" size="sm" onClick={handleExport} className="border-slate-600 text-slate-300 hover:bg-slate-700">
+            <Download className="h-4 w-4 mr-2" />
+            Export
+          </Button>
         </div>
       </div>
 
-      {/* Summary Stats */}
-      <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-        <div className="bg-slate-800 border border-slate-700 rounded-lg p-4">
-          <div className="flex items-center gap-3">
-            <div className="p-2 bg-blue-500/20 rounded-lg">
-              <span className="text-blue-400 text-lg">🌍</span>
+      {/* Stat Cards - 4 cards in one row */}
+      <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 mb-8">
+        <Card className="bg-gradient-to-br from-blue-500/10 to-blue-600/5 border-blue-500/20">
+          <CardContent className="p-6">
+            <div className="flex items-center justify-between">
+              <div>
+                <p className="text-sm font-medium text-slate-400 mb-1">Total Countries</p>
+                <p className="text-3xl font-bold text-white">{geoData.totalCountries}</p>
+              </div>
+              <div className="p-3 bg-blue-500/20 rounded-full">
+                <Globe className="h-6 w-6 text-blue-400" />
+              </div>
             </div>
-            <div>
-              <p className="text-xs text-slate-400 uppercase tracking-wide">Countries</p>
-              <p className="text-xl font-bold text-white">{stats.totalCountries}</p>
-              <p className="text-xs text-green-400">Live Data</p>
+          </CardContent>
+        </Card>
+
+        <Card className="bg-gradient-to-br from-green-500/10 to-green-600/5 border-green-500/20">
+          <CardContent className="p-6">
+            <div className="flex items-center justify-between">
+              <div>
+                <p className="text-sm font-medium text-slate-400 mb-1">Total Cities</p>
+                <p className="text-3xl font-bold text-white">{geoData.totalCities}</p>
+              </div>
+              <div className="p-3 bg-green-500/20 rounded-full">
+                <MapPin className="h-6 w-6 text-green-400" />
+              </div>
             </div>
-          </div>
-        </div>
-        
-        <div className="bg-slate-800 border border-slate-700 rounded-lg p-4">
-          <div className="flex items-center gap-3">
-            <div className="p-2 bg-green-500/20 rounded-lg">
-              <span className="text-green-400 text-lg">🏙️</span>
+          </CardContent>
+        </Card>
+
+        <Card className="bg-gradient-to-br from-purple-500/10 to-purple-600/5 border-purple-500/20">
+          <CardContent className="p-6">
+            <div className="flex items-center justify-between">
+              <div>
+                <p className="text-sm font-medium text-slate-400 mb-1">Top Country</p>
+                <p className="text-xl font-bold text-white truncate">
+                  {geoData.topCountry ? `${geoData.topCountry.flag} ${geoData.topCountry.name}` : 'N/A'}
+                </p>
+              </div>
+              <div className="p-3 bg-purple-500/20 rounded-full">
+                <TrendingUp className="h-6 w-6 text-purple-400" />
+              </div>
             </div>
-            <div>
-              <p className="text-xs text-slate-400 uppercase tracking-wide">Cities</p>
-              <p className="text-xl font-bold text-white">{stats.totalCities}</p>
-              <p className="text-xs text-green-400">Live Data</p>
+          </CardContent>
+        </Card>
+
+        <Card className="bg-gradient-to-br from-orange-500/10 to-orange-600/5 border-orange-500/20">
+          <CardContent className="p-6">
+            <div className="flex items-center justify-between">
+              <div>
+                <p className="text-sm font-medium text-slate-400 mb-1">Top City</p>
+                <p className="text-xl font-bold text-white truncate">
+                  {geoData.topCity ? geoData.topCity.name : 'N/A'}
+                </p>
+              </div>
+              <div className="p-3 bg-orange-500/20 rounded-full">
+                <Navigation className="h-6 w-6 text-orange-400" />
+              </div>
             </div>
-          </div>
-        </div>
-        
-        <div className="bg-slate-800 border border-slate-700 rounded-lg p-4">
-          <div className="flex items-center gap-3">
-            <div className="p-2 bg-purple-500/20 rounded-lg">
-              <span className="text-purple-400 text-lg">🏆</span>
-            </div>
-            <div>
-              <p className="text-xs text-slate-400 uppercase tracking-wide">Top Country</p>
-              <p className="text-lg font-bold text-white">
-                {stats.topCountry ? `${stats.topCountry.flag} ${stats.topCountry.code}` : 'N/A'}
-              </p>
-              <p className="text-xs text-green-400">
-                {stats.topCountry ? `${stats.topCountry.percentage}% traffic` : 'No data'}
-              </p>
-            </div>
-          </div>
-        </div>
-        
-        <div className="bg-slate-800 border border-slate-700 rounded-lg p-4">
-          <div className="flex items-center gap-3">
-            <div className="p-2 bg-orange-500/20 rounded-lg">
-              <span className="text-orange-400 text-lg">📍</span>
-            </div>
-            <div>
-              <p className="text-xs text-slate-400 uppercase tracking-wide">Top City</p>
-              <p className="text-lg font-bold text-white">
-                {stats.topCity ? stats.topCity.name : 'N/A'}
-              </p>
-              <p className="text-xs text-green-400">
-                {stats.topCity ? `${stats.topCity.percentage}% traffic` : 'No data'}
-              </p>
-            </div>
-          </div>
-        </div>
+          </CardContent>
+        </Card>
       </div>
 
-      {/* Interactive World Map */}
-      <div className="bg-slate-800 border border-slate-700 rounded-lg p-6">
-        <div className="flex items-center justify-between mb-6">
-          <div>
-            <h3 className="text-xl font-bold text-white">Interactive World Map</h3>
-            <p className="text-slate-400">Click on countries to view detailed statistics</p>
-          </div>
-          <div className="flex gap-2">
-            <button className="px-3 py-1.5 bg-slate-700 hover:bg-slate-600 text-white rounded text-sm">
-              🎯 Heat Map
-            </button>
-            <button className="px-3 py-1.5 bg-slate-700 hover:bg-slate-600 text-white rounded text-sm">
-              📊 Data View
-            </button>
-          </div>
-        </div>
-        
-        {/* Interactive World Map */}
-        <div className="bg-slate-900 rounded-lg min-h-[500px] relative overflow-hidden">
-          <InteractiveMap geoData={geoData} />
-        </div>
-      </div>
-
-      {/* Countries and Cities Tables */}
+      {/* Map and Data Grid */}
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-        {/* Countries Table */}
-        <div className="bg-slate-800 border border-slate-700 rounded-lg">
-          <div className="p-4 border-b border-slate-700">
-            <h3 className="text-lg font-bold text-white">Top Countries</h3>
-            <p className="text-sm text-slate-400">Countries by traffic volume</p>
-          </div>
-          <div className="p-4">
-            {geoData.countries.length === 0 ? (
-              <div className="text-center py-8">
-                <p className="text-slate-400">No country data available</p>
-                <p className="text-slate-500 text-sm">Data will appear as users visit your links</p>
-              </div>
-            ) : (
-              <div className="space-y-3">
-                {geoData.countries.slice(0, 5).map((country, index) => (
-                  <div key={country.country} className="flex items-center justify-between p-3 bg-slate-700/50 rounded-lg">
-                    <div className="flex items-center gap-3">
-                      <span className="text-xl">{country.flag}</span>
-                      <div>
-                        <p className="font-medium text-white">{country.country}</p>
-                        <p className="text-sm text-slate-400">{country.clicks} clicks</p>
-                      </div>
-                    </div>
-                    <div className="text-right">
-                      <p className="font-bold text-blue-400">{country.percentage}%</p>
-                      <p className="text-xs text-slate-400">{country.visitors} visitors</p>
-                    </div>
-                  </div>
-                ))}
-              </div>
-            )}
-          </div>
-        </div>
+        {/* Interactive World Map */}
+        <Card>
+          <CardHeader>
+            <CardTitle className="text-base font-semibold">Traffic Heat Map</CardTitle>
+            <CardDescription>Global visitor distribution</CardDescription>
+          </CardHeader>
+          <CardContent>
+            <div className="w-full h-[400px] bg-slate-800/50 rounded-lg flex items-center justify-center">
+              <ComposableMap
+                projection="geoMercator"
+                projectionConfig={{
+                  scale: 100
+                }}
+              >
+                <Geographies geography={geoUrl}>
+                  {({ geographies }) =>
+                    geographies.map((geo) => {
+                      const country = geoData.countries.find(c => c.name === geo.properties.name)
+                      return (
+                        <GeoComponent
+                          key={geo.rsmKey}
+                          geography={geo}
+                          fill={country ? `rgba(59, 130, 246, ${Math.min(country.percentage / 50, 1)})` : "#1e293b"}
+                          stroke="#475569"
+                          strokeWidth={0.5}
+                          style={{
+                            hover: {
+                              fill: "#3b82f6",
+                              outline: "none"
+                            }
+                          }}
+                        />
+                      )
+                    })
+                  }
+                </Geographies>
+              </ComposableMap>
+            </div>
+          </CardContent>
+        </Card>
 
-        {/* Cities Table */}
-        <div className="bg-slate-800 border border-slate-700 rounded-lg">
-          <div className="p-4 border-b border-slate-700">
-            <h3 className="text-lg font-bold text-white">Top Cities</h3>
-            <p className="text-sm text-slate-400">Cities by traffic volume</p>
-          </div>
-          <div className="p-4">
-            {geoData.cities.length === 0 ? (
-              <div className="text-center py-8">
-                <p className="text-slate-400">No city data available</p>
-                <p className="text-slate-500 text-sm">Data will appear as users visit your links</p>
-              </div>
-            ) : (
-              <div className="space-y-3">
-                {geoData.cities.map((city, index) => (
-                  <div key={`${city.name}-${city.country}`} className="flex items-center justify-between p-3 bg-slate-700/50 rounded-lg">
-                    <div className="flex items-center gap-3">
-                      <span className="text-xl">{city.flag}</span>
-                      <div>
-                        <p className="font-medium text-white">{city.name}</p>
-                        <p className="text-sm text-slate-400">{city.country}</p>
+        {/* Top Countries List */}
+        <Card>
+          <CardHeader>
+            <CardTitle className="text-base font-semibold">Top Countries</CardTitle>
+            <CardDescription>Highest traffic sources</CardDescription>
+          </CardHeader>
+          <CardContent>
+            <div className="space-y-4 max-h-[400px] overflow-y-auto">
+              {geoData.countries.slice(0, 10).map((country, index) => (
+                <div key={index} className="flex items-center justify-between p-3 bg-slate-800/50 rounded-lg hover:bg-slate-800 transition-colors">
+                  <div className="flex items-center gap-3 flex-1">
+                    <span className="text-2xl">{country.flag}</span>
+                    <div className="flex-1">
+                      <p className="font-medium text-white">{country.name}</p>
+                      <div className="flex items-center gap-2 mt-1">
+                        <Progress value={country.percentage} className="h-2 flex-1" />
+                        <span className="text-xs text-slate-400 w-12 text-right">{country.percentage}%</span>
                       </div>
                     </div>
-                    <div className="text-right">
-                      <p className="font-bold text-blue-400">{city.percentage}%</p>
-                      <p className="text-xs text-slate-400">{city.clicks} clicks</p>
-                    </div>
                   </div>
-                ))}
-              </div>
-            )}
-          </div>
-        </div>
+                  <div className="text-right ml-4">
+                    <p className="text-sm font-semibold text-white">{country.clicks.toLocaleString()}</p>
+                    <p className="text-xs text-slate-400">clicks</p>
+                  </div>
+                </div>
+              ))}
+            </div>
+          </CardContent>
+        </Card>
       </div>
+
+      {/* Cities Table */}
+      <Card>
+        <CardHeader>
+          <CardTitle className="text-base font-semibold">Top Cities</CardTitle>
+          <CardDescription>Most active urban locations</CardDescription>
+        </CardHeader>
+        <CardContent>
+          <div className="space-y-3">
+            {geoData.cities.slice(0, 10).map((city, index) => (
+              <div key={index} className="flex items-center justify-between p-4 bg-slate-800/30 rounded-lg hover:bg-slate-800/50 transition-colors">
+                <div className="flex items-center gap-4">
+                  <div className="w-10 h-10 bg-gradient-to-br from-blue-500 to-purple-600 rounded-lg flex items-center justify-center">
+                    <MapPin className="h-5 w-5 text-white" />
+                  </div>
+                  <div>
+                    <p className="font-medium text-white">{city.name}</p>
+                    <p className="text-sm text-slate-400">{city.country}</p>
+                  </div>
+                </div>
+                <div className="text-right">
+                  <p className="text-lg font-semibold text-white">{city.clicks.toLocaleString()}</p>
+                  <p className="text-xs text-slate-400">clicks</p>
+                </div>
+              </div>
+            ))}
+          </div>
+        </CardContent>
+      </Card>
     </div>
   )
 }
 
 export default Geography
-

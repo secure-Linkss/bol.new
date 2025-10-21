@@ -577,3 +577,113 @@ def get_threat_dashboard():
     except Exception as e:
         print(f"Error getting threat dashboard: {e}")
         return jsonify({'error': str(e)}), 500
+
+@security_bp.route("/api/security/logs", methods=["GET"])
+@require_auth
+def get_security_logs():
+    """Get security logs for the authenticated user"""
+    try:
+        user_id = session.get("user_id")
+        period = request.args.get("period", "7")
+        days = int(period)
+        
+        end_date = datetime.now()
+        start_date = end_date - timedelta(days=days)
+        
+        # Get user's links
+        from src.models.link import Link
+        user_links = Link.query.filter_by(user_id=user_id).all()
+        link_ids = [link.id for link in user_links]
+        
+        if not link_ids:
+            return jsonify({
+                "totalThreats": 0,
+                "blockedIPs": 0,
+                "suspiciousActivity": 0,
+                "secureConnections": 0,
+                "recentEvents": [],
+                "threatsByType": [],
+                "ipLogs": []
+            })
+        
+        # Get tracking events
+        events = TrackingEvent.query.filter(
+            TrackingEvent.link_id.in_(link_ids),
+            TrackingEvent.timestamp >= start_date,
+            TrackingEvent.timestamp <= end_date
+        ).all()
+        
+        # Calculate metrics
+        total_threats = len([e for e in events if e.is_bot or e.status == "blocked"])
+        blocked_ips_list = list(set([e.ip_address for e in events if e.status == "blocked"]))
+        blocked_ips = len(blocked_ips_list)
+        suspicious_activity = len([e for e in events if e.is_bot])
+        secure_connections = len([e for e in events if e.status == "active"])
+        
+        # Recent events
+        recent_events = []
+        for event in sorted(events, key=lambda x: x.timestamp, reverse=True)[:20]:
+            severity = "high" if event.status == "blocked" else "medium" if event.is_bot else "low"
+            recent_events.append({
+                "type": "Bot Detected" if event.is_bot else "Blocked Access" if event.status == "blocked" else "Normal Access",
+                "ip": event.ip_address or "Unknown",
+                "timestamp": event.timestamp.strftime("%Y-%m-%d %H:%M") if event.timestamp else "Unknown",
+                "status": event.status or "active",
+                "severity": severity
+            })
+        
+        # Threat types
+        threat_types = {
+            "Bot Traffic": len([e for e in events if e.is_bot]),
+            "Blocked IPs": blocked_ips,
+            "Suspicious Patterns": len([e for e in events if e.is_bot and e.status != "blocked"]),
+            "Failed Attempts": len([e for e in events if e.status == "blocked"])
+        }
+        
+        total_threat_count = sum(threat_types.values())
+        threats_by_type = [
+            {
+                "type": threat_type,
+                "count": count,
+                "percentage": round((count / total_threat_count * 100) if total_threat_count > 0 else 0, 1)
+            }
+            for threat_type, count in threat_types.items()
+        ]
+        
+        # IP logs
+        ip_stats = {}
+        for event in events:
+            ip = event.ip_address or "Unknown"
+            if ip not in ip_stats:
+                ip_stats[ip] = {
+                    "requests": 0,
+                    "country": event.country or "Unknown",
+                    "blocked": event.status == "blocked"
+                }
+            ip_stats[ip]["requests"] += 1
+        
+        ip_logs = [
+            {
+                "ip": ip,
+                "requests": data["requests"],
+                "country": data["country"],
+                "blocked": data["blocked"]
+            }
+            for ip, data in sorted(ip_stats.items(), key=lambda x: x[1]["requests"], reverse=True)[:20]
+        ]
+        
+        return jsonify({
+            "totalThreats": total_threats,
+            "blockedIPs": blocked_ips,
+            "suspiciousActivity": suspicious_activity,
+            "secureConnections": secure_connections,
+            "recentEvents": recent_events,
+            "threatsByType": threats_by_type,
+            "ipLogs": ip_logs
+        })
+        
+    except Exception as e:
+        print(f"Error fetching security logs: {e}")
+        import traceback
+        traceback.print_exc()
+        return jsonify({"error": f"Failed to fetch security logs: {str(e)}"}), 500
