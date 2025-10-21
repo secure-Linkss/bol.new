@@ -16,7 +16,7 @@ class User(db.Model):
     settings = db.Column(db.Text, nullable=True)  # JSON string for user settings
     notification_settings = db.Column(db.Text, nullable=True)  # JSON string for notification preferences
     preferences = db.Column(db.Text, nullable=True)  # JSON string for app preferences (timezone, language, theme)
-    metadata = db.Column(db.Text, nullable=True)  # JSON string for additional metadata
+    user_metadata = db.Column(db.Text, nullable=True)  # JSON string for additional metadata
     created_at = db.Column(db.DateTime, default=datetime.utcnow)
     updated_at = db.Column(db.DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)
 
