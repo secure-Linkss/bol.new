@@ -10,6 +10,7 @@ from src.models.link import Link
 from src.models.tracking_event import TrackingEvent
 from src.models.campaign import Campaign
 from src.models.user import User, db
+from src.utils.country_flags import get_country_flag, COUNTRY_FLAGS
 from sqlalchemy import func, desc, extract
 from functools import wraps
 from datetime import datetime, timedelta
@@ -132,17 +133,8 @@ def get_dashboard_analytics():
             if event.captured_email:
                 country_stats[country]["emails"] += 1
         
-        # Country flags mapping
-        country_flags = {
-            "United States": "🇺🇸",
-            "United Kingdom": "🇬🇧",
-            "Canada": "🇨🇦",
-            "Germany": "🇩🇪",
-            "France": "🇫🇷",
-            "Australia": "🇦🇺",
-            "India": "🇮🇳",
-            "Unknown": "🌍"
-        }
+        # Using comprehensive country flags from utils
+        country_flags = COUNTRY_FLAGS
         
         top_countries = []
         for country, stats in sorted(country_stats.items(), key=lambda x: x[1]["clicks"], reverse=True)[:5]:
@@ -510,20 +502,8 @@ def get_analytics_overview():
                 country_stats[country] = 0
             country_stats[country] += 1
         
-        # Country flags mapping
-        country_flags = {
-            "United States": "🇺🇸",
-            "United Kingdom": "🇬🇧",
-            "Canada": "🇨🇦",
-            "Germany": "🇩🇪",
-            "France": "🇫🇷",
-            "Australia": "🇦🇺",
-            "India": "🇮🇳",
-            "Brazil": "🇧🇷",
-            "Japan": "🇯🇵",
-            "China": "🇨🇳",
-            "Unknown": "🌍"
-        }
+        # Using comprehensive country flags from utils
+        country_flags = COUNTRY_FLAGS
         
         countries = []
         for country, clicks in sorted(country_stats.items(), key=lambda x: x[1], reverse=True)[:10]:
@@ -638,25 +618,8 @@ def get_geography_analytics():
                 }
             city_stats[city]["clicks"] += 1
         
-        # Country flags mapping
-        country_flags = {
-            "United States": "🇺🇸",
-            "United Kingdom": "🇬🇧",
-            "Canada": "🇨🇦",
-            "Germany": "🇩🇪",
-            "France": "🇫🇷",
-            "Australia": "🇦🇺",
-            "India": "🇮🇳",
-            "Brazil": "🇧🇷",
-            "Japan": "🇯🇵",
-            "China": "🇨🇳",
-            "Mexico": "🇲🇽",
-            "Spain": "🇪🇸",
-            "Italy": "🇮🇹",
-            "Netherlands": "🇳🇱",
-            "Switzerland": "🇨🇭",
-            "Unknown": "🌍"
-        }
+        # Using comprehensive country flags from utils
+        country_flags = COUNTRY_FLAGS
         
         # Format countries data
         total_clicks = len(events)
