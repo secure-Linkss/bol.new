@@ -19,6 +19,11 @@ from src.models.security import SecuritySettings, BlockedIP, BlockedCountry
 from src.models.support_ticket import SupportTicket
 from src.models.subscription_verification import SubscriptionVerification
 from src.models.notification import Notification
+from src.models.domain import Domain
+from src.models.security_threat import SecurityThreat
+from src.models.security_threat_db import SecurityThreat as SecurityThreatDB
+from src.models.support_ticket_db import SupportTicket as SupportTicketDB
+from src.models.subscription_verification_db import SubscriptionVerification as SubscriptionVerificationDB
 
 from src.routes.user import user_bp
 from src.routes.auth import auth_bp
@@ -29,14 +34,17 @@ from src.routes.analytics import analytics_bp
 from src.routes.campaigns import campaigns_bp
 from src.routes.settings import settings_bp
 from src.routes.admin import admin_bp
+from src.routes.admin_complete import admin_complete_bp
 from src.routes.admin_settings import admin_settings_bp
 from src.routes.security import security_bp
 from src.routes.telegram import telegram_bp
 from src.routes.page_tracking import page_tracking_bp
 from src.routes.shorten import shorten_bp
 from src.routes.notifications import notifications_bp
+from src.routes.quantum_redirect import quantum_bp
+from src.routes.advanced_security import advanced_security_bp
 
-app = Flask(__name__, static_folder=os.path.join(os.path.dirname(__file__), '..', 'src', 'static'))
+app = Flask(__name__, static_folder=os.path.join(os.path.dirname(__file__), '..', 'dist'))
 app.config['SECRET_KEY'] = os.environ.get('SECRET_KEY', 'ej5B3Amppi4gjpbC65te6rJuvJzgVCWW_xfB-ZLR1TE')
 
 # Enable CORS for all routes
@@ -93,29 +101,32 @@ with app.app_context():
             db.session.commit()
             print("Default admin user \"7thbrain\" updated to active status.")
 
-# Register blueprints
+# Register blueprints - DO NOT add /api prefix if route already has it
 app.register_blueprint(user_bp, url_prefix='/api')
 app.register_blueprint(auth_bp, url_prefix='/api')
 app.register_blueprint(links_bp, url_prefix='/api')
 app.register_blueprint(analytics_bp, url_prefix='/api')
-app.register_blueprint(campaigns_bp, url_prefix='/api')
-app.register_blueprint(settings_bp, url_prefix='/api')
-app.register_blueprint(admin_bp, url_prefix='/api')
+app.register_blueprint(campaigns_bp)  # Already has /api in routes
+app.register_blueprint(settings_bp)  # Already has /api in routes
+app.register_blueprint(admin_bp)  # Already has /api in routes - CRITICAL FIX
+app.register_blueprint(admin_complete_bp)  # Already has /api in routes - CRITICAL FIX
 app.register_blueprint(admin_settings_bp, url_prefix='/api')
 app.register_blueprint(security_bp, url_prefix='/api')
 app.register_blueprint(telegram_bp, url_prefix='/api')
 app.register_blueprint(page_tracking_bp, url_prefix='/api')
 app.register_blueprint(shorten_bp, url_prefix='/api')
-app.register_blueprint(notifications_bp)
-app.register_blueprint(track_bp)
-app.register_blueprint(events_bp)
+app.register_blueprint(notifications_bp)  # Has /api prefix in routes
+app.register_blueprint(quantum_bp)  # No prefix - has /q/, /validate, /route routes
+app.register_blueprint(advanced_security_bp, url_prefix='/api')
+app.register_blueprint(track_bp)  # No prefix - has /t/, /p/, /track routes
+app.register_blueprint(events_bp)  # No prefix - has /api/ in blueprint
 
 @app.route('/', defaults={'path': ''}) 
 @app.route('/<path:path>')
 def serve(path):
     # Skip API routes - let them be handled by blueprints
-    if path.startswith('api/'):
-        return "API route not found", 404
+    if path.startswith('api/') or path.startswith('t/') or path.startswith('p/') or path.startswith('q/'):
+        return "Route not found", 404
     
     static_folder_path = app.static_folder
     if static_folder_path is None:

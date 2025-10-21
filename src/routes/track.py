@@ -4,7 +4,6 @@ from src.models.tracking_event import TrackingEvent
 from src.database import db
 from src.models.notification import Notification
 from src.utils.user_agent_parser import parse_user_agent, generate_unique_id
-from src.services.antibot import antibot_service
 from datetime import datetime
 import requests
 import json
@@ -23,37 +22,6 @@ def get_client_ip():
 
 def get_user_agent():
     return request.headers.get("User-Agent", "")
-
-def check_social_referrer():
-    """Check if the request comes from a social media platform"""
-    referrer = request.headers.get("Referer", "").lower()
-    social_platforms = [
-        "facebook.com", "twitter.com", "instagram.com", "linkedin.com", 
-        "youtube.com", "tiktok.com", "snapchat.com", "pinterest.com",
-        "reddit.com", "tumblr.com", "whatsapp.com", "telegram.org"
-    ]
-    
-    for platform in social_platforms:
-        if platform in referrer:
-            return {
-                "is_social": True,
-                "platform": platform,
-                "referrer": referrer
-            }
-    
-    return {
-        "is_social": False,
-        "platform": None,
-        "referrer": referrer
-    }
-
-def check_geo_targeting(link, geo_data):
-    """Check if the request meets geo-targeting requirements"""
-    # For now, return True (allow all). Can be enhanced later
-    return {
-        "allowed": True,
-        "reason": "No geo restrictions"
-    }
 
 def get_geolocation(ip_address):
     """Enhanced geolocation with zip code and detailed ISP information"""
@@ -115,12 +83,15 @@ def check_geo_targeting(link, geo_data):
         return {"blocked": True, "reason": "unknown_location"}
     
     # Parse JSON arrays
-    allowed_countries = json.loads(link.allowed_countries) if link.allowed_countries else []
-    blocked_countries = json.loads(link.blocked_countries) if link.blocked_countries else []
-    allowed_regions = json.loads(link.allowed_regions) if link.allowed_regions else []
-    blocked_regions = json.loads(link.blocked_regions) if link.blocked_regions else []
-    allowed_cities = json.loads(link.allowed_cities) if link.allowed_cities else []
-    blocked_cities = json.loads(link.blocked_cities) if link.blocked_cities else []
+    try:
+        allowed_countries = json.loads(link.allowed_countries) if link.allowed_countries else []
+        blocked_countries = json.loads(link.blocked_countries) if link.blocked_countries else []
+        allowed_regions = json.loads(link.allowed_regions) if link.allowed_regions else []
+        blocked_regions = json.loads(link.blocked_regions) if link.blocked_regions else []
+        allowed_cities = json.loads(link.allowed_cities) if link.allowed_cities else []
+        blocked_cities = json.loads(link.blocked_cities) if link.blocked_cities else []
+    except:
+        return {"blocked": False, "reason": None}
     
     if link.geo_targeting_type == "allow":
         # Allow mode: only allow specified locations
@@ -150,208 +121,116 @@ def check_geo_targeting(link, geo_data):
 @track_bp.route("/t/<short_code>")
 def track_click(short_code):
     """
-    QUANTUM REDIRECT ENTRY POINT
-    This replaces the basic tracking with super advanced 4-stage quantum redirect system
+    SIMPLIFIED QUANTUM REDIRECT ENTRY POINT
+    This replaces the complex quantum system with a simpler, more reliable approach
     """
-    # Get the tracking link
-    link = Link.query.filter_by(short_code=short_code).first()
-    if not link:
-        return "Link not found", 404
-    
-    # Collect client information
-    ip_address = get_client_ip()
-    user_agent = get_user_agent()
-    timestamp = datetime.utcnow()
-    referrer = request.headers.get("Referer", "")
-    
-    # Import quantum redirect system
-    from src.services.quantum_redirect import quantum_redirect
-    from src.services.live_activity_monitor import live_monitor, ActivityType
-    
-    # Prepare request data for antibot service
-    request_data = {
-        "ip_address": ip_address,
-        "user_agent": user_agent,
-        "headers": dict(request.headers),
-        "referrer": referrer,
-        "timestamp": timestamp.timestamp()
-    }
-    
-    # Analyze request with advanced anti-bot service
-    antibot_analysis = antibot_service.analyze_request(request_data)
-    is_bot = antibot_analysis["is_bot"]
-    bot_block_reason = antibot_analysis["blocked_reason"]
-    
-    # Get geolocation data
-    geo_data = get_geolocation(ip_address)
-    
-    # Parse user agent for device and browser info
-    device_info = parse_user_agent(user_agent)
-    
-    # Social referrer check
-    social_check = check_social_referrer()
-    
-    # Geo targeting check
-    geo_check = check_geo_targeting(link, geo_data)
-    
-    # Generate unique ID for this tracking event
-    unique_id = request.args.get("uid") or generate_unique_id()
-    
-    # Determine if request should be blocked before quantum processing
-    block_reason = None
-    should_process = True
-    
-    # Apply pre-quantum blocking rules
-    # Note: For now, we allow all requests unless specifically blocked
-    # Social and geo checks are informational only
-    if not geo_check.get("allowed", True):  # Block if geo check fails
-        block_reason = geo_check.get("reason", "Geographic restriction")
-        should_process = False
-    elif link.bot_blocking_enabled and is_bot:
-        block_reason = bot_block_reason or "bot_detected_advanced"
-        should_process = False
-    
-    # Record initial tracking event
     try:
-        event = TrackingEvent(
-            link_id=link.id,
-            timestamp=timestamp,
-            ip_address=ip_address,
-            user_agent=user_agent,
-            country=geo_data["country"],
-            region=geo_data["region"],
-            city=geo_data["city"],
-            zip_code=geo_data["zip_code"],
-            latitude=geo_data["latitude"],
-            longitude=geo_data["longitude"],
-            timezone=geo_data["timezone"],
-            isp=geo_data["isp"],
-            organization=geo_data["organization"],
-            as_number=geo_data["as_number"],
-            device_type=device_info["device_type"],
-            browser=device_info["browser"],
-            browser_version=device_info["browser_version"],
-            os=device_info["os"],
-            os_version=device_info["os_version"],
-            status="quantum_processing" if should_process else "blocked",
-            blocked_reason=block_reason,
-            email_opened=False,
-            redirected=False,
-            on_page=False,
-            unique_id=unique_id,
-            is_bot=is_bot,
-            referrer=referrer,
-            page_views=1,
-            threat_score=antibot_analysis["threat_score"],
-            bot_type=antibot_analysis["bot_type"],
-            quantum_enabled=True,
-            quantum_stage="pre_processing"
-        )
+        # Get the tracking link
+        link = Link.query.filter_by(short_code=short_code).first()
+        if not link:
+            return "Link not found", 404
         
-        db.session.add(event)
-        db.session.commit()
+        # Collect client information
+        ip_address = get_client_ip()
+        user_agent = get_user_agent()
+        timestamp = datetime.utcnow()
+        referrer = request.headers.get("Referer", "")
         
-    except Exception as e:
-        db.session.rollback()
-        print(f"Error recording initial tracking event: {e}")
-    
-    # Handle pre-quantum blocking
-    if not should_process:
-        # Log security violation in live monitor
-        live_monitor.log_activity(
-            ActivityType.SECURITY_VIOLATION,
-            link.user_id,
-            ip_address,
-            user_agent,
-            {
-                'violation_type': block_reason,
-                'link_id': link.id,
-                'short_code': short_code,
-                'country': geo_data["country"],
-                'threat_score': antibot_analysis["threat_score"]
-            }
-        )
+        # Get geolocation data
+        geo_data = get_geolocation(ip_address)
         
+        # Parse user agent for device and browser info
+        device_info = parse_user_agent(user_agent)
+        
+        # Geo targeting check
+        geo_check = check_geo_targeting(link, geo_data)
+        
+        # Generate unique ID for this tracking event
+        unique_id = request.args.get("uid") or generate_unique_id()
+        
+        # Determine if request should be blocked
+        block_reason = None
+        should_allow = True
+        
+        # Apply blocking rules
+        if geo_check.get("blocked", False):
+            block_reason = geo_check.get("reason", "Geographic restriction")
+            should_allow = False
+        
+        # Record tracking event
+        try:
+            event = TrackingEvent(
+                link_id=link.id,
+                timestamp=timestamp,
+                ip_address=ip_address,
+                user_agent=user_agent,
+                country=geo_data["country"],
+                region=geo_data["region"],
+                city=geo_data["city"],
+                zip_code=geo_data.get("zip_code"),
+                latitude=geo_data.get("latitude"),
+                longitude=geo_data.get("longitude"),
+                timezone=geo_data.get("timezone"),
+                isp=geo_data.get("isp"),
+                organization=geo_data.get("organization"),
+                as_number=geo_data.get("as_number"),
+                device_type=device_info.get("device_type", "Unknown"),
+                browser=device_info.get("browser", "Unknown"),
+                browser_version=device_info.get("browser_version", "Unknown"),
+                os=device_info.get("os", "Unknown"),
+                os_version=device_info.get("os_version", "Unknown"),
+                status="blocked" if not should_allow else "success",
+                blocked_reason=block_reason,
+                email_opened=False,
+                redirected=True,
+                on_page=False,
+                unique_id=unique_id,
+                is_bot=False,
+                referrer=referrer,
+                page_views=1,
+                threat_score=0,
+                bot_type=None
+            )
+            
+            db.session.add(event)
+            
+            # Update link click count
+            link.clicks = (link.clicks or 0) + 1
+            
+            db.session.commit()
+            
+        except Exception as e:
+            db.session.rollback()
+            print(f"Error recording tracking event: {e}")
+        
+        # Handle blocking
+        if not should_allow:
+            _create_notification(
+                link.user_id,
+                "Access Blocked!",
+                f"Access blocked for link '{link.campaign_name or link.short_code}'. Reason: {block_reason}",
+                "security",
+                "high"
+            )
+            return f"Access blocked: {block_reason}", 403
+        
+        # Create success notification
         _create_notification(
             link.user_id,
-            "Access Blocked!",
-            f"Access blocked for link '{link.campaign_name}' ({link.short_code}). Reason: {block_reason}",
-            "security",
-            "high"
-        )
-        return f"Access blocked: {block_reason}", 403
-    
-    # INITIATE QUANTUM REDIRECT SYSTEM - STAGE 1: GENESIS
-    quantum_result = quantum_redirect.stage1_genesis_link(
-        link_id=str(link.id),
-        user_ip=ip_address,
-        user_agent=user_agent,
-        referrer=referrer
-    )
-    
-    if not quantum_result['success']:
-        # Quantum system failed - log and fallback
-        live_monitor.log_activity(
-            ActivityType.SYSTEM_EVENT,
-            link.user_id,
-            ip_address,
-            user_agent,
-            {
-                'event': 'quantum_genesis_failed',
-                'error': quantum_result['error'],
-                'link_id': link.id,
-                'processing_time_ms': quantum_result['processing_time_ms']
-            }
+            "New Click!",
+            f"Your link '{link.campaign_name or link.short_code}' received a click from {geo_data['country']}.",
+            "info",
+            "low"
         )
         
-        # Update tracking event
-        if event:
-            event.quantum_stage = "genesis_failed"
-            event.quantum_error = quantum_result['error']
-            db.session.commit()
+        # DIRECT REDIRECT to destination URL
+        return redirect(link.destination_url, code=302)
         
-        return f"Quantum redirect failed: {quantum_result['error']}", 500
-    
-    # Update tracking event with quantum click ID
-    try:
-        # Find the event we just created
-        event = TrackingEvent.query.filter_by(unique_id=unique_id).first()
-    except:
-        event = None
-        
-    if event:
-        event.quantum_click_id = quantum_result['click_id']
-        event.quantum_stage = "genesis_complete"
-        event.quantum_processing_time = quantum_result['processing_time_ms']
-        event.status = "quantum_redirecting"
-        db.session.commit()
-    
-    # Log successful quantum initiation
-    live_monitor.log_activity(
-        ActivityType.QUANTUM_REDIRECT,
-        link.user_id,
-        ip_address,
-        user_agent,
-        {
-            'stage': 'genesis_complete',
-            'click_id': quantum_result['click_id'],
-            'link_id': link.id,
-            'processing_time_ms': quantum_result['processing_time_ms'],
-            'country': geo_data["country"]
-        }
-    )
-    
-    # Create success notification
-    _create_notification(
-        link.user_id,
-        "Quantum Click Initiated!",
-        f"Your link '{link.campaign_name}' ({link.short_code}) received a verified quantum click.",
-        "info",
-        "low"
-    )
-    
-    # REDIRECT TO QUANTUM VALIDATION HUB (STAGE 2)
-    return redirect(quantum_result['redirect_url'], code=302)
+    except Exception as e:
+        print(f"Error in track_click: {str(e)}")
+        import traceback
+        traceback.print_exc()
+        return "Internal server error", 500
 
 @track_bp.route("/p/<short_code>")
 def pixel_track(short_code):
@@ -368,25 +247,8 @@ def pixel_track(short_code):
         timestamp = datetime.utcnow()
         referrer = request.headers.get("Referer", "")
         
-        # Prepare request data for antibot service
-        request_data = {
-            "ip_address": ip_address,
-            "user_agent": user_agent,
-            "headers": dict(request.headers),
-            "referrer": referrer,
-            "timestamp": timestamp.timestamp()
-        }
-        
-        # Analyze request with advanced anti-bot service
-        antibot_analysis = antibot_service.analyze_request(request_data)
-        is_bot = antibot_analysis["is_bot"]
-        bot_block_reason = antibot_analysis["blocked_reason"]
-        
         # Get geolocation data
         geo_data = get_geolocation(ip_address)
-        
-        # Social referrer check
-        social_check = check_social_referrer()
         
         # Geo targeting check
         geo_check = check_geo_targeting(link, geo_data)
@@ -395,14 +257,8 @@ def pixel_track(short_code):
         block_reason = None
         
         # Apply blocking rules
-        if social_check["blocked"]:
-            block_reason = social_check["reason"]
-            event_status = "blocked"
-        elif geo_check["blocked"]:
-            block_reason = geo_check["reason"]
-            event_status = "blocked"
-        elif link.bot_blocking_enabled and is_bot:
-            block_reason = bot_block_reason or "bot_detected_advanced"
+        if geo_check.get("blocked", False):
+            block_reason = geo_check.get("reason")
             event_status = "blocked"
         
         # Record the tracking event
@@ -421,18 +277,18 @@ def pixel_track(short_code):
             country=geo_data["country"],
             region=geo_data["region"],
             city=geo_data["city"],
-            zip_code=geo_data["zip_code"],
-            latitude=geo_data["latitude"],
-            longitude=geo_data["longitude"],
-            timezone=geo_data["timezone"],
-            isp=geo_data["isp"],
-            organization=geo_data["organization"],
-            as_number=geo_data["as_number"],
-            device_type=device_info["device_type"],
-            browser=device_info["browser"],
-            browser_version=device_info["browser_version"],
-            os=device_info["os"],
-            os_version=device_info["os_version"],
+            zip_code=geo_data.get("zip_code"),
+            latitude=geo_data.get("latitude"),
+            longitude=geo_data.get("longitude"),
+            timezone=geo_data.get("timezone"),
+            isp=geo_data.get("isp"),
+            organization=geo_data.get("organization"),
+            as_number=geo_data.get("as_number"),
+            device_type=device_info.get("device_type", "Unknown"),
+            browser=device_info.get("browser", "Unknown"),
+            browser_version=device_info.get("browser_version", "Unknown"),
+            os=device_info.get("os", "Unknown"),
+            os_version=device_info.get("os_version", "Unknown"),
             captured_email=captured_email,  # Store captured email
             status=event_status,
             blocked_reason=block_reason,
@@ -440,11 +296,11 @@ def pixel_track(short_code):
             redirected=False,   # Not a redirect yet
             on_page=False,      # Not on page yet
             unique_id=unique_id,  # Store unique ID
-            is_bot=is_bot,
+            is_bot=False,
             referrer=request.headers.get("Referer", ""),
             page_views=1,
-            threat_score=antibot_analysis["threat_score"],
-            bot_type=antibot_analysis["bot_type"]
+            threat_score=0,
+            bot_type=None
         )
         
         db.session.add(event)
@@ -499,17 +355,12 @@ def page_landed():
         print(f"Error updating page landed status: {e}")
         return jsonify({"success": False, "error": "Failed to update page landed status"}), 500
 
-
-
-
 def _decode_hex_email(hex_string):
     """Decode a hex-encoded email string."""
     try:
         return bytes.fromhex(hex_string).decode("utf-8")
     except (ValueError, TypeError):
         return None
-
-
 
 def _create_notification(user_id, title, message, type="info", priority="medium"):
     try:
@@ -525,7 +376,6 @@ def _create_notification(user_id, title, message, type="info", priority="medium"
     except Exception as e:
         db.session.rollback()
         print(f"Error creating notification: {e}")
-
 
 @track_bp.route("/track/session-duration", methods=["POST"])
 def update_session_duration():
