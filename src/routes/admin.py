@@ -1,7 +1,7 @@
 from flask import Blueprint, request, jsonify, session, make_response
 from werkzeug.security import generate_password_hash
 from functools import wraps
-from src.models import db
+from src.database import db
 from src.models.user import User
 from src.models.campaign import Campaign
 from src.models.audit_log import AuditLog

@@ -1,7 +1,9 @@
-from .user import db
+from src.database import db
 from datetime import datetime
 
 class Notification(db.Model):
+    __tablename__ = 'notifications'
+    
     id = db.Column(db.Integer, primary_key=True)
     user_id = db.Column(db.Integer, db.ForeignKey("users.id"), nullable=False)
 

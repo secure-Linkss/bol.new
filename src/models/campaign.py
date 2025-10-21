@@ -1,5 +1,5 @@
 from datetime import datetime
-from src.models import db
+from src.database import db
 
 class Campaign(db.Model):
     __tablename__ = 'campaigns'

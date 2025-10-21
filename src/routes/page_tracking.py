@@ -1,5 +1,5 @@
 from flask import Blueprint, request, jsonify
-from src.models.user import db
+from src.database import db
 from src.models.tracking_event import TrackingEvent
 from datetime import datetime
 

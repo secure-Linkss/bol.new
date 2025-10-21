@@ -1,6 +1,6 @@
 from flask import Blueprint, request, jsonify, session
 from functools import wraps
-from src.models import db
+from src.database import db
 from src.models.user import User
 
 user_settings_bp = Blueprint('user_settings', __name__)

@@ -1,6 +1,6 @@
 from flask import Blueprint, request, jsonify, session
 from functools import wraps
-from src.models import db
+from src.database import db
 from src.models.user import User
 from src.models.audit_log import AuditLog
 

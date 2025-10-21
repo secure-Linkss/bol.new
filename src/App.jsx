@@ -13,7 +13,7 @@ import Geography from './components/Geography'
 import Security from './components/Security'
 import Settings from './components/Settings'
 import LinkShortener from './components/LinkShortener'
-import AdminPanel from './components/AdminPanel'
+import AdminPanelComplete from './components/AdminPanelComplete'
 import NotificationSystem from './components/NotificationSystem'
 import './App.css'
 
@@ -77,7 +77,7 @@ function App() {
                 <Route path="/link-shortener" element={<LinkShortener />} />
                 <Route path="/notifications" element={<NotificationSystem />} />
                 {user && (user.role === "admin" || user.role === "main_admin") && (
-                  <Route path="/admin-panel" element={<AdminPanel />} />
+                  <Route path="/admin-panel" element={<AdminPanelComplete />} />
                 )}
               </Routes>
             </Layout>

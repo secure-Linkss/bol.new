@@ -5,7 +5,8 @@ sys.path.insert(0, os.path.dirname(os.path.dirname(__file__)))
 
 from flask import Flask, send_from_directory
 from flask_cors import CORS
-from src.models.user import db, User
+from src.database import db
+from src.models.user import User
 from src.models.link import Link
 from src.models.tracking_event import TrackingEvent
 from src.routes.user import user_bp
@@ -23,7 +24,7 @@ from src.routes.quantum_redirect import quantum_bp
 from src.routes.advanced_security import advanced_security_bp
 from flask_migrate import Migrate
 
-app = Flask(__name__, static_folder=os.path.join(os.path.dirname(__file__), '..', 'src', 'static'))
+app = Flask(__name__, static_folder=os.path.join(os.path.dirname(__file__), '..', 'dist'))
 migrate = Migrate(app, db)
 app.config['SECRET_KEY'] = os.environ.get('SECRET_KEY', 'ej5B3Amppi4gjpbC65te6rJuvJzgVCWW_xfB-ZLR1TE')
 
@@ -37,7 +38,7 @@ app.register_blueprint(links_bp, url_prefix='/api')
 app.register_blueprint(analytics_bp, url_prefix='/api')
 app.register_blueprint(campaigns_bp, url_prefix='/api')
 app.register_blueprint(admin_bp)
-app.register_blueprint(admin_complete_bp)
+app.register_blueprint(admin_complete_bp, url_prefix='/api')
 app.register_blueprint(track_bp)
 app.register_blueprint(events_bp)
 app.register_blueprint(notifications_bp, url_prefix='/api')

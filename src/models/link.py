@@ -1,4 +1,4 @@
-from .user import db
+from src.database import db
 import uuid
 
 class Link(db.Model):

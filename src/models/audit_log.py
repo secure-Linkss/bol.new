@@ -1,4 +1,4 @@
-from src.models import db
+from src.database import db
 from datetime import datetime
 
 class AuditLog(db.Model):

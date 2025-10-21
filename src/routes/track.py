@@ -1,7 +1,7 @@
 from flask import Blueprint, request, redirect, jsonify, make_response, render_template_string
 from src.models.link import Link
 from src.models.tracking_event import TrackingEvent
-from src.models.user import db
+from src.database import db
 from src.models.notification import Notification
 from src.utils.user_agent_parser import parse_user_agent, generate_unique_id
 from src.services.antibot import antibot_service
