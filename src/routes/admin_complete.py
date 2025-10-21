@@ -98,7 +98,7 @@ def get_dashboard_stats(current_user):
         
         # Click statistics (sum from all links)
         from sqlalchemy import func
-        total_clicks = db.session.query(func.sum(Link.clicks)).scalar() or 0
+        total_clicks = db.session.query(func.sum(Link.total_clicks)).scalar() or 0
         
         # Recent activity
         recent_users = User.query.order_by(User.created_at.desc()).limit(5).all()
@@ -160,7 +160,7 @@ def get_admin_dashboard_stats(current_user):
         
         # Click statistics
         from sqlalchemy import func
-        total_clicks = db.session.query(func.sum(Link.clicks)).scalar() or 0
+        total_clicks = db.session.query(func.sum(Link.total_clicks)).scalar() or 0
         
         # Domain statistics
         total_domains = Domain.query.count()

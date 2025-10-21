@@ -1,5 +1,6 @@
 import { useState, useEffect, useRef } from 'react'
 import InteractiveMap from './InteractiveMap'
+import { enrichGeoData } from '../utils/geocoding'
 
 const Geography = () => {
   const [timeRange, setTimeRange] = useState('7d')
@@ -56,10 +57,13 @@ const Geography = () => {
           topCity = citiesData.length > 0 ? citiesData[0] : null
         }
         
-        setGeoData({
+        // Enrich data with coordinates
+        const enrichedData = enrichGeoData({
           countries: countriesData,
           cities: cities
         })
+        
+        setGeoData(enrichedData)
         
         setStats({
           totalCountries,

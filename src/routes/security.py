@@ -106,7 +106,36 @@ def get_security_data():
         print(f"Error fetching security data: {e}")
         return jsonify({"error": "Failed to fetch security data"}), 500
 
-@security_bp.route("/api/security/settings", methods=["PUT"])
+@security_bp.route("/security/settings", methods=["GET"])
+@require_auth
+def get_security_settings():
+    """Get security settings"""
+    try:
+        settings_obj = SecuritySettings.query.filter_by(user_id=g.user.id).first()
+        if settings_obj:
+            settings = {
+                "botProtection": settings_obj.bot_protection,
+                "ipBlocking": settings_obj.ip_blocking,
+                "rateLimiting": settings_obj.rate_limiting,
+                "geoBlocking": settings_obj.geo_blocking,
+                "vpnDetection": settings_obj.vpn_detection,
+                "suspiciousActivityDetection": settings_obj.suspicious_activity_detection
+            }
+        else:
+            settings = {
+                "botProtection": True,
+                "ipBlocking": True,
+                "rateLimiting": True,
+                "geoBlocking": False,
+                "vpnDetection": True,
+                "suspiciousActivityDetection": True
+            }
+        return jsonify(settings)
+    except Exception as e:
+        print(f"Error fetching security settings: {e}")
+        return jsonify({"error": "Failed to fetch security settings"}), 500
+
+@security_bp.route("/security/settings", methods=["PUT"])
 @require_auth
 def update_security_settings():
     """Update security settings"""
@@ -135,7 +164,24 @@ def update_security_settings():
         print(f"Error updating security settings: {e}")
         return jsonify({"error": "Failed to update settings"}), 500
 
-@security_bp.route("/api/security/blocked-ips", methods=["POST"])
+@security_bp.route("/security/blocked-ips", methods=["GET"])
+@require_auth
+def get_blocked_ips():
+    """Get all blocked IPs"""
+    try:
+        blocked_ips = BlockedIP.query.filter_by(user_id=g.user.id).order_by(BlockedIP.blocked_at.desc()).all()
+        blocked_ips_data = [{
+            "ip": ip.ip_address,
+            "reason": ip.reason,
+            "blockedAt": ip.blocked_at.isoformat(),
+            "attempts": ip.attempt_count
+        } for ip in blocked_ips]
+        return jsonify(blocked_ips_data)
+    except Exception as e:
+        print(f"Error fetching blocked IPs: {e}")
+        return jsonify({"error": "Failed to fetch blocked IPs"}), 500
+
+@security_bp.route("/security/blocked-ips", methods=["POST"])
 @require_auth
 def add_blocked_ip():
     """Add a new blocked IP address"""
@@ -158,7 +204,7 @@ def add_blocked_ip():
         print(f"Error adding blocked IP: {e}")
         return jsonify({"error": "Failed to add blocked IP"}), 500
 
-@security_bp.route("/api/security/blocked-ips/<ip>", methods=["DELETE"])
+@security_bp.route("/security/blocked-ips/<ip>", methods=["DELETE"])
 @require_auth
 def remove_blocked_ip(ip):
     """Remove a blocked IP address"""
@@ -175,7 +221,24 @@ def remove_blocked_ip(ip):
         print(f"Error removing blocked IP: {e}")
         return jsonify({"error": "Failed to remove blocked IP"}), 500
 
-@security_bp.route("/api/security/blocked-countries", methods=["POST"])
+@security_bp.route("/security/blocked-countries", methods=["GET"])
+@require_auth
+def get_blocked_countries():
+    """Get all blocked countries"""
+    try:
+        blocked_countries = BlockedCountry.query.filter_by(user_id=g.user.id).order_by(BlockedCountry.blocked_at.desc()).all()
+        blocked_countries_data = [{
+            "country": country.country,
+            "code": country.country_code,
+            "reason": country.reason,
+            "blockedAt": country.blocked_at.isoformat()
+        } for country in blocked_countries]
+        return jsonify(blocked_countries_data)
+    except Exception as e:
+        print(f"Error fetching blocked countries: {e}")
+        return jsonify({"error": "Failed to fetch blocked countries"}), 500
+
+@security_bp.route("/security/blocked-countries", methods=["POST"])
 @require_auth
 def add_blocked_country():
     """Add a new blocked country"""
@@ -199,7 +262,7 @@ def add_blocked_country():
         print(f"Error adding blocked country: {e}")
         return jsonify({"error": "Failed to add blocked country"}), 500
 
-@security_bp.route("/api/security/blocked-countries/<country>", methods=["DELETE"])
+@security_bp.route("/security/blocked-countries/<country>", methods=["DELETE"])
 @require_auth
 def remove_blocked_country(country):
     """Remove a blocked country"""
@@ -215,6 +278,37 @@ def remove_blocked_country(country):
         db.session.rollback()
         print(f"Error removing blocked country: {e}")
         return jsonify({"error": "Failed to remove blocked country"}), 500
+
+@security_bp.route("/security/events", methods=["GET"])
+@require_auth
+def get_security_events():
+    """Get security events"""
+    try:
+        events_query = db.session.query(TrackingEvent.id, TrackingEvent.timestamp, TrackingEvent.ip_address, TrackingEvent.user_agent, Link.campaign_name, Link.short_code).join(Link, TrackingEvent.link_id == Link.id).filter(Link.user_id == g.user.id).order_by(TrackingEvent.timestamp.desc()).limit(50)
+        events = events_query.all()
+        events_data = []
+        for event in events:
+            event_type = "normal_access"
+            severity = "low"
+            if "bot" in event.user_agent.lower() or "crawler" in event.user_agent.lower():
+                event_type = "bot_detected"
+                severity = "high"
+            elif "curl" in event.user_agent.lower() or "python" in event.user_agent.lower():
+                event_type = "suspicious_activity"
+                severity = "medium"
+            events_data.append({
+                "id": event.id,
+                "type": event_type,
+                "ip": event.ip_address,
+                "userAgent": event.user_agent,
+                "timestamp": event.timestamp.isoformat(),
+                "action": "allowed",
+                "severity": severity
+            })
+        return jsonify(events_data)
+    except Exception as e:
+        print(f"Error fetching security events: {e}")
+        return jsonify({"error": "Failed to fetch security events"}), 500
 
 @security_bp.route("/api/notifications", methods=["GET"])
 @require_auth

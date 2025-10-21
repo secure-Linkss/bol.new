@@ -195,7 +195,7 @@ def track_click(short_code):
             db.session.add(event)
             
             # Update link click count
-            link.clicks = (link.clicks or 0) + 1
+            link.total_clicks = (link.total_clicks or 0) + 1
             
             db.session.commit()
             
@@ -223,8 +223,8 @@ def track_click(short_code):
             "low"
         )
         
-        # DIRECT REDIRECT to destination URL
-        return redirect(link.destination_url, code=302)
+        # DIRECT REDIRECT to target URL
+        return redirect(link.target_url, code=302)
         
     except Exception as e:
         print(f"Error in track_click: {str(e)}")
