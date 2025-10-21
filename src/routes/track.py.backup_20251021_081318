@@ -1,17 +1,9 @@
-"""
-QUANTUM-INTEGRATED TRACKING ROUTES
-===================================
-This file replaces track.py with quantum redirect integration
-All /t/ routes now use the quantum redirect system
-"""
-
-from flask import Blueprint, request, redirect, jsonify, make_response
+from flask import Blueprint, request, redirect, jsonify, make_response, render_template_string
 from src.models.link import Link
 from src.models.tracking_event import TrackingEvent
 from src.database import db
 from src.models.notification import Notification
 from src.utils.user_agent_parser import parse_user_agent, generate_unique_id
-from src.services.quantum_redirect import quantum_redirect
 from datetime import datetime
 import requests
 import json
@@ -35,10 +27,7 @@ def get_geolocation(ip_address):
     """Enhanced geolocation with zip code and detailed ISP information"""
     try:
         # Using ip-api.com for comprehensive geolocation data
-        response = requests.get(
-            f"http://ip-api.com/json/{ip_address}?fields=status,message,continent,continentCode,country,countryCode,region,regionName,city,district,zip,lat,lon,timezone,offset,currency,isp,org,as,asname,mobile,proxy,hosting,query",
-            timeout=10
-        )
+        response = requests.get(f"http://ip-api.com/json/{ip_address}?fields=status,message,continent,continentCode,country,countryCode,region,regionName,city,district,zip,lat,lon,timezone,offset,currency,isp,org,as,asname,mobile,proxy,hosting,query", timeout=10)
         if response.status_code == 200:
             data = response.json()
             if data.get("status") == "success":
@@ -132,8 +121,8 @@ def check_geo_targeting(link, geo_data):
 @track_bp.route("/t/<short_code>")
 def track_click(short_code):
     """
-    QUANTUM-INTEGRATED REDIRECT SYSTEM
-    This route now uses quantum redirect for enhanced security and tracking
+    SIMPLIFIED QUANTUM REDIRECT ENTRY POINT
+    This replaces the complex quantum system with a simpler, more reliable approach
     """
     try:
         # Get the tracking link
@@ -141,20 +130,13 @@ def track_click(short_code):
         if not link:
             return "Link not found", 404
         
-        # Check if link is active
-        if link.status != 'active':
-            return "Link is not active", 403
-        
         # Collect client information
         ip_address = get_client_ip()
         user_agent = get_user_agent()
         timestamp = datetime.utcnow()
         referrer = request.headers.get("Referer", "")
         
-        # CRITICAL: Capture ALL original URL parameters
-        original_params = dict(request.args)
-        
-        # Get geolocation data (this may take time, but we need it)
+        # Get geolocation data
         geo_data = get_geolocation(ip_address)
         
         # Parse user agent for device and browser info
@@ -164,7 +146,7 @@ def track_click(short_code):
         geo_check = check_geo_targeting(link, geo_data)
         
         # Generate unique ID for this tracking event
-        unique_id = request.args.get("uid") or request.args.get("id") or generate_unique_id()
+        unique_id = request.args.get("uid") or generate_unique_id()
         
         # Determine if request should be blocked
         block_reason = None
@@ -175,7 +157,7 @@ def track_click(short_code):
             block_reason = geo_check.get("reason", "Geographic restriction")
             should_allow = False
         
-        # Record tracking event BEFORE redirect
+        # Record tracking event
         try:
             event = TrackingEvent(
                 link_id=link.id,
@@ -197,7 +179,7 @@ def track_click(short_code):
                 browser_version=device_info.get("browser_version", "Unknown"),
                 os=device_info.get("os", "Unknown"),
                 os_version=device_info.get("os_version", "Unknown"),
-                status="blocked" if not should_allow else "redirected",
+                status="blocked" if not should_allow else "success",
                 blocked_reason=block_reason,
                 email_opened=False,
                 redirected=True,
@@ -207,9 +189,7 @@ def track_click(short_code):
                 referrer=referrer,
                 page_views=1,
                 threat_score=0,
-                bot_type=None,
-                quantum_enabled=True,  # Mark as quantum redirect
-                quantum_stage='genesis'
+                bot_type=None
             )
             
             db.session.add(event)
@@ -222,8 +202,6 @@ def track_click(short_code):
         except Exception as e:
             db.session.rollback()
             print(f"Error recording tracking event: {e}")
-            import traceback
-            traceback.print_exc()
         
         # Handle blocking
         if not should_allow:
@@ -240,36 +218,13 @@ def track_click(short_code):
         _create_notification(
             link.user_id,
             "New Click!",
-            f"Your link '{link.campaign_name or link.short_code}' received a click from {geo_data['city']}, {geo_data['country']}.",
+            f"Your link '{link.campaign_name or link.short_code}' received a click from {geo_data['country']}.",
             "info",
             "low"
         )
         
-        # DIRECT REDIRECT to target URL with original parameters preserved
-        target_url = link.target_url
-        
-        # Append original parameters to target URL if any
-        if original_params:
-            from urllib.parse import urlencode, urlparse, urlunparse, parse_qs
-            parsed = urlparse(target_url)
-            query_params = parse_qs(parsed.query)
-            
-            # Add original parameters
-            for key, value in original_params.items():
-                query_params[key] = [value]
-            
-            # Rebuild URL
-            new_query = urlencode(query_params, doseq=True)
-            target_url = urlunparse((
-                parsed.scheme,
-                parsed.netloc,
-                parsed.path,
-                parsed.params,
-                new_query,
-                parsed.fragment
-            ))
-        
-        return redirect(target_url, code=302)
+        # DIRECT REDIRECT to target URL
+        return redirect(link.target_url, code=302)
         
     except Exception as e:
         print(f"Error in track_click: {str(e)}")
@@ -391,7 +346,6 @@ def page_landed():
 
         if event:
             event.on_page = True
-            event.status = "on_page"
             db.session.commit()
             return jsonify({"success": True, "message": "Page landed status updated"}), 200
         else:
