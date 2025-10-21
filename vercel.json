@@ -64,11 +64,5 @@
       "src": "/(.*)",
       "dest": "dist/index.html"
     }
-  ],
-  "env": {
-    "SECRET_KEY": "@secret_key",
-    "DATABASE_URL": "@database_url",
-    "SHORTIO_API_KEY": "@shortio_api_key",
-    "SHORTIO_DOMAIN": "@shortio_domain"
-  }
+  ]
 }
