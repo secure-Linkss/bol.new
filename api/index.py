@@ -43,6 +43,7 @@ from src.routes.shorten import shorten_bp
 from src.routes.notifications import notifications_bp
 from src.routes.quantum_redirect import quantum_bp
 from src.routes.advanced_security import advanced_security_bp
+from src.routes.domains import domains_bp
 
 app = Flask(__name__, static_folder=os.path.join(os.path.dirname(__file__), '..', 'dist'))
 app.config['SECRET_KEY'] = os.environ.get('SECRET_KEY', 'ej5B3Amppi4gjpbC65te6rJuvJzgVCWW_xfB-ZLR1TE')
@@ -118,6 +119,7 @@ app.register_blueprint(shorten_bp, url_prefix='/api')
 app.register_blueprint(notifications_bp)  # Has /api prefix in routes
 app.register_blueprint(quantum_bp)  # No prefix - has /q/, /validate, /route routes
 app.register_blueprint(advanced_security_bp, url_prefix='/api')
+app.register_blueprint(domains_bp)  # Has /api in routes
 app.register_blueprint(track_bp)  # No prefix - has /t/, /p/, /track routes
 app.register_blueprint(events_bp)  # No prefix - has /api/ in blueprint
 

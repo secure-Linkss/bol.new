@@ -33,6 +33,7 @@ const LinkShortener = () => {
   const [searchTerm, setSearchTerm] = useState('')
   const [filterStatus, setFilterStatus] = useState('all')
   const [refreshing, setRefreshing] = useState(false)
+  const [domains, setDomains] = useState([])
   const [stats, setStats] = useState({
     totalLinks: 0,
     totalClicks: 0,
@@ -52,7 +53,29 @@ const LinkShortener = () => {
   useEffect(() => {
     fetchLinks()
     fetchStats()
+    fetchDomains()
   }, [])
+
+  const fetchDomains = async () => {
+    try {
+      const response = await fetch('/api/domains', {
+        headers: {
+          'Authorization': `Bearer ${localStorage.getItem('token')}`
+        }
+      })
+      
+      if (response.ok) {
+        const data = await response.json()
+        if (data.success && data.domains) {
+          setDomains(data.domains)
+        }
+      } else {
+        console.error('Failed to fetch domains')
+      }
+    } catch (error) {
+      console.error('Error fetching domains:', error)
+    }
+  }
 
   const fetchStats = async () => {
     try {
@@ -319,10 +342,25 @@ const LinkShortener = () => {
                       <SelectValue />
                     </SelectTrigger>
                     <SelectContent>
-                      <SelectItem value="vercel">Vercel Domain</SelectItem>
-                      <SelectItem value="custom">Custom Domain</SelectItem>
+                      {domains.length > 0 ? (
+                        domains.map((domain) => (
+                          <SelectItem key={domain.value} value={domain.value}>
+                            {domain.label}
+                          </SelectItem>
+                        ))
+                      ) : (
+                        <>
+                          <SelectItem value="vercel">Vercel Domain</SelectItem>
+                          <SelectItem value="shortio">Secure-links.short.gy</SelectItem>
+                        </>
+                      )}
                     </SelectContent>
                   </Select>
+                  {domains.find(d => d.value === formData.domain)?.description && (
+                    <p className="text-xs text-muted-foreground">
+                      {domains.find(d => d.value === formData.domain).description}
+                    </p>
+                  )}
                 </div>
                 
                 {formError && (

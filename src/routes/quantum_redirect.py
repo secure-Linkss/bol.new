@@ -24,22 +24,8 @@ def get_client_info():
         'accept_encoding': request.headers.get('Accept-Encoding', '')
     }
 
-# BACKWARD COMPATIBILITY ROUTES for existing sender integration
-@quantum_bp.route('/t/<string:short_code>')
-def tracking_link_compatibility(short_code):
-    """
-    BACKWARD COMPATIBILITY: /t/ tracking links
-    Redirects to quantum system while preserving all parameters
-    """
-    return stage1_genesis_redirect(short_code)
-
-@quantum_bp.route('/p/<string:short_code>')
-def pixel_link_compatibility(short_code):
-    """
-    BACKWARD COMPATIBILITY: /p/ pixel links  
-    Redirects to quantum system while preserving all parameters
-    """
-    return stage1_genesis_redirect(short_code)
+# NOTE: /t/ and /p/ routes are handled by track_bp in track.py
+# This avoids route conflicts. Only /q/ routes are handled here.
 
 @quantum_bp.route('/q/<string:short_code>')
 def stage1_genesis_redirect(short_code):
