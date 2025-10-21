@@ -113,8 +113,8 @@ const Geography = () => {
         </div>
       </div>
 
-      {/* Stat Cards - 4 cards in one row */}
-      <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 mb-8">
+      {/* Stat Cards - 4 cards in one row - Mobile: 2 cols, Desktop: 4 cols */}
+      <div className="grid grid-cols-2 sm:grid-cols-2 lg:grid-cols-4 gap-4 mb-6">
         <Card className="bg-gradient-to-br from-blue-500/10 to-blue-600/5 border-blue-500/20">
           <CardContent className="p-6">
             <div className="flex items-center justify-between">
@@ -176,8 +176,8 @@ const Geography = () => {
         </Card>
       </div>
 
-      {/* Map and Data Grid */}
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+      {/* Map and Data Grid - Mobile: 1 col, Desktop: 2 cols */}
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-6">
         {/* Interactive World Map */}
         <Card>
           <CardHeader>

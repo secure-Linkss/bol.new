@@ -14,6 +14,9 @@ class User(db.Model):
     email = db.Column(db.String(120), unique=True, nullable=False)
     password_hash = db.Column(db.String(255), nullable=False)
     settings = db.Column(db.Text, nullable=True)  # JSON string for user settings
+    notification_settings = db.Column(db.Text, nullable=True)  # JSON string for notification preferences
+    preferences = db.Column(db.Text, nullable=True)  # JSON string for app preferences (timezone, language, theme)
+    metadata = db.Column(db.Text, nullable=True)  # JSON string for additional metadata
     created_at = db.Column(db.DateTime, default=datetime.utcnow)
     updated_at = db.Column(db.DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)
 
@@ -42,6 +45,16 @@ class User(db.Model):
 
     def __repr__(self):
         return f'<User {self.username}>'
+
+    @property
+    def password(self):
+        """Property for compatibility with user_settings routes"""
+        return self.password_hash
+    
+    @password.setter
+    def password(self, password):
+        """Set password hash when password is set"""
+        self.password_hash = generate_password_hash(password)
 
     def set_password(self, password):
         self.password_hash = generate_password_hash(password)

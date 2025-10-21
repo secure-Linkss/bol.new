@@ -157,7 +157,7 @@ const Campaign = () => {
   return (
     <div className="space-y-6">
       {/* Header */}
-      <div className="flex justify-between items-center mb-8">
+      <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center mb-8 gap-4">
         <div>
           <h1 className="text-3xl font-bold text-white mb-2">Campaign Management</h1>
           <p className="text-slate-400">Create and manage your marketing campaigns</p>
@@ -234,8 +234,8 @@ const Campaign = () => {
         </Button>
       </div>
 
-      {/* Campaign Summary Cards */}
-      <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 mb-8">
+      {/* Campaign Summary Cards - Mobile: 2 cols, Desktop: 4 cols */}
+      <div className="grid grid-cols-2 sm:grid-cols-2 lg:grid-cols-4 gap-4 mb-6">
         <Card className="bg-gradient-to-br from-blue-500/10 to-blue-600/5 border-blue-500/20">
           <CardContent className="p-6">
             <div className="flex items-center justify-between">
@@ -309,6 +309,8 @@ const Campaign = () => {
         </CardHeader>
         <CardContent>
           <div className="space-y-4">
+            {/* Mobile responsive layout wrapper */}
+            <div className="grid grid-cols-1 gap-4">
             {campaigns.length > 0 ? (
               campaigns.map((campaign) => (
                 <div
@@ -356,8 +358,8 @@ const Campaign = () => {
                     </div>
                   </div>
 
-                  {/* Campaign Stats */}
-                  <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mt-4">
+                  {/* Campaign Stats - Mobile: 2 cols, Tablet: 4 cols */}
+                  <div className="grid grid-cols-2 sm:grid-cols-4 gap-4 mt-4">
                     <div className="p-3 bg-slate-700/50 rounded">
                       <p className="text-xs text-slate-400 mb-1">Clicks</p>
                       <p className="text-xl font-bold text-white">{campaign.clicks || 0}</p>
@@ -397,6 +399,7 @@ const Campaign = () => {
                 </Button>
               </div>
             )}
+            </div>
           </div>
         </CardContent>
       </Card>

@@ -191,7 +191,7 @@ const Settings = () => {
       )}
 
       <Tabs defaultValue="profile" className="w-full">
-        <TabsList className="grid w-full grid-cols-4 bg-slate-800 mb-8">
+        <TabsList className="grid w-full grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 bg-slate-800 mb-8 gap-1 sm:gap-0">
           <TabsTrigger value="profile">
             <User className="h-4 w-4 mr-2" />
             Profile
@@ -211,7 +211,7 @@ const Settings = () => {
         </TabsList>
 
         {/* Profile Tab */}
-        <TabsContent value="profile">
+        <TabsContent value="profile" className="grid grid-cols-1">
           <Card>
             <CardHeader>
               <CardTitle>Profile Information</CardTitle>

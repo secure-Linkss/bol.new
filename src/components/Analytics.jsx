@@ -171,8 +171,8 @@ const Analytics = () => {
         </div>
       </div>
 
-      {/* Analytics Metric Cards - 3-Grid Layout */}
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
+      {/* Analytics Metric Cards - 3-Grid Layout - Mobile Responsive */}
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 mb-6">
         <Card className="bg-gradient-to-br from-blue-500/10 to-blue-600/5 border-blue-500/20 hover:shadow-lg transition-all">
           <CardContent className="p-6">
             <div className="flex items-center justify-between">
@@ -219,8 +219,8 @@ const Analytics = () => {
         </Card>
         </div>
 
-      {/* Compact Metric Cards - 7 cards in one row */}
-      <div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-7 gap-3">
+      {/* Compact Metric Cards - 7 cards in one row - Mobile: 2 cols, Tablet: 4 cols, Desktop: 7 cols */}
+      <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-7 gap-3 mb-6">
         <Card className="hover:shadow-sm transition-shadow cursor-pointer border-l-4 border-l-blue-500">
           <CardContent className="p-3">
             <div className="flex items-center justify-between">
@@ -306,8 +306,8 @@ const Analytics = () => {
         </Card>
       </div>
 
-      {/* Charts Grid - Side by Side (2 columns) */}
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
+      {/* Charts Grid - Side by Side (2 columns) - Mobile: 1 col, Desktop: 2 cols */}
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 mb-6">
         {/* Performance Over Time Chart */}
         <Card className="hover:shadow-sm transition-shadow">
           <CardHeader className="pb-2">
@@ -504,7 +504,7 @@ const Analytics = () => {
         </Card>
       </div>
 
-      {/* Detailed Tables */}
+      {/* Detailed Tables - Mobile: 1 col, Desktop: 2 cols */}
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
         {/* Top Countries Table */}
         <Card>

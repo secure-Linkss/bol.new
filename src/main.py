@@ -14,12 +14,13 @@ from src.routes.auth import auth_bp
 from src.routes.links import links_bp
 from src.routes.track import track_bp
 from src.routes.events import events_bp
-from src.routes.analytics import analytics_bp
+from src.routes.analytics_complete import analytics_bp
 from src.routes.campaigns import campaigns_bp
 from src.routes.notifications import notifications_bp
 from src.routes.admin import admin_bp
 from src.routes.admin_complete import admin_complete_bp
-from src.routes.security import security_bp
+from src.routes.security_complete import security_bp
+from src.routes.user_settings_complete import user_settings_bp
 from src.routes.quantum_redirect import quantum_bp
 from src.routes.advanced_security import advanced_security_bp
 from flask_migrate import Migrate
@@ -43,6 +44,7 @@ app.register_blueprint(track_bp)
 app.register_blueprint(events_bp)
 app.register_blueprint(notifications_bp, url_prefix='/api')
 app.register_blueprint(security_bp)
+app.register_blueprint(user_settings_bp)
 app.register_blueprint(quantum_bp)
 app.register_blueprint(advanced_security_bp)
 
