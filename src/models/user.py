@@ -42,9 +42,6 @@ class User(db.Model):
     telegram_bot_token = db.Column(db.String(255), nullable=True)
     telegram_chat_id = db.Column(db.String(100), nullable=True)
     telegram_enabled = db.Column(db.Boolean, default=False)
-    
-    # Profile fields
-    avatar_url = db.Column(db.String(500), nullable=True)
 
     def __repr__(self):
         return f'<User {self.username}>'
@@ -116,13 +113,10 @@ class User(db.Model):
             'is_active': self.is_active,
             'is_verified': self.is_verified,
             'plan_type': self.plan_type,
-            'subscription_plan': self.plan_type,  # Alias for frontend compatibility
-            'subscription_expires': self.subscription_expiry.isoformat() if self.subscription_expiry else None,
             'subscription_expiry': self.subscription_expiry.isoformat() if self.subscription_expiry else None,
             'daily_link_limit': self.daily_link_limit,
             'links_used_today': self.links_used_today,
-            'last_reset_date': self.last_reset_date.isoformat() if self.last_reset_date else None,
-            'avatar_url': self.avatar_url
+            'last_reset_date': self.last_reset_date.isoformat() if self.last_reset_date else None
         }
         if include_sensitive:
             data.update({

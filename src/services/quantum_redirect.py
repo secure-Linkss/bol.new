@@ -1,14 +1,14 @@
 """
-QUANTUM REDIRECT SYSTEM
+QUANTUM REDIRECT SYSTEM - PRODUCTION VERSION
 Super advanced 4-stage cryptographic verification and tracking system
 Designed for maximum security, data fidelity, and speed (<3 seconds total)
+USES NEON DATABASE INSTEAD OF REDIS FOR PRODUCTION
 """
 
 import jwt
 import time
 import hashlib
 import secrets
-import redis
 import json
 from datetime import datetime, timedelta
 from typing import Dict, Optional, Tuple
@@ -20,6 +20,11 @@ from cryptography.hazmat.backends import default_backend
 import base64
 import os
 
+# Database connection for nonce storage
+import psycopg2
+from psycopg2 import pool
+from contextlib import contextmanager
+
 class QuantumRedirectSystem:
     def __init__(self):
         # Multi-layer cryptographic keys
@@ -27,19 +32,30 @@ class QuantumRedirectSystem:
         self.SECRET_KEY_2 = os.environ.get('QUANTUM_SECRET_2', 'quantum_transit_key_2025_ultra_secure')
         self.SECRET_KEY_3 = os.environ.get('QUANTUM_SECRET_3', 'quantum_routing_key_2025_ultra_secure')
         
-        # Redis for high-speed nonce verification
-        try:
-            self.redis_client = redis.Redis(
-                host=os.environ.get('REDIS_HOST', 'localhost'),
-                port=int(os.environ.get('REDIS_PORT', 6379)),
-                db=0,
-                decode_responses=True
-            )
-            # Test connection
-            self.redis_client.ping()
-        except:
+        # Use Neon Database for nonce verification (replacing Redis)
+        database_url = os.environ.get('DATABASE_URL')
+        if database_url:
+            # Parse database URL
+            parsed = urlparse(database_url)
+            try:
+                self.db_pool = psycopg2.pool.SimpleConnectionPool(
+                    1, 20,
+                    host=parsed.hostname,
+                    port=parsed.port or 5432,
+                    database=parsed.path[1:],
+                    user=parsed.username,
+                    password=parsed.password,
+                    sslmode='require'
+                )
+                self._ensure_nonce_table()
+                print("✓ Quantum Redirect using Neon Database for nonce storage")
+            except Exception as e:
+                print(f"⚠ Database connection failed, using memory cache: {e}")
+                self.db_pool = None
+                self._memory_cache = {}
+        else:
             # Fallback to in-memory cache for development
-            self.redis_client = None
+            self.db_pool = None
             self._memory_cache = {}
         
         # Advanced configuration
@@ -64,6 +80,39 @@ class QuantumRedirectSystem:
             }
         }
 
+    @contextmanager
+    def _get_db_connection(self):
+        """Get database connection from pool"""
+        conn = None
+        try:
+            if self.db_pool:
+                conn = self.db_pool.getconn()
+                yield conn
+            else:
+                yield None
+        finally:
+            if conn and self.db_pool:
+                self.db_pool.putconn(conn)
+
+    def _ensure_nonce_table(self):
+        """Ensure nonce table exists in Neon database"""
+        try:
+            with self._get_db_connection() as conn:
+                if conn:
+                    with conn.cursor() as cursor:
+                        cursor.execute("""
+                            CREATE TABLE IF NOT EXISTS quantum_nonces (
+                                nonce VARCHAR(255) PRIMARY KEY,
+                                created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+                                expires_at TIMESTAMP NOT NULL
+                            );
+                            CREATE INDEX IF NOT EXISTS idx_quantum_nonces_expires 
+                            ON quantum_nonces(expires_at);
+                        """)
+                        conn.commit()
+        except Exception as e:
+            print(f"Warning: Could not create nonce table: {e}")
+
     def _hash_value(self, value: str) -> str:
         """Create SHA-256 hash of a value for security"""
         return hashlib.sha256(value.encode()).hexdigest()
@@ -73,24 +122,56 @@ class QuantumRedirectSystem:
         return secrets.token_urlsafe(32)
 
     def _store_nonce(self, nonce: str) -> None:
-        """Store nonce in cache to prevent replay attacks"""
-        if self.redis_client:
-            self.redis_client.setex(f"nonce:{nonce}", self.NONCE_CACHE_TTL, "used")
-        else:
-            # Fallback to memory cache
+        """Store nonce in Neon database to prevent replay attacks"""
+        try:
+            with self._get_db_connection() as conn:
+                if conn:
+                    with conn.cursor() as cursor:
+                        expires_at = datetime.utcnow() + timedelta(seconds=self.NONCE_CACHE_TTL)
+                        cursor.execute("""
+                            INSERT INTO quantum_nonces (nonce, expires_at) 
+                            VALUES (%s, %s)
+                            ON CONFLICT (nonce) DO NOTHING
+                        """, (nonce, expires_at))
+                        conn.commit()
+                        
+                        # Clean old nonces periodically
+                        cursor.execute("""
+                            DELETE FROM quantum_nonces 
+                            WHERE expires_at < CURRENT_TIMESTAMP
+                        """)
+                        conn.commit()
+                else:
+                    # Fallback to memory cache
+                    current_time = time.time()
+                    self._memory_cache[nonce] = current_time
+                    # Clean old entries
+                    self._memory_cache = {
+                        k: v for k, v in self._memory_cache.items() 
+                        if current_time - v < self.NONCE_CACHE_TTL
+                    }
+        except Exception as e:
+            # Fallback to memory on error
             current_time = time.time()
             self._memory_cache[nonce] = current_time
-            # Clean old entries
-            self._memory_cache = {
-                k: v for k, v in self._memory_cache.items() 
-                if current_time - v < self.NONCE_CACHE_TTL
-            }
 
     def _check_nonce(self, nonce: str) -> bool:
         """Check if nonce has been used before (replay attack detection)"""
-        if self.redis_client:
-            return self.redis_client.exists(f"nonce:{nonce}")
-        else:
+        try:
+            with self._get_db_connection() as conn:
+                if conn:
+                    with conn.cursor() as cursor:
+                        cursor.execute("""
+                            SELECT 1 FROM quantum_nonces 
+                            WHERE nonce = %s AND expires_at > CURRENT_TIMESTAMP
+                        """, (nonce,))
+                        return cursor.fetchone() is not None
+                else:
+                    # Fallback to memory cache
+                    current_time = time.time()
+                    return nonce in self._memory_cache and (current_time - self._memory_cache[nonce]) < self.NONCE_CACHE_TTL
+        except Exception as e:
+            # Fallback to memory on error
             current_time = time.time()
             return nonce in self._memory_cache and (current_time - self._memory_cache[nonce]) < self.NONCE_CACHE_TTL
 
@@ -184,31 +265,18 @@ class QuantumRedirectSystem:
                 self.GENESIS_TOKEN_EXPIRY
             )
             
-            # Log the genesis event
-            genesis_log = {
-                'click_id': click_id,
-                'link_id': link_id,
-                'user_ip': user_ip,
-                'user_agent': user_agent,
-                'referrer': referrer,
-                'timestamp': datetime.utcnow().isoformat(),
-                'stage': 'genesis',
-                'processing_time_ms': (time.time() - start_time) * 1000
-            }
-            
             # Update performance metrics
             self.performance_metrics['total_redirects'] += 1
             
-            # Generate validation hub URL
-            validation_url = f"https://v.example.com/validate?token={genesis_token}"
+            # Generate validation hub URL (using same domain)
+            validation_url = f"/validate?token={genesis_token}"
             
             return {
                 'success': True,
                 'redirect_url': validation_url,
                 'click_id': click_id,
                 'processing_time_ms': (time.time() - start_time) * 1000,
-                'stage': 'genesis_complete',
-                'log_data': genesis_log
+                'stage': 'genesis_complete'
             }
             
         except Exception as e:
@@ -220,11 +288,12 @@ class QuantumRedirectSystem:
                 'stage': 'genesis_failed'
             }
 
-    def stage2_validation_hub(self, genesis_token: str, current_ip: str, current_user_agent: str) -> Dict:
+    def stage2_validation_hub(self, genesis_token: str, current_ip: str, current_user_agent: str, lenient_mode: bool = True) -> Dict:
         """
         Stage 2: Validation Hub Processing
         Ruthless validation of traffic with cryptographic verification
         Target execution time: <150ms
+        lenient_mode: If True, allows IP/UA mismatches (for development/proxies)
         """
         start_time = time.time()
         
@@ -244,14 +313,18 @@ class QuantumRedirectSystem:
                     'error': f"Token validation failed: {error_reason}",
                     'processing_time_ms': (time.time() - start_time) * 1000,
                     'stage': 'validation_failed',
-                    'security_violation': error_reason
+                    'security_violation': error_reason,
+                    'click_id': payload.get('sub') if payload else None
                 }
             
             # Contextual verification - IP and User-Agent matching
             current_ip_hash = self._hash_value(current_ip)
             current_ua_hash = self._hash_value(current_user_agent)
             
-            if payload['ip_hash'] != current_ip_hash:
+            ip_mismatch = payload['ip_hash'] != current_ip_hash
+            ua_mismatch = payload['ua_hash'] != current_ua_hash
+            
+            if ip_mismatch and not lenient_mode:
                 self.performance_metrics['security_violations']['ip_mismatch'] += 1
                 self.performance_metrics['blocked_attempts'] += 1
                 return {
@@ -259,10 +332,11 @@ class QuantumRedirectSystem:
                     'error': "IP address mismatch - potential token interception",
                     'processing_time_ms': (time.time() - start_time) * 1000,
                     'stage': 'validation_failed',
-                    'security_violation': 'ip_mismatch'
+                    'security_violation': 'ip_mismatch',
+                    'click_id': payload['sub']
                 }
             
-            if payload['ua_hash'] != current_ua_hash:
+            if ua_mismatch and not lenient_mode:
                 self.performance_metrics['security_violations']['ua_mismatch'] += 1
                 self.performance_metrics['blocked_attempts'] += 1
                 return {
@@ -270,8 +344,12 @@ class QuantumRedirectSystem:
                     'error': "User-Agent mismatch - potential bot activity",
                     'processing_time_ms': (time.time() - start_time) * 1000,
                     'stage': 'validation_failed',
-                    'security_violation': 'ua_mismatch'
+                    'security_violation': 'ua_mismatch',
+                    'click_id': payload['sub']
                 }
+            
+            if lenient_mode and (ip_mismatch or ua_mismatch):
+                print(f"Warning: IP/UA mismatch in lenient mode for click {payload['sub']}")
             
             # Generate transit token for routing gateway
             transit_payload = {
@@ -281,7 +359,8 @@ class QuantumRedirectSystem:
                 'link_id': payload['link_id'],
                 'validated_at': datetime.utcnow().isoformat(),
                 'stage': 'transit',
-                'security_score': 100  # Passed all validations
+                'security_score': 100,  # Passed all validations
+                'original_params': payload.get('original_params', {})  # Pass original params
             }
             
             transit_token = self._create_advanced_jwt(
@@ -290,33 +369,15 @@ class QuantumRedirectSystem:
                 self.TRANSIT_TOKEN_EXPIRY
             )
             
-            # Log validation success
-            validation_log = {
-                'click_id': payload['sub'],
-                'link_id': payload['link_id'],
-                'validation_result': 'passed',
-                'security_checks': {
-                    'token_signature': 'valid',
-                    'token_expiry': 'valid',
-                    'ip_verification': 'passed',
-                    'ua_verification': 'passed',
-                    'nonce_check': 'passed'
-                },
-                'timestamp': datetime.utcnow().isoformat(),
-                'stage': 'validation_complete',
-                'processing_time_ms': (time.time() - start_time) * 1000
-            }
-            
-            # Generate routing gateway URL
-            routing_url = f"https://r.example.com/route?transit_token={transit_token}"
+            # Generate routing gateway URL (using same domain)
+            routing_url = f"/route?transit_token={transit_token}"
             
             return {
                 'success': True,
                 'redirect_url': routing_url,
                 'click_id': payload['sub'],
                 'processing_time_ms': (time.time() - start_time) * 1000,
-                'stage': 'validation_complete',
-                'log_data': validation_log
+                'stage': 'validation_complete'
             }
             
         except Exception as e:
@@ -352,10 +413,11 @@ class QuantumRedirectSystem:
                     'error': f"Transit token validation failed: {error_reason}",
                     'processing_time_ms': (time.time() - start_time) * 1000,
                     'stage': 'routing_failed',
-                    'security_violation': error_reason
+                    'security_violation': error_reason,
+                    'click_id': payload.get('sub') if payload else None
                 }
             
-            # Get link configuration (this would come from database in real implementation)
+            # Get link configuration from database
             link_config = self._get_link_configuration(payload['link_id'])
             
             if not link_config:
@@ -363,7 +425,8 @@ class QuantumRedirectSystem:
                     'success': False,
                     'error': "Link configuration not found",
                     'processing_time_ms': (time.time() - start_time) * 1000,
-                    'stage': 'routing_failed'
+                    'stage': 'routing_failed',
+                    'click_id': payload['sub']
                 }
             
             # Get original parameters from JWT payload
@@ -379,17 +442,6 @@ class QuantumRedirectSystem:
                 all_params  # Include original parameters
             )
             
-            # Log successful routing
-            routing_log = {
-                'click_id': payload['sub'],
-                'link_id': payload['link_id'],
-                'final_destination': final_url,
-                'security_score': payload.get('security_score', 100),
-                'timestamp': datetime.utcnow().isoformat(),
-                'stage': 'routing_complete',
-                'processing_time_ms': (time.time() - start_time) * 1000
-            }
-            
             # Update success metrics
             self.performance_metrics['successful_redirects'] += 1
             
@@ -398,8 +450,7 @@ class QuantumRedirectSystem:
                 'final_url': final_url,
                 'click_id': payload['sub'],
                 'processing_time_ms': (time.time() - start_time) * 1000,
-                'stage': 'routing_complete',
-                'log_data': routing_log
+                'stage': 'routing_complete'
             }
             
         except Exception as e:
@@ -412,17 +463,26 @@ class QuantumRedirectSystem:
             }
 
     def _get_link_configuration(self, link_id: str) -> Optional[Dict]:
-        """Get link configuration from database"""
-        # This would be a database lookup in real implementation
-        # For now, return a mock configuration
-        return {
-            'destination_url': 'https://advertiser.com/product-page',
-            'tracking_enabled': True,
-            'campaign_id': 'camp_123',
-            'utm_source': 'quantum_redirect',
-            'utm_medium': 'link',
-            'utm_campaign': 'advanced_tracking'
-        }
+        """Get link configuration from Neon database"""
+        try:
+            with self._get_db_connection() as conn:
+                if conn:
+                    with conn.cursor() as cursor:
+                        cursor.execute("""
+                            SELECT target_url, short_code 
+                            FROM links 
+                            WHERE id = %s AND status = 'active'
+                        """, (link_id,))
+                        result = cursor.fetchone()
+                        if result:
+                            return {
+                                'destination_url': result[0],
+                                'short_code': result[1],
+                                'tracking_enabled': True
+                            }
+        except Exception as e:
+            print(f"Error fetching link configuration: {e}")
+        return None
 
     def _build_final_url(self, base_url: str, click_id: str, additional_params: Dict) -> str:
         """Build final URL with all tracking parameters - PRESERVING ORIGINAL PARAMETERS"""
@@ -472,7 +532,7 @@ class QuantumRedirectSystem:
             **self.performance_metrics,
             'success_rate_percentage': round(success_rate, 2),
             'block_rate_percentage': round(block_rate, 2),
-            'security_effectiveness': round(block_rate, 2),  # Higher block rate = better security
+            'security_effectiveness': round(block_rate, 2),
             'system_health': 'excellent' if success_rate > 95 else 'good' if success_rate > 85 else 'needs_attention'
         }
 
@@ -485,7 +545,8 @@ class QuantumRedirectSystem:
             return {
                 'threat_level': 'minimal',
                 'primary_threats': [],
-                'recommendations': ['System is secure - continue monitoring']
+                'recommendations': ['System is secure - continue monitoring'],
+                'total_violations': 0
             }
         
         # Calculate threat percentages

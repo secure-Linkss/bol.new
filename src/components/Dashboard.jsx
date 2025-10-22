@@ -10,7 +10,6 @@ const Dashboard = () => {
   const [stats, setStats] = useState({
     totalLinks: 0,
     totalClicks: 0,
-    
     avgClicksPerLink: 0
   });
   const [chartData, setChartData] = useState([]);
@@ -315,8 +314,6 @@ const Dashboard = () => {
             </div>
           </CardContent>
         </Card>
-
-        
 
         <Card className="hover:shadow-md transition-all cursor-pointer border-l-4 border-l-red-500 bg-gradient-to-br from-red-50/50 to-transparent dark:from-red-950/20">
           <CardContent className="p-3">

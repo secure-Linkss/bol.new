@@ -138,7 +138,7 @@ const TrackingLinks = () => {
   const regenerateLink = async (linkId) => {
     if (window.confirm('Are you sure you want to regenerate this tracking link? The old link will no longer work.')) {
       try {
-        const response = await fetch(`/api/links/regenerate/${linkId}`, {
+        const response = await fetch(`/links/regenerate/${linkId}`, {
           method: 'POST',
           headers: {
             'Authorization': `Bearer ${localStorage.getItem('token')}`

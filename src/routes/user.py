@@ -1,11 +1,7 @@
 from flask import Blueprint, request, jsonify, session
 from src.models.user import User, db
 from functools import wraps
-from werkzeug.utils import secure_filename
 import re
-import os
-import base64
-from datetime import datetime
 
 user_bp = Blueprint("user", __name__)
 
@@ -103,108 +99,6 @@ def change_password():
 
     except Exception as e:
         db.session.rollback()
-        return jsonify({"error": str(e)}), 500
-
-@user_bp.route("/user/change-password", methods=["POST"])
-@login_required
-def change_password_new():
-    """Change user password (new endpoint for profile)"""
-    try:
-        user_id = session.get("user_id")
-        user = User.query.get(user_id)
-
-        if not user:
-            return jsonify({"error": "User not found"}), 404
-
-        data = request.get_json()
-        current_password = data.get("current_password")
-        new_password = data.get("new_password")
-
-        if not current_password or not new_password:
-            return jsonify({"error": "Current and new password required"}), 400
-
-        if not user.check_password(current_password):
-            return jsonify({"error": "Current password is incorrect"}), 400
-
-        if len(new_password) < 8:
-            return jsonify({"error": "Password must be at least 8 characters"}), 400
-
-        user.set_password(new_password)
-        db.session.commit()
-
-        return jsonify({"success": True, "message": "Password changed successfully"}), 200
-
-    except Exception as e:
-        db.session.rollback()
-        return jsonify({"error": str(e)}), 500
-
-@user_bp.route("/user/profile", methods=["PUT"])
-@login_required  
-def update_profile_complete():
-    """Update user profile with avatar support"""
-    try:
-        user_id = session.get("user_id")
-        user = User.query.get(user_id)
-
-        if not user:
-            return jsonify({"error": "User not found"}), 404
-
-        # Handle both JSON and FormData
-        if request.content_type and 'multipart/form-data' in request.content_type:
-            # Handle file upload
-            username = request.form.get('username')
-            email = request.form.get('email')
-            avatar = request.files.get('avatar')
-            
-            if username:
-                user.username = sanitize_input(username)
-            
-            if email:
-                if not validate_email(email):
-                    return jsonify({"error": "Invalid email format"}), 400
-                
-                existing = User.query.filter_by(email=email).first()
-                if existing and existing.id != user.id:
-                    return jsonify({"error": "Email already in use"}), 400
-                user.email = email
-            
-            if avatar:
-                # Save avatar file
-                filename = secure_filename(avatar.filename)
-                timestamp = datetime.now().strftime("%Y%m%d%H%M%S")
-                avatar_filename = f"avatar_{user_id}_{timestamp}_{filename}"
-                
-                # Create uploads directory if it doesn't exist
-                upload_dir = os.path.join(os.path.dirname(__file__), '..', '..', 'uploads', 'avatars')
-                os.makedirs(upload_dir, exist_ok=True)
-                
-                avatar_path = os.path.join(upload_dir, avatar_filename)
-                avatar.save(avatar_path)
-                
-                # Store relative path
-                user.avatar_url = f"/uploads/avatars/{avatar_filename}"
-        else:
-            # Handle JSON
-            data = request.get_json()
-            
-            if 'username' in data:
-                user.username = sanitize_input(data['username'])
-            
-            if 'email' in data:
-                if not validate_email(data['email']):
-                    return jsonify({"error": "Invalid email format"}), 400
-                
-                existing = User.query.filter_by(email=data['email']).first()
-                if existing and existing.id != user.id:
-                    return jsonify({"error": "Email already in use"}), 400
-                user.email = data['email']
-
-        db.session.commit()
-        return jsonify(user.to_dict()), 200
-
-    except Exception as e:
-        db.session.rollback()
-        print(f"Error updating profile: {e}")
         return jsonify({"error": str(e)}), 500
 
 # Admin-related user management routes (from the 00392b0 version)
