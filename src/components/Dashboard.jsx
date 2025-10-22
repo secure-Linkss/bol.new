@@ -10,7 +10,6 @@ const Dashboard = () => {
   const [stats, setStats] = useState({
     totalLinks: 0,
     totalClicks: 0,
-    totalUsers: 0,
     avgClicksPerLink: 0
   });
   const [chartData, setChartData] = useState([]);
@@ -312,18 +311,6 @@ const Dashboard = () => {
                 <Globe className="h-4 w-4 text-cyan-500" />
               </div>
               <p className="text-2xl font-bold">{additionalStats.countries}</p>
-            </div>
-          </CardContent>
-        </Card>
-
-        <Card className="hover:shadow-md transition-all cursor-pointer border-l-4 border-l-pink-500 bg-gradient-to-br from-pink-50/50 to-transparent dark:from-pink-950/20">
-          <CardContent className="p-3">
-            <div className="flex flex-col gap-1">
-              <div className="flex items-center justify-between">
-                <p className="text-xs font-medium text-muted-foreground uppercase">Total Users</p>
-                <Users className="h-4 w-4 text-pink-500" />
-              </div>
-              <p className="text-2xl font-bold">{stats.totalUsers || 1}</p>
             </div>
           </CardContent>
         </Card>

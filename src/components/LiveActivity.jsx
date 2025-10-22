@@ -214,63 +214,65 @@ const LiveActivity = () => {
   return (
     <div className="p-6 space-y-6">
       {/* Header */}
-      <div className="flex items-center justify-between">
+      <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-4">
         <div className="flex items-center gap-3">
-          <Activity className="h-8 w-8 text-yellow-400" />
+          <Activity className="h-6 w-6 md:h-8 md:w-8 text-yellow-400" />
           <div>
-            <h1 className="text-2xl font-bold text-foreground">Live Activity</h1>
-            <p className="text-muted-foreground">Real-time tracking events and user interactions</p>
-            <p className="text-muted-foreground text-sm">
+            <h1 className="text-xl md:text-2xl font-bold text-foreground">Live Activity</h1>
+            <p className="text-sm md:text-base text-muted-foreground">Real-time tracking events</p>
+            <p className="text-xs md:text-sm text-muted-foreground">
               Last updated: {lastUpdated.toLocaleTimeString()}
             </p>
           </div>
         </div>
         
-        <div className="flex items-center gap-4">
-          <div className="flex items-center gap-2">
+        <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-3 w-full lg:w-auto">
+          <div className="flex items-center justify-between sm:justify-start gap-2">
             <Switch
               checked={autoRefresh}
               onCheckedChange={setAutoRefresh}
               id="auto-refresh"
             />
-            <Label htmlFor="auto-refresh" className="text-foreground">Auto-refresh</Label>
+            <Label htmlFor="auto-refresh" className="text-foreground text-sm">Auto-refresh</Label>
           </div>
           
-          <Button
-            onClick={fetchEvents}
-            variant="outline"
-            size="sm"
-            className="border-primary text-primary hover:bg-primary hover:text-primary-foreground"
-          >
-            <RefreshCw className="h-4 w-4 mr-1" />
-            Refresh
-          </Button>
-          <Button
-            onClick={exportToCsv}
-            variant="outline"
-            size="sm"
-            className="border-primary text-primary hover:bg-primary hover:text-primary-foreground"
-          >
-            <FileText className="h-4 w-4 mr-1" />
-            Export CSV
-          </Button>
+          <div className="flex gap-2">
+            <Button
+              onClick={fetchEvents}
+              variant="outline"
+              size="sm"
+              className="flex-1 sm:flex-none border-primary text-primary hover:bg-primary hover:text-primary-foreground"
+            >
+              <RefreshCw className="h-4 w-4 mr-1" />
+              <span className="hidden sm:inline">Refresh</span>
+            </Button>
+            <Button
+              onClick={exportToCsv}
+              variant="outline"
+              size="sm"
+              className="flex-1 sm:flex-none border-primary text-primary hover:bg-primary hover:text-primary-foreground"
+            >
+              <FileText className="h-4 w-4 mr-1" />
+              <span className="hidden sm:inline">Export CSV</span>
+            </Button>
+          </div>
         </div>
       </div>
 
       {/* Filters */}
-      <div className="flex items-center gap-4">
-        <div className="relative flex-1 max-w-md">
+      <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-4">
+        <div className="relative flex-1">
           <Search className="absolute left-3 top-3 h-4 w-4 text-muted-foreground" />
           <Input
-            placeholder="Search by unique ID, IP, email, location..."
+            placeholder="Search by ID, IP, email, location..."
             value={searchTerm}
             onChange={(e) => setSearchTerm(e.target.value)}
-            className="pl-10 bg-input border-border text-foreground"
+            className="pl-10 bg-input border-border text-foreground w-full"
           />
         </div>
         
         <Select value={eventFilter} onValueChange={setEventFilter}>
-          <SelectTrigger className="w-48 bg-input border-border text-foreground">
+          <SelectTrigger className="w-full sm:w-48 bg-input border-border text-foreground">
             <SelectValue />
           </SelectTrigger>
           <SelectContent className="bg-popover border-border">

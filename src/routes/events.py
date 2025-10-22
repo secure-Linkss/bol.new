@@ -122,6 +122,26 @@ def get_events():
             if event.captured_email and re.match(r'^[0-9a-fA-F]+$', event.captured_email):
                 decoded_email = decode_hex_email(event.captured_email)
 
+            # Generate comprehensive status based on all stages
+            status_parts = []
+            if event.email_opened:
+                status_parts.append("Open")
+            if event.redirected:
+                status_parts.append("Redirected")
+            if event.on_page:
+                status_parts.append("On Page")
+            
+            # If no specific stages are set, use the status field
+            if not status_parts:
+                if event.is_bot:
+                    display_status = "Bot"
+                elif event.blocked_reason:
+                    display_status = "Blocked"
+                else:
+                    display_status = event.status or "Open"
+            else:
+                display_status = " - ".join(status_parts)
+            
             events_list.append({
                 "id": event.id,
                 "uniqueId": event.unique_id or f"uid_{short_code}_{event.id:03d}",
@@ -136,9 +156,10 @@ def get_events():
                 "browser": browser_info,
                 "os": os_info,
                 "device": event.device_type or "Unknown",
-                "status": event.status or "Open",
+                "status": display_status,
                 "detailedStatus": get_detailed_status(event),
                 "linkShortCode": short_code or f"link_{event.link_id}",
+                "linkId": event.link_id,
                 "campaignId": f"camp_{event.link_id:03d}", # Placeholder, needs actual campaign ID
                 "referrer": event.referrer or "direct",
                 "isp": event.isp or "Unknown",

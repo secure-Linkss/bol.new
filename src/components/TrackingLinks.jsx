@@ -138,7 +138,7 @@ const TrackingLinks = () => {
   const regenerateLink = async (linkId) => {
     if (window.confirm('Are you sure you want to regenerate this tracking link? The old link will no longer work.')) {
       try {
-        const response = await fetch(`/api/links/${linkId}/regenerate`, {
+        const response = await fetch(`/links/regenerate/${linkId}`, {
           method: 'POST',
           headers: {
             'Authorization': `Bearer ${localStorage.getItem('token')}`
@@ -257,9 +257,9 @@ const TrackingLinks = () => {
           <p className="text-slate-400 mt-1 text-sm md:text-base">Create and manage your tracking links</p>
         </div>
         
-        <div className="flex items-center gap-3">
+        <div className="flex flex-col md:flex-row items-stretch md:items-center gap-3 w-full md:w-auto">
           {/* Search */}
-          <div className="relative">
+          <div className="relative w-full md:w-64">
             <svg className="absolute left-3 top-2.5 h-4 w-4 text-slate-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
             </svg>
@@ -268,43 +268,48 @@ const TrackingLinks = () => {
               placeholder="Search links..."
               value={searchTerm}
               onChange={(e) => setSearchTerm(e.target.value)}
-              className="pl-10 pr-4 py-2 text-sm border border-slate-600 rounded-lg bg-slate-800 text-slate-200 placeholder-slate-400 focus:ring-2 focus:ring-blue-500 focus:border-transparent w-64"
+              className="pl-10 pr-4 py-2 text-sm border border-slate-600 rounded-lg bg-slate-800 text-slate-200 placeholder-slate-400 focus:ring-2 focus:ring-blue-500 focus:border-transparent w-full"
             />
           </div>
 
-          {/* Filter Buttons */}
-          {['All', 'Active', 'Paused', 'Expired'].map((filterOption) => (
-            <button
-              key={filterOption}
-              onClick={() => setFilter(filterOption)}
-              className={`px-3 py-2 text-sm font-medium rounded-lg transition-colors ${
-                filter === filterOption 
-                  ? 'bg-blue-600 text-white' 
-                  : 'bg-slate-800 text-slate-300 border border-slate-600 hover:bg-slate-700'
-              }`}
+          {/* Filter Buttons - Horizontal scroll on mobile */}
+          <div className="flex gap-2 overflow-x-auto pb-2 md:pb-0">
+            {['All', 'Active', 'Paused', 'Expired'].map((filterOption) => (
+              <button
+                key={filterOption}
+                onClick={() => setFilter(filterOption)}
+                className={`px-3 py-2 text-sm font-medium rounded-lg transition-colors whitespace-nowrap ${
+                  filter === filterOption 
+                    ? 'bg-blue-600 text-white' 
+                    : 'bg-slate-800 text-slate-300 border border-slate-600 hover:bg-slate-700'
+                }`}
+              >
+                {filterOption}
+              </button>
+            ))}
+          </div>
+
+          {/* Action Buttons */}
+          <div className="flex gap-2">
+            {/* Refresh Button */}
+            <button 
+              onClick={fetchLinks}
+              className="flex-1 md:flex-none px-3 py-2 bg-slate-700 hover:bg-slate-600 text-slate-300 rounded-lg text-sm font-medium transition-colors border border-slate-600"
             >
-              {filterOption}
+              <svg className="w-4 h-4 mr-1 inline" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
+              </svg>
+              <span className="hidden md:inline">Refresh</span>
             </button>
-          ))}
 
-          {/* Refresh Button */}
-          <button 
-            onClick={fetchLinks}
-            className="px-3 py-2 bg-slate-700 hover:bg-slate-600 text-slate-300 rounded-lg text-sm font-medium transition-colors border border-slate-600"
-          >
-            <svg className="w-4 h-4 mr-1 inline" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
-            </svg>
-            Refresh
-          </button>
-
-          {/* Create Button */}
-          <button 
-            onClick={() => setShowCreateModal(true)}
-            className="px-3 py-1.5 bg-green-600 hover:bg-green-700 text-white rounded-md text-xs font-medium transition-colors"
-          >
-            + Create New Link
-          </button>
+            {/* Create Button */}
+            <button 
+              onClick={() => setShowCreateModal(true)}
+              className="flex-1 md:flex-none px-3 py-2 bg-green-600 hover:bg-green-700 text-white rounded-lg text-sm font-medium transition-colors"
+            >
+              + Create Link
+            </button>
+          </div>
         </div>
       </div>
 
