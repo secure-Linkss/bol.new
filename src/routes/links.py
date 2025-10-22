@@ -299,3 +299,85 @@ def toggle_link_status(link_id):
         db.session.rollback()
         return jsonify({"success": False, "error": "Failed to toggle link status"}), 500
 
+
+
+# Enhanced metrics and regeneration endpoints
+
+from flask import jsonify
+from sqlalchemy import func, distinct
+from src.models.tracking_event import TrackingEvent
+from src.models.link import Link
+
+@links_bp.route('/<int:link_id>/metrics')
+def get_link_metrics(link_id):
+    """Get accurate metrics for a specific link"""
+    try:
+        # Get the link
+        link = Link.query.get_or_404(link_id)
+        
+        # Calculate total clicks (all tracking events for this link)
+        total_clicks = TrackingEvent.query.filter_by(link_id=link_id).count()
+        
+        # Calculate unique visitors (distinct IP addresses)
+        unique_visitors = TrackingEvent.query\
+            .filter_by(link_id=link_id)\
+            .with_entities(func.count(distinct(TrackingEvent.ip_address)))\
+            .scalar() or 0
+            
+        # Calculate visitors who reached landing page
+        conversions = TrackingEvent.query\
+            .filter_by(link_id=link_id, landing_page_reached=True)\
+            .count()
+            
+        # Calculate conversion rate
+        conversion_rate = (conversions / unique_visitors * 100) if unique_visitors > 0 else 0
+        
+        # Get recent activity (last 24 hours)
+        from datetime import datetime, timedelta
+        recent_cutoff = datetime.utcnow() - timedelta(hours=24)
+        recent_clicks = TrackingEvent.query\
+            .filter_by(link_id=link_id)\
+            .filter(TrackingEvent.timestamp >= recent_cutoff)\
+            .count()
+            
+        return jsonify({
+            'link_id': link_id,
+            'total_clicks': total_clicks,
+            'unique_visitors': unique_visitors,
+            'conversions': conversions,
+            'conversion_rate': round(conversion_rate, 1),
+            'recent_clicks_24h': recent_clicks,
+            'click_to_visitor_ratio': round((total_clicks / unique_visitors), 2) if unique_visitors > 0 else 0
+        })
+        
+    except Exception as e:
+        return jsonify({'error': str(e)}), 500
+
+@links_bp.route('/<int:link_id>/regenerate', methods=['POST'])
+def regenerate_link(link_id):
+    """Regenerate a tracking link with new short URL"""
+    try:
+        link = Link.query.get_or_404(link_id)
+        
+        # Generate new short URL using the shortening service
+        from src.services.url_shortener import generate_short_url
+        new_short_url = generate_short_url(link.target_url)
+        
+        # Update the link
+        link.short_url = new_short_url
+        link.updated_at = datetime.utcnow()
+        
+        db.session.commit()
+        
+        return jsonify({
+            'success': True,
+            'new_short_url': new_short_url,
+            'message': 'Link regenerated successfully'
+        })
+        
+    except Exception as e:
+        db.session.rollback()
+        return jsonify({
+            'success': False,
+            'error': str(e)
+        }), 500

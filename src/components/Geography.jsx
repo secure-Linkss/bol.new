@@ -13,14 +13,7 @@ import {
   Download,
   Navigation
 } from 'lucide-react'
-import { 
-  ComposableMap, 
-  Geographies, 
-  Geography as GeoComponent, 
-  Marker 
-} from 'react-simple-maps'
-
-const geoUrl = "https://raw.githubusercontent.com/deldersveld/topojson/master/world-countries.json"
+import AtlasMap from './AtlasMap'
 
 const Geography = () => {
   const [timeRange, setTimeRange] = useState('7')
@@ -176,48 +169,13 @@ const Geography = () => {
         </Card>
       </div>
 
+      {/* Atlas Map - Full Width */}
+      <div className="mb-6">
+        <AtlasMap />
+      </div>
+
       {/* Map and Data Grid - Mobile: 1 col, Desktop: 2 cols */}
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-6">
-        {/* Interactive World Map */}
-        <Card>
-          <CardHeader>
-            <CardTitle className="text-base font-semibold">Traffic Heat Map</CardTitle>
-            <CardDescription>Global visitor distribution</CardDescription>
-          </CardHeader>
-          <CardContent>
-            <div className="w-full h-[400px] bg-slate-800/50 rounded-lg flex items-center justify-center">
-              <ComposableMap
-                projection="geoMercator"
-                projectionConfig={{
-                  scale: 100
-                }}
-              >
-                <Geographies geography={geoUrl}>
-                  {({ geographies }) =>
-                    geographies.map((geo) => {
-                      const country = geoData.countries.find(c => c.name === geo.properties.name)
-                      return (
-                        <GeoComponent
-                          key={geo.rsmKey}
-                          geography={geo}
-                          fill={country ? `rgba(59, 130, 246, ${Math.min(country.percentage / 50, 1)})` : "#1e293b"}
-                          stroke="#475569"
-                          strokeWidth={0.5}
-                          style={{
-                            hover: {
-                              fill: "#3b82f6",
-                              outline: "none"
-                            }
-                          }}
-                        />
-                      )
-                    })
-                  }
-                </Geographies>
-              </ComposableMap>
-            </div>
-          </CardContent>
-        </Card>
 
         {/* Top Countries List */}
         <Card>

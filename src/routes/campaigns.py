@@ -445,3 +445,105 @@ def get_performance_predictions():
     except Exception as e:
         print(f"Error getting performance predictions: {e}")
         return jsonify({'error': str(e)}), 500
+
+
+# Enhanced campaign integration
+
+@campaigns_bp.route('/<int:campaign_id>/links')
+def get_campaign_links(campaign_id):
+    """Get all links associated with a campaign"""
+    try:
+        # Get campaign
+        campaign = Campaign.query.get_or_404(campaign_id)
+        
+        # Get all links for this campaign
+        links = Link.query.filter_by(campaign_name=campaign.name).all()
+        
+        # Calculate campaign metrics
+        total_clicks = 0
+        total_visitors = 0
+        
+        for link in links:
+            link_clicks = TrackingEvent.query.filter_by(link_id=link.id).count()
+            link_visitors = TrackingEvent.query\
+                .filter_by(link_id=link.id)\
+                .with_entities(func.count(distinct(TrackingEvent.ip_address)))\
+                .scalar() or 0
+            
+            total_clicks += link_clicks
+            total_visitors += link_visitors
+        
+        # Update campaign metrics
+        campaign.total_clicks = total_clicks
+        campaign.unique_visitors = total_visitors
+        db.session.commit()
+        
+        return jsonify({
+            'campaign_id': campaign_id,
+            'campaign_name': campaign.name,
+            'total_links': len(links),
+            'total_clicks': total_clicks,
+            'unique_visitors': total_visitors,
+            'links': [{
+                'id': link.id,
+                'short_url': link.short_url,
+                'target_url': link.target_url,
+                'created_at': link.created_at.isoformat()
+            } for link in links]
+        })
+        
+    except Exception as e:
+        return jsonify({'error': str(e)}), 500
+
+@links_bp.route('/', methods=['POST'])
+def create_link():
+    """Enhanced link creation with proper campaign integration"""
+    try:
+        data = request.get_json()
+        
+        # Create new link
+        new_link = Link(
+            target_url=data['target_url'],
+            campaign_name=data.get('campaign_name', ''),
+            capture_email=data.get('capture_email', False),
+            capture_password=data.get('capture_password', False),
+            bot_blocking_enabled=data.get('bot_blocking_enabled', True),
+            created_by=current_user.id,
+            created_at=datetime.utcnow()
+        )
+        
+        # Generate short URL
+        from src.services.url_shortener import generate_short_url
+        short_url = generate_short_url(data['target_url'])
+        new_link.short_url = short_url
+        
+        db.session.add(new_link)
+        
+        # If campaign specified, ensure campaign exists or create it
+        if data.get('campaign_name'):
+            campaign = Campaign.query.filter_by(name=data['campaign_name']).first()
+            if not campaign:
+                campaign = Campaign(
+                    name=data['campaign_name'],
+                    created_by=current_user.id,
+                    created_at=datetime.utcnow(),
+                    total_clicks=0,
+                    unique_visitors=0
+                )
+                db.session.add(campaign)
+        
+        db.session.commit()
+        
+        return jsonify({
+            'success': True,
+            'link': {
+                'id': new_link.id,
+                'short_url': new_link.short_url,
+                'target_url': new_link.target_url,
+                'campaign_name': new_link.campaign_name
+            }
+        })
+        
+    except Exception as e:
+        db.session.rollback()
+        return jsonify({'success': False, 'error': str(e)}), 500

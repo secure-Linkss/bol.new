@@ -1,12 +1,13 @@
 import { useState, useEffect } from 'react'
 import { useLocation, useNavigate } from 'react-router-dom'
 import { Button } from '@/components/ui/button'
-import { Avatar, AvatarFallback } from '@/components/ui/avatar'
+import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar'
 import { Badge } from '@/components/ui/badge'
 import {
   DropdownMenu,
   DropdownMenuContent,
   DropdownMenuItem,
+  DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu'
 import {
@@ -23,9 +24,12 @@ import {
   LogOut,
   User,
   Menu,
-  X
+  X,
+  KeyRound,
+  CreditCard
 } from 'lucide-react'
 import Logo from './Logo'
+import UserProfile from './UserProfile'
 
 const Layout = ({ children, user, onLogout }) => {
   const location = useLocation()
@@ -33,6 +37,8 @@ const Layout = ({ children, user, onLogout }) => {
   const [notifications, setNotifications] = useState([])
   const [notificationCount, setNotificationCount] = useState(0)
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false)
+  const [showProfile, setShowProfile] = useState(false)
+  const [currentUser, setCurrentUser] = useState(user)
 
   useEffect(() => {
     fetchNotifications()
@@ -198,14 +204,28 @@ const Layout = ({ children, user, onLogout }) => {
                 <DropdownMenuTrigger asChild>
                   <Button variant="ghost" size="sm" className="text-slate-400 hover:text-white p-2 rounded-md hover:bg-slate-700">
                     <Avatar className="h-7 w-7">
+                      <AvatarImage src={currentUser?.avatar_url} alt={currentUser?.username} />
                       <AvatarFallback className="bg-blue-600 text-white text-xs">
-                        {user.email?.charAt(0).toUpperCase() || 'A'}
+                        {currentUser?.email?.charAt(0).toUpperCase() || 'A'}
                       </AvatarFallback>
                     </Avatar>
                   </Button>
                 </DropdownMenuTrigger>
-                <DropdownMenuContent align="end" className="bg-slate-800 border-slate-700 w-48">
-                  <DropdownMenuItem onClick={onLogout} className="text-slate-300 hover:text-white hover:bg-slate-700 cursor-pointer">
+                <DropdownMenuContent align="end" className="bg-slate-800 border-slate-700 w-56">
+                  <DropdownMenuItem onClick={() => setShowProfile(true)} className="text-slate-300 hover:text-white hover:bg-slate-700 cursor-pointer">
+                    <User className="mr-2 h-4 w-4" />
+                    View Profile
+                  </DropdownMenuItem>
+                  <DropdownMenuItem onClick={() => setShowProfile(true)} className="text-slate-300 hover:text-white hover:bg-slate-700 cursor-pointer">
+                    <KeyRound className="mr-2 h-4 w-4" />
+                    Change Password
+                  </DropdownMenuItem>
+                  <DropdownMenuItem className="text-slate-300 hover:text-white hover:bg-slate-700 cursor-pointer">
+                    <CreditCard className="mr-2 h-4 w-4" />
+                    Subscription
+                  </DropdownMenuItem>
+                  <DropdownMenuSeparator className="bg-slate-700" />
+                  <DropdownMenuItem onClick={onLogout} className="text-red-400 hover:text-red-300 hover:bg-slate-700 cursor-pointer">
                     <LogOut className="mr-2 h-4 w-4" />
                     Logout
                   </DropdownMenuItem>
@@ -246,14 +266,28 @@ const Layout = ({ children, user, onLogout }) => {
                 <DropdownMenuTrigger asChild>
                   <Button variant="ghost" size="sm" className="text-slate-400 hover:text-white">
                     <Avatar className="h-8 w-8">
+                      <AvatarImage src={currentUser?.avatar_url} alt={currentUser?.username} />
                       <AvatarFallback className="bg-blue-600 text-white">
-                        {user.email?.charAt(0).toUpperCase() || 'A'}
+                        {currentUser?.email?.charAt(0).toUpperCase() || 'A'}
                       </AvatarFallback>
                     </Avatar>
                   </Button>
                 </DropdownMenuTrigger>
-                <DropdownMenuContent align="end" className="bg-slate-800 border-slate-700 w-48">
-                  <DropdownMenuItem onClick={onLogout} className="text-slate-300 hover:text-white hover:bg-slate-700 cursor-pointer">
+                <DropdownMenuContent align="end" className="bg-slate-800 border-slate-700 w-56">
+                  <DropdownMenuItem onClick={() => setShowProfile(true)} className="text-slate-300 hover:text-white hover:bg-slate-700 cursor-pointer">
+                    <User className="mr-2 h-4 w-4" />
+                    View Profile
+                  </DropdownMenuItem>
+                  <DropdownMenuItem onClick={() => setShowProfile(true)} className="text-slate-300 hover:text-white hover:bg-slate-700 cursor-pointer">
+                    <KeyRound className="mr-2 h-4 w-4" />
+                    Change Password
+                  </DropdownMenuItem>
+                  <DropdownMenuItem className="text-slate-300 hover:text-white hover:bg-slate-700 cursor-pointer">
+                    <CreditCard className="mr-2 h-4 w-4" />
+                    Subscription
+                  </DropdownMenuItem>
+                  <DropdownMenuSeparator className="bg-slate-700" />
+                  <DropdownMenuItem onClick={onLogout} className="text-red-400 hover:text-red-300 hover:bg-slate-700 cursor-pointer">
                     <LogOut className="mr-2 h-4 w-4" />
                     Logout
                   </DropdownMenuItem>
@@ -268,6 +302,18 @@ const Layout = ({ children, user, onLogout }) => {
           {children}
         </main>
       </div>
+
+      {/* Profile Modal */}
+      {showProfile && (
+        <UserProfile 
+          user={currentUser} 
+          onClose={() => setShowProfile(false)}
+          onUpdate={(updatedUser) => {
+            setCurrentUser(updatedUser);
+            setShowProfile(false);
+          }}
+        />
+      )}
     </div>
   )
 }
