@@ -58,6 +58,11 @@ class Link(db.Model):
     def generate_short_code(self):
         return str(uuid.uuid4())[:8]
 
+    @property
+    def is_active(self):
+        """Check if link is active"""
+        return self.status == "active"
+    
     def to_dict(self, base_url=""):
         import json
         
