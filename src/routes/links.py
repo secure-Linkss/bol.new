@@ -319,3 +319,59 @@ def toggle_link_status(link_id):
         db.session.rollback()
         return jsonify({"success": False, "error": "Failed to toggle link status"}), 500
 
+@links_bp.route('/links/stats/consistent', methods=['GET'])
+def get_consistent_link_stats():
+    """Get link statistics with consistent calculation"""
+    try:
+        user_id = session.get('user_id')
+        if not user_id:
+            return jsonify({'error': 'Not authenticated'}), 401
+        
+        # Get user's links
+        user_links = Link.query.filter_by(user_id=user_id).all()
+        link_ids = [link.id for link in user_links]
+        
+        if not link_ids:
+            return jsonify({
+                'success': True,
+                'total_clicks': 0,
+                'real_visitors': 0,
+                'bots_blocked': 0,
+                'active_links': 0
+            })
+        
+        # CONSISTENT CALCULATION - Same as dashboard
+        total_clicks = TrackingEvent.query.filter(
+            TrackingEvent.link_id.in_(link_ids)
+        ).count()
+        
+        real_visitors = TrackingEvent.query.filter(
+            TrackingEvent.link_id.in_(link_ids),
+            TrackingEvent.is_bot == False
+        ).count()
+        
+        bots_blocked = TrackingEvent.query.filter(
+            TrackingEvent.link_id.in_(link_ids),
+            TrackingEvent.is_bot == True
+        ).count()
+        
+        active_links = Link.query.filter_by(
+            user_id=user_id,
+            is_active=True
+        ).count()
+        
+        return jsonify({
+            'success': True,
+            'total_clicks': total_clicks,
+            'real_visitors': real_visitors,
+            'bots_blocked': bots_blocked,
+            'active_links': active_links
+        })
+    
+    except Exception as e:
+        print(f"Error in consistent link stats: {str(e)}")
+        return jsonify({
+            'error': str(e),
+            'success': False
+        }), 500
+
