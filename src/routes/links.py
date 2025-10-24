@@ -1,5 +1,6 @@
 from flask import Blueprint, request, jsonify, session
 from src.models.link import Link
+from src.routes.campaigns import auto_create_campaign
 from src.models.user import User, db
 from src.models.campaign import Campaign
 from src.models.tracking_event import TrackingEvent

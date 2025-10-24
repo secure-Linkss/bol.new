@@ -445,3 +445,34 @@ def get_performance_predictions():
     except Exception as e:
         print(f"Error getting performance predictions: {e}")
         return jsonify({'error': str(e)}), 500
+
+def auto_create_campaign(campaign_name, user_id):
+    """
+    Auto-create a campaign if it doesn't exist.
+    Returns the campaign object (existing or newly created).
+    """
+    from src.models.campaign import Campaign
+    from src.models.user import db
+    
+    # Check if campaign exists for this user
+    existing_campaign = Campaign.query.filter_by(
+        name=campaign_name,
+        user_id=user_id
+    ).first()
+    
+    if existing_campaign:
+        return existing_campaign
+    
+    # Create new campaign
+    new_campaign = Campaign(
+        name=campaign_name,
+        user_id=user_id,
+        status='active',
+        description=f'Auto-created campaign for {campaign_name}'
+    )
+    
+    db.session.add(new_campaign)
+    db.session.commit()
+    
+    return new_campaign
+

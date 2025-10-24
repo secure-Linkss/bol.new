@@ -113,6 +113,7 @@ function App() {
                   {user && (user.role === "admin" || user.role === "main_admin") && (
                     <Route path="/admin-panel" element={<AdminPanelComplete />} />
                   )}
+                  <Route path="*" element={<Navigate to="/dashboard" replace />} />
                 </Routes>
               </Layout>
             )}

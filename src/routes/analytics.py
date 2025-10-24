@@ -660,3 +660,55 @@ def get_geography_analytics():
         import traceback
         traceback.print_exc()
         return jsonify({"error": f"Failed to fetch geography data: {str(e)}"}), 500
+
+
+@analytics_bp.route('/analytics/geographic-distribution', methods=['GET'])
+def get_geographic_distribution():
+    """Get visitor distribution by country"""
+    try:
+        user_id = session.get('user_id')
+        if not user_id:
+            return jsonify({'error': 'Not authenticated'}), 401
+        
+        # Query tracking events grouped by country
+        from sqlalchemy import func
+        from src.models.tracking_event import TrackingEvent
+        
+        results = db.session.query(
+            TrackingEvent.country_name,
+            TrackingEvent.country_code,
+            func.count(TrackingEvent.id).label('visitors'),
+            func.count(func.distinct(TrackingEvent.city)).label('city_count')
+        ).join(
+            Link, TrackingEvent.link_id == Link.id
+        ).filter(
+            Link.user_id == user_id,
+            TrackingEvent.country_name.isnot(None)
+        ).group_by(
+            TrackingEvent.country_name,
+            TrackingEvent.country_code
+        ).all()
+        
+        countries = []
+        for result in results:
+            countries.append({
+                'country_name': result.country_name or 'Unknown',
+                'country_code': result.country_code or 'XX',
+                'visitors': result.visitors,
+                'city_count': result.city_count or 0
+            })
+        
+        return jsonify({
+            'countries': countries,
+            'total': len(countries),
+            'success': True
+        })
+    
+    except Exception as e:
+        print(f"Error in geographic-distribution: {str(e)}")
+        return jsonify({
+            'error': str(e),
+            'countries': [],
+            'total': 0,
+            'success': False
+        }), 500
