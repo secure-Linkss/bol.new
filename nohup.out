@@ -1,0 +1,12 @@
+[2025-10-26 14:10:19 -0400] [3470] [INFO] Starting gunicorn 21.2.0
+[2025-10-26 14:10:19 -0400] [3470] [ERROR] Connection in use: ('0.0.0.0', 5002)
+[2025-10-26 14:10:19 -0400] [3470] [ERROR] Retrying in 1 second.
+[2025-10-26 14:10:20 -0400] [3470] [ERROR] Connection in use: ('0.0.0.0', 5002)
+[2025-10-26 14:10:20 -0400] [3470] [ERROR] Retrying in 1 second.
+[2025-10-26 14:10:21 -0400] [3470] [ERROR] Connection in use: ('0.0.0.0', 5002)
+[2025-10-26 14:10:21 -0400] [3470] [ERROR] Retrying in 1 second.
+[2025-10-26 14:10:22 -0400] [3470] [ERROR] Connection in use: ('0.0.0.0', 5002)
+[2025-10-26 14:10:22 -0400] [3470] [ERROR] Retrying in 1 second.
+[2025-10-26 14:10:23 -0400] [3470] [ERROR] Connection in use: ('0.0.0.0', 5002)
+[2025-10-26 14:10:23 -0400] [3470] [ERROR] Retrying in 1 second.
+[2025-10-26 14:10:24 -0400] [3470] [ERROR] Can't connect to ('0.0.0.0', 5002)

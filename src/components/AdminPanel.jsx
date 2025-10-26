@@ -420,7 +420,7 @@ export default function AdminPanel() {
       </div>
 
       <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
-        <TabsList className="grid grid-cols-2 sm:grid-cols-5 lg:grid-cols-8 gap-2 bg-slate-800 p-2 mb-6 overflow-x-auto">
+        <TabsList className="grid grid-cols-2 sm:grid-cols-5 lg:grid-cols-6 gap-2 bg-slate-800 p-2 mb-6 overflow-x-auto">
           <TabsTrigger value="dashboard" className="text-xs sm:text-sm">
             <LayoutDashboard className="h-4 w-4 mr-1" />
             <span className="hidden sm:inline">Dash</span>
@@ -429,27 +429,11 @@ export default function AdminPanel() {
             <Users className="h-4 w-4 mr-1" />
             <span className="hidden sm:inline">Users</span>
           </TabsTrigger>
-          <TabsTrigger value="campaigns" className="text-xs sm:text-sm">
-            <FolderKanban className="h-4 w-4 mr-1" />
-            <span className="hidden sm:inline">Camp</span>
-          </TabsTrigger>
-          <TabsTrigger value="security" className="text-xs sm:text-sm">
-            <Shield className="h-4 w-4 mr-1" />
-            <span className="hidden sm:inline">Sec</span>
-          </TabsTrigger>
-          <TabsTrigger value="subscriptions" className="text-xs sm:text-sm">
-            <CreditCard className="h-4 w-4 mr-1" />
-            <span className="hidden sm:inline">Subs</span>
-          </TabsTrigger>
-          <TabsTrigger value="support" className="text-xs sm:text-sm">
-            <MessageSquare className="h-4 w-4 mr-1" />
-            <span className="hidden sm:inline">Supp</span>
-          </TabsTrigger>
-          <TabsTrigger value="audit" className="text-xs sm:text-sm">
-            <FileText className="h-4 w-4 mr-1" />
-            <span className="hidden sm:inline">Audit</span>
-          </TabsTrigger>
-          <TabsTrigger value="settings" className="text-xs sm:text-sm">
+          <<TabsTrigger value="subscriptions" className="text-xs sm:text-sm">
+	            <CreditCard className="h-4 w-4 mr-1" />
+	            <span className="hidden sm:inline">Subs</span>
+	          </TabsTrigger>
+	          <TabsTrigger value="support" className="text-xs sm:text-sm">
             <Settings className="h-4 w-4 mr-1" />
             <span className="hidden sm:inline">Set</span>
           </TabsTrigger>
@@ -491,10 +475,77 @@ export default function AdminPanel() {
 
         {/* Users Tab */}
         <TabsContent value="users" className="space-y-6">
+	          {/* Pending User Approvals - Consolidated */}
+<div className="space-y-4 pt-6 mt-6 border-t border-border">
+	          <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
+	              <div>
+	                <h2 className="text-xl sm:text-2xl font-bold text-foreground">Pending User Approvals</h2>
+	                <p className="text-muted-foreground text-xs sm:text-sm">Review and manage users awaiting approval</p>
+	              </div>
+	              <Button onClick={loadUsers} variant="outline" size="sm" className="text-xs sm:text-sm border-border text-muted-foreground hover:bg-accent hover:text-foreground">
+	                <RefreshCw className="h-4 w-4 mr-2" />
+	                Refresh
+	              </Button>
+	            </div>
+
+	            <Card className="bg-card border-border">
+	              <CardContent className="p-3 sm:p-6">
+	                <div className="overflow-x-auto">
+	                  <Table>
+	                    <TableHeader>
+	                      <TableRow className="border-border">
+	                        <TableHead className="text-muted-foreground text-xs sm:text-sm">Username</TableHead>
+	                        <TableHead className="text-muted-foreground hidden sm:table-cell text-xs sm:text-sm">Email</TableHead>
+	                        <TableHead className="text-muted-foreground text-xs sm:text-sm">Role</TableHead>
+	                        <TableHead className="text-muted-foreground text-xs sm:text-sm">Status</TableHead>
+	                        <TableHead className="text-muted-foreground text-right text-xs sm:text-sm">Actions</TableHead>
+	                      </TableRow>
+	                    </TableHeader>
+	                    <TableBody>
+	                      {users.filter(u => u.status === 'pending').length === 0 ? (
+	                        <TableRow>
+	                          <TableCell colSpan={5} className="text-center py-8 text-muted-foreground text-xs sm:text-sm">
+	                            No pending users found.
+	                          </TableCell>
+	                        </TableRow>
+	                      ) : (
+	                        users.filter(u => u.status === 'pending').map((user) => (
+	                          <TableRow key={user.id} className="border-border hover:bg-accent/50">
+	                            <TableCell className="text-foreground text-xs sm:text-sm font-medium">{user.username}</TableCell>
+	                            <TableCell className="text-foreground hidden sm:table-cell text-xs sm:text-sm">{user.email}</TableCell>
+	                            <TableCell className="text-foreground text-xs sm:text-sm">{getStatusBadge(user.role)}</TableCell>
+	                            <TableCell className="text-foreground text-xs sm:text-sm">{getStatusBadge(user.status)}</TableCell>
+	                            <TableCell className="text-right">
+	                              <DropdownMenu>
+	                                <DropdownMenuTrigger asChild>
+	                                  <Button variant="ghost" size="sm" className="text-muted-foreground hover:text-foreground">
+	                                    <MoreVertical className="h-4 w-4" />
+	                                  </Button>
+	                                </DropdownMenuTrigger>
+	                                <DropdownMenuContent className="bg-card border-border">
+	                                  <DropdownMenuItem onClick={() => handleUserAction(user.id, 'approve')} className="text-green-400">
+	                                    <UserCheck className="h-4 w-4 mr-2" /> Approve
+	                                  </DropdownMenuItem>
+	                                  <DropdownMenuItem onClick={() => handleUserAction(user.id, 'reject')} className="text-red-400">
+	                                    <UserX className="h-4 w-4 mr-2" /> Reject
+	                                  </DropdownMenuItem>
+	                                </DropdownMenuContent>
+	                              </DropdownMenu>
+	                            </TableCell>
+	                          </TableRow>
+	                        ))
+	                      )}
+	                    </TableBody>
+	                  </Table>
+	                </div>
+	              </CardContent>
+	            </Card>
+	          </div>
+	          <div className="space-y-4">
           <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
             <div>
-              <h2 className="text-xl sm:text-2xl font-bold">User Management</h2>
-              <p className="text-slate-400 text-xs sm:text-sm">Manage system users and permissions</p>
+<h2 className="text-xl sm:text-2xl font-bold text-foreground">User Management</h2>
+	              <p className="text-muted-foreground text-xs sm:text-sm">Manage system users and permissions</p>
             </div>
             <Dialog open={showCreateUserDialog} onOpenChange={setShowCreateUserDialog}>
               <DialogTrigger asChild>
@@ -587,12 +638,12 @@ export default function AdminPanel() {
               <div className="overflow-x-auto">
                 <Table>
                   <TableHeader>
-                    <TableRow className="border-slate-700">
-                      <TableHead className="text-slate-300 text-xs sm:text-sm">Username</TableHead>
-                      <TableHead className="text-slate-300 hidden sm:table-cell text-xs sm:text-sm">Email</TableHead>
-                      <TableHead className="text-slate-300 text-xs sm:text-sm">Role</TableHead>
-                      <TableHead className="text-slate-300 text-xs sm:text-sm">Status</TableHead>
-                      <TableHead className="text-slate-300 text-right text-xs sm:text-sm">Actions</TableHead>
+                    <TableRow className="border-border">
+                      <TableHead className="text-muted-foreground text-xs sm:text-sm">Username</TableHead>
+                      <TableHead className="text-muted-foreground hidden sm:table-cell text-xs sm:text-sm">Email</TableHead>
+                      <TableHead className="text-muted-foreground text-xs sm:text-sm">Role</TableHead>
+                      <TableHead className="text-muted-foreground text-xs sm:text-sm">Status</TableHead>
+                      <TableHead className="text-muted-foreground text-right text-xs sm:text-sm">Actions</TableHead>
                     </TableRow>
                   </TableHeader>
                   <TableBody>
@@ -604,11 +655,11 @@ export default function AdminPanel() {
                       </TableRow>
                     ) : (
                       users.map((user) => (
-                        <TableRow key={user.id} className="border-slate-700 hover:bg-slate-700/50">
-                          <TableCell className="text-white text-xs sm:text-sm font-medium">{user.username}</TableCell>
-                          <TableCell className="text-slate-300 hidden sm:table-cell text-xs sm:text-sm">{user.email}</TableCell>
-                          <TableCell className="text-slate-300 text-xs sm:text-sm">{getStatusBadge(user.role)}</TableCell>
-                          <TableCell className="text-slate-300 text-xs sm:text-sm">{getStatusBadge(user.status)}</TableCell>
+                        <TableRow key={user.id} className="border-border hover:bg-accent/50">
+	                          <TableCell className="text-foreground text-xs sm:text-sm font-medium">{user.username}</TableCell>
+                    <TableCell className="text-foreground hidden sm:table-cell text-xs sm:text-sm">{user.email}</TableCell>
+	                          <TableCell className="text-foreground text-xs sm:text-sm">{getStatusBadge(user.role)}</TableCell>
+                          <TableCell className="text-foreground text-xs sm:text-sm">{getStatusBadge(user.status)}</TableCell>
                           <TableCell className="text-right">
                             <DropdownMenu>
                               <DropdownMenuTrigger asChild>
@@ -651,12 +702,12 @@ export default function AdminPanel() {
               <div className="overflow-x-auto">
                 <Table>
                   <TableHeader>
-                    <TableRow className="border-slate-700">
-                      <TableHead className="text-slate-300 text-xs sm:text-sm">Name</TableHead>
-                      <TableHead className="text-slate-300 hidden sm:table-cell text-xs sm:text-sm">Status</TableHead>
-                      <TableHead className="text-slate-300 text-xs sm:text-sm">Links</TableHead>
-                      <TableHead className="text-slate-300 hidden md:table-cell text-xs sm:text-sm">Clicks</TableHead>
-                      <TableHead className="text-slate-300 text-right text-xs sm:text-sm">Expand</TableHead>
+                    <TableRow className="border-border">
+                      <TableHead className="text-muted-foreground text-xs sm:text-sm">Name</TableHead>
+                      <TableHead className="text-muted-foreground hidden sm:table-cell text-xs sm:text-sm">Status</TableHead>
+                      <TableHead className="text-muted-foreground text-xs sm:text-sm">Links</TableHead>
+                      <TableHead className="text-muted-foreground hidden md:table-cell text-xs sm:text-sm">Clicks</TableHead>
+                      <TableHead className="text-muted-foreground text-right text-xs sm:text-sm">Expand</TableHead>
                     </TableRow>
                   </TableHeader>
                   <TableBody>
@@ -669,13 +720,13 @@ export default function AdminPanel() {
                     ) : (
                       campaigns.map((campaign) => (
                         <React.Fragment key={campaign.id}>
-                          <TableRow className="border-slate-700 hover:bg-slate-700/50">
-                            <TableCell className="text-white text-xs sm:text-sm font-medium">{campaign.name}</TableCell>
-                            <TableCell className="text-slate-300 hidden sm:table-cell text-xs sm:text-sm">
+                          <TableRow className="border-border hover:bg-accent/50">
+                            <TableCell className="text-foreground text-xs sm:text-sm font-medium">{campaign.name}</TableCell>
+                            <TableCell className="text-foreground hidden sm:table-cell text-xs sm:text-sm">
                               {getStatusBadge(campaign.status)}
                             </TableCell>
-                            <TableCell className="text-slate-300 text-xs sm:text-sm">{campaign.link_count || 0}</TableCell>
-                            <TableCell className="text-slate-300 hidden md:table-cell text-xs sm:text-sm">
+                            <TableCell className="text-foreground text-xs sm:text-sm">{campaign.link_count || 0}</TableCell>
+                            <TableCell className="text-foreground hidden md:table-cell text-xs sm:text-sm">>
                               {campaign.click_count || 0}
                             </TableCell>
                             <TableCell className="text-right">
@@ -718,20 +769,20 @@ export default function AdminPanel() {
                                         <Table className="text-xs sm:text-sm">
                                           <TableHeader>
                                             <TableRow className="border-slate-600">
-                                              <TableHead className="text-slate-300 text-xs">Code</TableHead>
-                                              <TableHead className="text-slate-300 hidden sm:table-cell text-xs">URL</TableHead>
-                                              <TableHead className="text-slate-300 text-xs">Clicks</TableHead>
-                                              <TableHead className="text-slate-300 text-right text-xs">Actions</TableHead>
+                                              <TableHead className="text-muted-foreground text-xs">Code</TableHead>
+                                             <TableHead className="text-muted-foreground hidden sm:table-cell text-xs">URL</TableHead>
+                                             <TableHead className="text-muted-foreground text-right text-xs">Clicks</TableHead>
+                                              <TableHead className="text-muted-foreground text-xs sm:text-sm">Actions</TableHead>
                                             </TableRow>
                                           </TableHeader>
                                           <TableBody>
                                             {campaign.links.map((link) => (
                                               <TableRow key={link.id} className="border-slate-600">
-                                                <TableCell className="text-white text-xs font-mono">{link.short_code}</TableCell>
-                                                <TableCell className="text-slate-300 hidden sm:table-cell text-xs truncate max-w-[150px]">
+                                                <TableCell className="text-foreground text-xs font-mono">{link.short_code}</TableCell>
+                                                <TableCell className="text-foreground hidden sm:table-cell text-xs truncate max-w-[150px]">
                                                   {link.original_url}
                                                 </TableCell>
-                                                <TableCell className="text-slate-300 text-xs">{link.clicks || 0}</TableCell>
+                                              <TableCell className="text-foreground text-xs">{link.clicks || 0}</TableCell>
                                                 <TableCell className="text-right">
                                                   <Button variant="ghost" size="sm" className="text-slate-400 hover:text-white text-xs">
                                                     View
@@ -776,12 +827,12 @@ export default function AdminPanel() {
               <div className="overflow-x-auto">
                 <Table>
                   <TableHeader>
-                    <TableRow className="border-slate-700">
-                      <TableHead className="text-slate-300 text-xs sm:text-sm">IP Address</TableHead>
-                      <TableHead className="text-slate-300 hidden sm:table-cell text-xs sm:text-sm">Threat Type</TableHead>
-                      <TableHead className="text-slate-300 text-xs sm:text-sm">Severity</TableHead>
-                      <TableHead className="text-slate-300 hidden md:table-cell text-xs sm:text-sm">Timestamp</TableHead>
-                      <TableHead className="text-slate-300 text-right text-xs sm:text-sm">Status</TableHead>
+                    <TableRow className="border-border">
+                      <TableHead className="text-muted-foreground text-xs sm:text-sm">IP Address</TableHead>
+                      <TableHead className="text-muted-foreground hidden sm:table-cell text-xs sm:text-sm">Threat Type</TableHead>
+                      <TableHead className="text-muted-foreground text-xs sm:text-sm">Severity</TableHead>
+                      <TableHead className="text-muted-foreground hidden md:table-cell text-xs sm:text-sm">Timestamp</TableHead>
+                      <TableHead className="text-muted-foreground text-right text-xs sm:text-sm">Status</TableHead>
                     </TableRow>
                   </TableHeader>
                   <TableBody>
@@ -793,15 +844,15 @@ export default function AdminPanel() {
                       </TableRow>
                     ) : (
                       securityThreats.map((threat) => (
-                        <TableRow key={threat.id} className="border-slate-700 hover:bg-slate-700/50">
-                          <TableCell className="text-white text-xs sm:text-sm font-mono">{threat.ip_address}</TableCell>
-                          <TableCell className="text-slate-300 hidden sm:table-cell text-xs sm:text-sm">{threat.threat_type}</TableCell>
+                      <TableRow key={threat.id} className="border-border hover:bg-accent/50">
+	                          <TableCell className="text-foreground text-xs sm:text-sm font-mono">{threat.ip_address}</TableCell>
+	                          <TableCell className="text-foreground hidden sm:table-cell text-xs sm:text-sm">{threat.threat_type}</TableCell>
                           <TableCell className="text-xs sm:text-sm">
                             {threat.severity === 'critical' && <Badge className="bg-red-600">Critical</Badge>}
                             {threat.severity === 'high' && <Badge className="bg-orange-600">High</Badge>}
                             {threat.severity === 'medium' && <Badge className="bg-yellow-600">Medium</Badge>}
                           </TableCell>
-                          <TableCell className="text-slate-300 hidden md:table-cell text-xs sm:text-sm">
+                        <TableCell className="text-foreground"> hidden md:table-cell text-xs sm:text-sm">
                             {new Date(threat.timestamp).toLocaleString()}
                           </TableCell>
                           <TableCell className="text-right">{getStatusBadge(threat.status)}</TableCell>
@@ -833,12 +884,12 @@ export default function AdminPanel() {
               <div className="overflow-x-auto">
                 <Table>
                   <TableHeader>
-                    <TableRow className="border-slate-700">
-                      <TableHead className="text-slate-300 text-xs sm:text-sm">User</TableHead>
-                      <TableHead className="text-slate-300 hidden sm:table-cell text-xs sm:text-sm">Plan</TableHead>
-                      <TableHead className="text-slate-300 text-xs sm:text-sm">Status</TableHead>
-                      <TableHead className="text-slate-300 hidden md:table-cell text-xs sm:text-sm">Expires</TableHead>
-                      <TableHead className="text-slate-300 text-right text-xs sm:text-sm">Actions</TableHead>
+                    <TableRow className="border-border">
+                      <TableHead className="text-muted-foreground text-xs sm:text-sm">User</TableHead>
+                      <TableHead className="text-muted-foreground hidden sm:table-cell text-xs sm:text-sm">Plan</TableHead>
+                      <TableHead className="text-muted-foreground text-xs sm:text-sm">Status</TableHead>
+                      <TableHead className="text-muted-foreground hidden md:table-cell text-xs sm:text-sm">Expires</TableHead>
+                      <TableHead className="text-muted-foreground text-right text-xs sm:text-sm">Actions</TableHead>
                     </TableRow>
                   </TableHeader>
                   <TableBody>
@@ -850,11 +901,11 @@ export default function AdminPanel() {
                       </TableRow>
                     ) : (
                       subscriptions.map((sub) => (
-                        <TableRow key={sub.id} className="border-slate-700 hover:bg-slate-700/50">
-                          <TableCell className="text-white text-xs sm:text-sm">{sub.user_name}</TableCell>
-                          <TableCell className="text-slate-300 hidden sm:table-cell text-xs sm:text-sm">{sub.plan_type}</TableCell>
+                        <TableRow key={sub.id} className="border-border hover:bg-accent/50">
+	                          <TableCell className="text-foreground text-xs sm:text-sm">{sub.user_name}</TableCell>
+	                          <TableCell className="text-foreground hidden sm:table-cell text-xs sm:text-sm">{sub.plan_type}</TableCell>
                           <TableCell className="text-xs sm:text-sm">{getStatusBadge(sub.status)}</TableCell>
-                          <TableCell className="text-slate-300 hidden md:table-cell text-xs sm:text-sm">
+                          <TableCell className="text-foreground hidden md:table-cell text-xs sm:text-sm">
                             {new Date(sub.expiry_date).toLocaleDateString()}
                           </TableCell>
                           <TableCell className="text-right">
@@ -890,12 +941,12 @@ export default function AdminPanel() {
               <div className="overflow-x-auto">
                 <Table>
                   <TableHeader>
-                    <TableRow className="border-slate-700">
-                      <TableHead className="text-slate-300 text-xs sm:text-sm">Ticket ID</TableHead>
-                      <TableHead className="text-slate-300 hidden sm:table-cell text-xs sm:text-sm">Subject</TableHead>
-                      <TableHead className="text-slate-300 text-xs sm:text-sm">Status</TableHead>
-                      <TableHead className="text-slate-300 hidden md:table-cell text-xs sm:text-sm">Priority</TableHead>
-                      <TableHead className="text-slate-300 text-right text-xs sm:text-sm">Actions</TableHead>
+                    <TableRow className="border-border">
+                      <TableHead className="text-muted-foreground text-xs sm:text-sm">Ticket ID</TableHead>
+                      <TableHead className="text-muted-foreground hidden sm:table-cell text-xs sm:text-sm">Subject</TableHead>
+                      <TableHead className="text-muted-foreground text-xs sm:text-sm">Status</TableHead>
+                      <TableHead className="text-muted-foreground hidden md:table-cell text-xs sm:text-sm">Priority</TableHead>
+                      <TableHead className="text-muted-foreground text-right text-xs sm:text-sm">Actions</TableHead>
                     </TableRow>
                   </TableHeader>
                   <TableBody>
@@ -907,11 +958,11 @@ export default function AdminPanel() {
                       </TableRow>
                     ) : (
                       supportTickets.map((ticket) => (
-                        <TableRow key={ticket.id} className="border-slate-700 hover:bg-slate-700/50">
-                          <TableCell className="text-white text-xs sm:text-sm font-mono">{ticket.id}</TableCell>
-                          <TableCell className="text-slate-300 hidden sm:table-cell text-xs sm:text-sm truncate max-w-[200px]">
-                            {ticket.subject}
-                          </TableCell>
+<TableRow key={ticket.id} className="border-border hover:bg-accent/50">
+	                          <TableCell className="text-foreground text-xs sm:text-sm font-medium">{ticket.id}</TableCell>
+	                          <TableCell className="text-foreground hidden sm:table-cell text-xs sm:text-sm truncate max-w-[200px]">
+	                            {ticket.subject}
+	                          </TableCell>
                           <TableCell className="text-xs sm:text-sm">{getStatusBadge(ticket.status)}</TableCell>
                           <TableCell className="text-xs sm:text-sm hidden md:table-cell">
                             {ticket.priority === 'high' && <Badge className="bg-red-600">High</Badge>}
@@ -957,11 +1008,10 @@ export default function AdminPanel() {
               <div className="overflow-x-auto">
                 <Table>
                   <TableHeader>
-                    <TableRow className="border-slate-700">
-                      <TableHead className="text-slate-300 text-xs sm:text-sm">ID</TableHead>
-                      <TableHead className="text-slate-300 hidden sm:table-cell text-xs sm:text-sm">User ID</TableHead>
-                      <TableHead className="text-slate-300 text-xs sm:text-sm">Action</TableHead>
-                      <TableHead className="text-slate-300 hidden md:table-cell text-xs sm:text-sm">Timestamp</TableHead>
+                    <TableRow className="border-border">
+                      <TableHead className="text-muted-foreground hidden sm:table-cell text-xs sm:text-sm">User ID</TableHead>
+                      <TableHead className="text-muted-foreground text-xs sm:text-sm">Action</TableHead>
+                      <TableHead className="text-muted-foreground hidden md:table-cell text-xs sm:text-sm">Timestamp</TableHead>
                     </TableRow>
                   </TableHeader>
                   <TableBody>
@@ -973,13 +1023,13 @@ export default function AdminPanel() {
                       </TableRow>
                     ) : (
                       auditLogs.map((log) => (
-                        <TableRow key={log.id} className="border-slate-700 hover:bg-slate-700/50">
-                          <TableCell className="text-white text-xs sm:text-sm font-mono">{log.id}</TableCell>
-                          <TableCell className="text-slate-300 hidden sm:table-cell text-xs sm:text-sm">{log.user_id}</TableCell>
-                          <TableCell className="text-slate-300 text-xs sm:text-sm">{log.action}</TableCell>
-                          <TableCell className="text-slate-300 hidden md:table-cell text-xs sm:text-sm">
-                            {new Date(log.timestamp).toLocaleString()}
-                          </TableCell>
+                   <TableRow key={log.id} className="border-border hover:bg-accent/50">
+	                          <TableCell className="text-foreground text-xs sm:text-sm font-mono">{log.id}</TableCell>
+<TableCell className="text-foreground hidden sm:table-cell text-xs sm:text-sm">{log.user_id}</TableCell>
+	                          <TableCell className="text-foreground text-xs sm:text-sm">{log.action}</TableCell>
+	                          <TableCell className="text-foreground hidden md:table-cell text-xs sm:text-sm">
+		                            {new Date(log.timestamp).toLocaleString()}
+	                          </TableCell>
                         </TableRow>
                       ))
                     )}
@@ -992,6 +1042,173 @@ export default function AdminPanel() {
 
         {/* Settings Tab */}
         <TabsContent value="settings" className="space-y-6">
+	          {/* Crypto Payment Gateway - Consolidated */}
+	          <div className="space-y-4">
+	            <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
+	              <div>
+	                <h2 className="text-xl sm:text-2xl font-bold text-foreground">Crypto Payment Gateway</h2>
+	                <p className="text-muted-foreground text-xs sm:text-sm">Manage crypto payment settings and transactions</p>
+	              </div>
+	              <Button variant="outline" size="sm" className="text-xs sm:text-sm border-border text-muted-foreground hover:bg-accent hover:text-foreground">
+	                <RefreshCw className="h-4 w-4 mr-2" />
+	                Refresh
+	              </Button>
+	            </div>
+
+	            <div className="grid grid-cols-1 lg:grid-cols-3 gap-4">
+	              <Card className="lg:col-span-2 bg-card border-border">
+	                <CardHeader>
+	                  <CardTitle className="text-foreground text-base sm:text-lg flex items-center gap-2">
+	                    <Key className="h-5 w-5" />
+	                    API Key Configuration
+	                  </CardTitle>
+	                </CardHeader>
+	                <CardContent className="space-y-4">
+	                  <div>
+	                    <label className="text-foreground text-sm mb-2 block">Coinbase Commerce API Key</label>
+	                    <Input
+	                      type="password"
+	                      placeholder="Enter Coinbase Commerce API Key"
+	                      className="bg-input border-border text-foreground text-xs sm:text-sm"
+	                    />
+	                  </div>
+	                  <div>
+	                    <label className="text-foreground text-sm mb-2 block">Webhook Secret</label>
+	                    <Input
+	                      type="password"
+	                      placeholder="Enter Webhook Secret"
+	                      className="bg-input border-border text-foreground text-xs sm:text-sm"
+	                    />
+	                  </div>
+	                  <Button className="bg-blue-600 hover:bg-blue-700 w-full text-xs sm:text-sm">
+	                    Save API Settings
+	                  </Button>
+	                </CardContent>
+	              </Card>
+
+	              <Card className="bg-card border-border">
+	                <CardHeader>
+	                  <CardTitle className="text-foreground text-base sm:text-lg flex items-center gap-2">
+	                    <BarChart3 className="h-5 w-5" />
+	                    Recent Transactions
+	                  </CardTitle>
+	                </CardHeader>
+	                <CardContent>
+	                  <div className="space-y-3">
+	                    <div className="flex items-center justify-between p-2 bg-accent/50 rounded-lg">
+	                      <div className="flex items-center gap-3">
+	                        <div className="w-8 h-8 bg-green-500/20 rounded-full flex items-center justify-center">
+	                          <Zap className="h-4 w-4 text-green-400" />
+	                        </div>
+	                        <div>
+	                          <p className="text-foreground text-sm font-medium">BTC Payment</p>
+	                          <p className="text-muted-foreground text-xs">User: John Doe</p>
+	                        </div>
+	                      </div>
+	                      <div className="text-right">
+	                        <p className="text-foreground text-sm font-medium">$50.00</p>
+	                        <Badge className="bg-green-500/20 text-green-400 text-xs">Completed</Badge>
+	                      </div>
+	                    </div>
+	                    <div className="flex items-center justify-between p-2 bg-accent/50 rounded-lg">
+	                      <div className="flex items-center gap-3">
+	                        <div className="w-8 h-8 bg-yellow-500/20 rounded-full flex items-center justify-center">
+	                          <Zap className="h-4 w-4 text-yellow-400" />
+	                        </div>
+	                        <div>
+	                          <p className="text-foreground text-sm font-medium">ETH Payment</p>
+	                          <p className="text-muted-foreground text-xs">User: Jane Smith</p>
+	                        </div>
+	                      </div>
+	                      <div className="text-right">
+	                        <p className="text-foreground text-sm font-medium">$100.00</p>
+	                        <Badge className="bg-yellow-500/20 text-yellow-400 text-xs">Pending</Badge>
+	                      </div>
+	                    </div>
+	                  </div>
+	                </CardContent>
+	              </Card>
+	            </div>
+	          </div>
+
+	          {/* Telegram Integration - Consolidated */}
+	          <div className="space-y-4">
+	            <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
+	              <div>
+	                <h2 className="text-xl sm:text-2xl font-bold text-foreground">Telegram Integration</h2>
+	                <p className="text-muted-foreground text-xs sm:text-sm">Configure Telegram bot for real-time notifications</p>
+	              </div>
+	              <Button variant="outline" size="sm" className="text-xs sm:text-sm border-border text-muted-foreground hover:bg-accent hover:text-foreground">
+	                <RefreshCw className="h-4 w-4 mr-2" />
+	                Refresh Status
+	              </Button>
+	            </div>
+
+	            <div className="grid grid-cols-1 lg:grid-cols-3 gap-4">
+	              <Card className="lg:col-span-2 bg-card border-border">
+	                <CardHeader>
+	                  <CardTitle className="text-foreground text-base sm:text-lg flex items-center gap-2">
+	                    <Key className="h-5 w-5" />
+	                    Bot Configuration
+	                  </CardTitle>
+	                </CardHeader>
+	                <CardContent className="space-y-4">
+	                  <div>
+	                    <label className="text-foreground text-sm mb-2 block">Telegram Bot Token</label>
+	                    <Input
+	                      type="password"
+	                      placeholder="Enter Telegram Bot Token"
+	                      className="bg-input border-border text-foreground text-xs sm:text-sm"
+	                    />
+	                  </div>
+	                  <div>
+	                    <label className="text-foreground text-sm mb-2 block">Chat ID for Notifications</label>
+	                    <Input
+	                      placeholder="Enter Telegram Chat ID"
+	                      className="bg-input border-border text-foreground text-xs sm:text-sm"
+	                    />
+	                  </div>
+	                  <div className="flex items-center gap-2">
+	                    <input type="checkbox" id="link_notifications" className="w-4 h-4" />
+	                    <label htmlFor="link_notifications" className="text-foreground text-sm">
+	                      Enable New Link Notifications
+	                    </label>
+	                  </div>
+	                  <div className="flex items-center gap-2">
+	                    <input type="checkbox" id="click_notifications" className="w-4 h-4" />
+	                    <label htmlFor="click_notifications" className="text-foreground text-sm">
+	                      Enable New Click Notifications
+	                    </label>
+	                  </div>
+	                  <Button className="bg-blue-600 hover:bg-blue-700 w-full text-xs sm:text-sm">
+	                    Save Telegram Settings
+	                  </Button>
+	                </CardContent>
+	              </Card>
+
+	              <Card className="bg-card border-border">
+	                <CardHeader>
+	                  <CardTitle className="text-foreground text-base sm:text-lg flex items-center gap-2">
+	                    <MessageSquare className="h-5 w-5" />
+	                    Bot Status
+	                  </CardTitle>
+	                </CardHeader>
+	                <CardContent className="space-y-4">
+	                  <div className="flex items-center justify-between">
+	                    <p className="text-muted-foreground text-sm">Connection Status:</p>
+	                    <Badge className="bg-green-500/20 text-green-400 text-xs">Connected</Badge>
+	                  </div>
+	                  <div className="flex items-center justify-between">
+	                    <p className="text-muted-foreground text-sm">Last Message:</p>
+	                    <p className="text-foreground text-sm">2 minutes ago</p>
+	                  </div>
+	                  <Button variant="outline" className="w-full text-xs sm:text-sm border-border text-muted-foreground hover:bg-accent hover:text-foreground">
+	                    Test Notification
+	                  </Button>
+	                </CardContent>
+	              </Card>
+	            </div>
+	          </div>
           <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
             {/* Domain Management */}
             <div className="lg:col-span-2 space-y-6">
@@ -1049,10 +1266,10 @@ export default function AdminPanel() {
                   <div className="overflow-x-auto">
                     <Table className="text-xs sm:text-sm">
                       <TableHeader>
-                        <TableRow className="border-slate-700">
-                          <TableHead className="text-slate-300">Domain</TableHead>
-                          <TableHead className="text-slate-300 hidden sm:table-cell">Status</TableHead>
-                          <TableHead className="text-slate-300 text-right">Actions</TableHead>
+                        <TableRow className="border-border">
+                          <TableHead className="text-muted-foreground">Domain</TableHead>
+                          <TableHead className="text-muted-foreground hidden sm:table-cell">Status</TableHead>
+                          <TableHead className="text-muted-foreground text-right">Actions</TableHead>
                         </TableRow>
                       </TableHeader>
                       <TableBody>
@@ -1064,11 +1281,11 @@ export default function AdminPanel() {
                           </TableRow>
                         ) : (
                           domains.map((domain) => (
-                            <TableRow key={domain.id} className="border-slate-700 hover:bg-slate-700/50">
-                              <TableCell className="text-white font-mono text-xs sm:text-sm">{domain.domain}</TableCell>
-                              <TableCell className="text-slate-300 hidden sm:table-cell text-xs">
-                                {getStatusBadge(domain.status)}
-                              </TableCell>
+<TableRow key={domain.id} className="border-border hover:bg-accent/50">
+	                              <TableCell className="text-foreground font-mono text-xs sm:text-sm">{domain.domain}</TableCell>
+	                              <TableCell className="text-foreground hidden sm:table-cell text-xs">
+	                                {getStatusBadge(domain.status)}
+	                              </TableCell>
                               <TableCell className="text-right">
                                 <Button
                                   onClick={() => deleteDomain(domain.id)}

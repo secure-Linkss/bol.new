@@ -223,111 +223,95 @@ const Dashboard = () => {
       </div>
 
       {/* Compact Metric Cards Grid - Perfect 8-Grid Layout */}
-      <div className="grid grid-cols-2 sm:grid-cols-4 lg:grid-cols-8 gap-3 mb-8">
-        <Card className="hover:shadow-md transition-all cursor-pointer bg-gradient-to-br from-blue-500/10 to-blue-600/5 border-blue-500/20">
-          <CardContent className="p-6">
+      {/* Compact Metric Cards Grid - 7-Grid Layout */}
+      <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-7 gap-3 mb-8">
+        {/* Total Links */}
+        <Card className="hover:shadow-md transition-all cursor-pointer bg-slate-800/50 border-slate-700/50">
+          <CardContent className="p-3">
             <div className="flex flex-col gap-1">
               <div className="flex items-center justify-between">
-                <p className="text-sm font-medium text-slate-400 mb-1">Total Links</p>
-                <Link className="h-4 w-4 text-blue-500" />
+                <p className="text-xs font-medium text-slate-400">Total Links</p>
+                <Link className="h-4 w-4 text-blue-500/80" />
               </div>
-              <p className="text-3xl font-bold text-white">{stats.totalLinks || 6}</p>
+              <p className="text-xl font-bold text-white">{stats.totalLinks || 6}</p>
             </div>
           </CardContent>
         </Card>
 
-        <Card className="hover:shadow-md transition-all cursor-pointer bg-gradient-to-br from-green-500/10 to-green-600/5 border-green-500/20">
-          <CardContent className="p-6">
+        {/* Total Clicks */}
+        <Card className="hover:shadow-md transition-all cursor-pointer bg-slate-800/50 border-slate-700/50">
+          <CardContent className="p-3">
             <div className="flex flex-col gap-1">
               <div className="flex items-center justify-between">
-                <p className="text-sm font-medium text-slate-400 mb-1">Total Clicks</p>
-                <MousePointer className="h-4 w-4 text-green-500" />
+                <p className="text-xs font-medium text-slate-400">Total Clicks</p>
+                <MousePointer className="h-4 w-4 text-green-500/80" />
               </div>
-              <p className="text-3xl font-bold text-white">{stats.totalClicks || 4}</p>
+              <p className="text-xl font-bold text-white">{stats.totalClicks || 4}</p>
             </div>
           </CardContent>
         </Card>
 
-        <Card className="hover:shadow-md transition-all cursor-pointer bg-gradient-to-br from-purple-500/10 to-purple-600/5 border-purple-500/20">
-          <CardContent className="p-6">
+        {/* Real Visitors */}
+        <Card className="hover:shadow-md transition-all cursor-pointer bg-slate-800/50 border-slate-700/50">
+          <CardContent className="p-3">
             <div className="flex flex-col gap-1">
               <div className="flex items-center justify-between">
-                <p className="text-sm font-medium text-slate-400 mb-1">Real Visitors</p>
-                <Eye className="h-4 w-4 text-purple-500" />
+                <p className="text-xs font-medium text-slate-400">Real Visitors</p>
+                <Eye className="h-4 w-4 text-purple-500/80" />
               </div>
-              <p className="text-3xl font-bold text-white">{additionalStats.realVisitors}</p>
+              <p className="text-xl font-bold text-white">{additionalStats.realVisitors}</p>
             </div>
           </CardContent>
         </Card>
 
-        <Card className="hover:shadow-md transition-all cursor-pointer bg-gradient-to-br from-orange-500/10 to-orange-600/5 border-orange-500/20">
-          <CardContent className="p-6">
+        {/* Captured Emails */}
+        <Card className="hover:shadow-md transition-all cursor-pointer bg-slate-800/50 border-slate-700/50">
+          <CardContent className="p-3">
             <div className="flex flex-col gap-1">
               <div className="flex items-center justify-between">
-                <p className="text-sm font-medium text-slate-400 mb-1">Captured Emails</p>
-                <Mail className="h-4 w-4 text-orange-500" />
+                <p className="text-xs font-medium text-slate-400">Captured Emails</p>
+                <Mail className="h-4 w-4 text-orange-500/80" />
               </div>
-              <p className="text-3xl font-bold text-white">{additionalStats.capturedEmails}</p>
+              <p className="text-xl font-bold text-white">{additionalStats.capturedEmails}</p>
             </div>
           </CardContent>
         </Card>
 
-        <Card className="hover:shadow-md transition-all cursor-pointer bg-gradient-to-br from-emerald-500/10 to-emerald-600/5 border-emerald-500/20">
-          <CardContent className="p-6">
+        {/* Active Links */}
+        <Card className="hover:shadow-md transition-all cursor-pointer bg-slate-800/50 border-slate-700/50">
+          <CardContent className="p-3">
             <div className="flex flex-col gap-1">
               <div className="flex items-center justify-between">
-                <p className="text-sm font-medium text-slate-400 mb-1">Active Links</p>
-                <TrendingUp className="h-4 w-4 text-emerald-500" />
+                <p className="text-xs font-medium text-slate-400">Active Links</p>
+                <TrendingUp className="h-4 w-4 text-emerald-500/80" />
               </div>
-              <p className="text-3xl font-bold text-white">{additionalStats.activeLinks}</p>
+              <p className="text-xl font-bold text-white">{additionalStats.activeLinks}</p>
             </div>
           </CardContent>
         </Card>
 
-        <Card className="hover:shadow-md transition-all cursor-pointer bg-gradient-to-br from-yellow-500/10 to-yellow-600/5 border-yellow-500/20">
-          <CardContent className="p-6">
+        {/* Conversion Rate */}
+        <Card className="hover:shadow-md transition-all cursor-pointer bg-slate-800/50 border-slate-700/50">
+          <CardContent className="p-3">
             <div className="flex flex-col gap-1">
               <div className="flex items-center justify-between">
-                <p className="text-sm font-medium text-slate-400 mb-1">Conversion Rate</p>
-                <BarChartIcon className="h-4 w-4 text-yellow-500" />
+                <p className="text-xs font-medium text-slate-400">Conversion Rate</p>
+                <BarChartIcon className="h-4 w-4 text-yellow-500/80" />
               </div>
-              <p className="text-3xl font-bold text-white">{additionalStats.conversionRate}%</p>
+              <p className="text-xl font-bold text-white">{additionalStats.conversionRate}%</p>
             </div>
           </CardContent>
         </Card>
 
-        <Card className="hover:shadow-md transition-all cursor-pointer bg-gradient-to-br from-indigo-500/10 to-indigo-600/5 border-indigo-500/20">
-          <CardContent className="p-6">
+        {/* Countries */}
+        <Card className="hover:shadow-md transition-all cursor-pointer bg-slate-800/50 border-slate-700/50">
+          <CardContent className="p-3">
             <div className="flex flex-col gap-1">
               <div className="flex items-center justify-between">
-                <p className="text-sm font-medium text-slate-400 mb-1">Avg Clicks/Link</p>
-                <BarChartIcon className="h-4 w-4 text-indigo-500" />
+                <p className="text-xs font-medium text-slate-400">Countries</p>
+                <Globe className="h-4 w-4 text-cyan-500/80" />
               </div>
-              <p className="text-3xl font-bold text-white">{stats.avgClicksPerLink || 0}</p>
-            </div>
-          </CardContent>
-        </Card>
-
-        <Card className="hover:shadow-md transition-all cursor-pointer bg-gradient-to-br from-cyan-500/10 to-cyan-600/5 border-cyan-500/20">
-          <CardContent className="p-6">
-            <div className="flex flex-col gap-1">
-              <div className="flex items-center justify-between">
-                <p className="text-sm font-medium text-slate-400 mb-1">Countries</p>
-                <Globe className="h-4 w-4 text-cyan-500" />
-              </div>
-              <p className="text-3xl font-bold text-white">{additionalStats.countries}</p>
-            </div>
-          </CardContent>
-        </Card>
-
-        <Card className="hover:shadow-md transition-all cursor-pointer bg-gradient-to-br from-red-500/10 to-red-600/5 border-red-500/20">
-          <CardContent className="p-6">
-            <div className="flex flex-col gap-1">
-              <div className="flex items-center justify-between">
-                <p className="text-sm font-medium text-slate-400 mb-1">Total Campaigns</p>
-                <BarChartIcon className="h-4 w-4 text-red-500" />
-              </div>
-              <p className="text-3xl font-bold text-white">{stats.totalLinks || 6}</p>
+              <p className="text-xl font-bold text-white">{additionalStats.countries}</p>
             </div>
           </CardContent>
         </Card>

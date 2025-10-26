@@ -38,14 +38,14 @@ export const EnhancedTable = ({
   }
 
   return (
-    <div className="rounded-md border border-slate-700 overflow-hidden">
+    <div className="rounded-md border border-border bg-card">
       <Table>
         <TableHeader>
-          <TableRow className="bg-slate-800 border-slate-700 hover:bg-slate-800">
+          <TableRow className="border-border hover:bg-accent/50">
             {columns.map((column, index) => (
               <TableHead
                 key={index}
-                className="text-slate-300 font-semibold"
+                className="text-muted-foreground font-semibold"
               >
                 {column.header}
               </TableHead>
@@ -57,12 +57,12 @@ export const EnhancedTable = ({
             <TableRow
               key={rowIndex}
               onClick={() => onRowClick && onRowClick(row)}
-              className={`border-slate-700 ${
-                onRowClick ? 'cursor-pointer hover:bg-slate-800' : ''
+              className={`border-border ${
+                onRowClick ? 'cursor-pointer hover:bg-accent/50' : ''
               }`}
             >
               {columns.map((column, colIndex) => (
-                <TableCell key={colIndex} className="text-slate-300">
+                <TableCell key={colIndex} className="text-foreground">
                   {column.render
                     ? column.render(row[column.accessor], row)
                     : row[column.accessor]}

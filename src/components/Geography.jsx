@@ -114,42 +114,42 @@ const GeographyComponent = () => {
 
         {/* Stats Overview */}
         <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-6">
-          <Card className="bg-slate-800 border-slate-700">
-            <CardHeader className="pb-3">
-              <CardTitle className="text-sm font-medium text-slate-400 flex items-center gap-2">
-                <Users className="h-4 w-4" />
+          <Card className="hover:shadow-md transition-all cursor-pointer bg-card/50 border-border/50">
+            <CardHeader className="p-3 pb-0">
+              <CardTitle className="text-xs font-medium text-muted-foreground flex items-center gap-2">
+                <Users className="h-4 w-4 text-blue-400" />
                 Total Visitors
               </CardTitle>
             </CardHeader>
-            <CardContent>
-              <div className="text-3xl font-bold text-white">{totalVisitors.toLocaleString()}</div>
+            <CardContent className="p-3 pt-0">
+              <div className="text-xl font-bold text-foreground">{totalVisitors.toLocaleString()}</div>
             </CardContent>
           </Card>
 
-          <Card className="bg-slate-800 border-slate-700">
-            <CardHeader className="pb-3">
-              <CardTitle className="text-sm font-medium text-slate-400 flex items-center gap-2">
-                <MapPin className="h-4 w-4" />
+          <Card className="hover:shadow-md transition-all cursor-pointer bg-card/50 border-border/50">
+            <CardHeader className="p-3 pb-0">
+              <CardTitle className="text-xs font-medium text-muted-foreground flex items-center gap-2">
+                <MapPin className="h-4 w-4 text-green-400" />
                 Countries Reached
               </CardTitle>
             </CardHeader>
-            <CardContent>
-              <div className="text-3xl font-bold text-white">{countryData.length}</div>
+            <CardContent className="p-3 pt-0">
+              <div className="text-xl font-bold text-foreground">{countryData.length}</div>
             </CardContent>
           </Card>
 
-          <Card className="bg-slate-800 border-slate-700">
-            <CardHeader className="pb-3">
-              <CardTitle className="text-sm font-medium text-slate-400 flex items-center gap-2">
-                <TrendingUp className="h-4 w-4" />
+          <Card className="hover:shadow-md transition-all cursor-pointer bg-card/50 border-border/50">
+            <CardHeader className="p-3 pb-0">
+              <CardTitle className="text-xs font-medium text-muted-foreground flex items-center gap-2">
+                <TrendingUp className="h-4 w-4 text-purple-400" />
                 Top Country
               </CardTitle>
             </CardHeader>
-            <CardContent>
-              <div className="text-2xl font-bold text-white">
+            <CardContent className="p-3 pt-0">
+              <div className="text-xl font-bold text-foreground">
                 {topCountries[0]?.country_name || 'N/A'}
               </div>
-              <p className="text-sm text-slate-400 mt-1">
+              <p className="text-xs text-muted-foreground mt-1">
                 {topCountries[0]?.visitors.toLocaleString() || 0} visitors
               </p>
             </CardContent>
@@ -158,14 +158,14 @@ const GeographyComponent = () => {
 
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
           {/* World Map */}
-          <Card className="lg:col-span-2 bg-slate-800 border-slate-700">
+          <Card className="lg:col-span-2 bg-card border-border">
             <CardHeader>
-              <CardTitle className="text-white">Global Visitor Distribution</CardTitle>
+              <CardTitle className="text-foreground">Global Visitor Distribution</CardTitle>},{all:true,find:
               <CardDescription className="text-slate-400">
                 Interactive map showing visitor traffic by country
               </CardDescription>
             </CardHeader>
-            <CardContent>
+            <CardContent className="p-3 pt-0">
               <div className="w-full h-96 bg-slate-900 rounded-lg overflow-hidden">
                 {countryData.length > 0 ? (
                   <ComposableMap
@@ -230,14 +230,14 @@ const GeographyComponent = () => {
           </Card>
 
           {/* Top Countries List */}
-          <Card className="bg-slate-800 border-slate-700">
+          <Card className="hover:shadow-md transition-all cursor-pointer bg-card/50 border-border/50">
             <CardHeader>
               <CardTitle className="text-white">Top Countries</CardTitle>
               <CardDescription className="text-slate-400">
                 Highest visitor traffic by region
               </CardDescription>
             </CardHeader>
-            <CardContent>
+            <CardContent className="p-3 pt-0">
               <div className="space-y-4">
                 {topCountries.length > 0 ? (
                   topCountries.map((country, index) => {

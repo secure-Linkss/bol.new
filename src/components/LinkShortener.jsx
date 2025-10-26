@@ -382,53 +382,53 @@ const LinkShortener = () => {
       </div>
 
       {/* Stats Overview */}
-      <div className="grid gap-4 md:grid-cols-4">
-        <Card>
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Total Links</CardTitle>
-            <LinkIcon className="h-4 w-4 text-muted-foreground" />
+      <div className="grid gap-3 grid-cols-2 md:grid-cols-4">
+        <Card className="hover:shadow-md transition-all cursor-pointer bg-card/50 border-border/50">
+        <CardHeader className="flex flex-row items-center justify-between space-y-0 p-3 pb-0">
+           <CardTitle className="text-xs font-medium text-muted-foreground">Total Clicks</CardTitle>
+            <LinkIcon className="h-4 w-4 text-blue-500/80" />},{all:true,find:
           </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold">{stats.totalLinks}</div>
+          <CardContent className="p-3 pt-0">
+            <div className="text-xl font-bold text-foreground">{stats.totalLinks}</div>
             <p className="text-xs text-muted-foreground">
               {stats.activeLinks} active
             </p>
           </CardContent>
         </Card>
         
-        <Card>
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Total Clicks</CardTitle>
-            <MousePointer className="h-4 w-4 text-muted-foreground" />
+        <Card className="hover:shadow-md transition-all cursor-pointer bg-card/50 border-border/50">
+          <CardHeader className="flex flex-row items-center justify-between space-y-0 p-3 pb-0">
+           <CardTitle className="text-xs font-medium text-muted-foreground">Total Clicks</CardTitle>
+            <MousePointer className="h-4 w-4 text-green-500/80" />
           </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold">{stats.totalClicks}</div>
+          <CardContent className="p-3 pt-0">
+            <div className="text-xl font-bold text-foreground">{stats.totalClicks}</div>
             <p className="text-xs text-muted-foreground">
               All time clicks
             </p>
           </CardContent>
         </Card>
         
-        <Card>
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Active Links</CardTitle>
-            <TrendingUp className="h-4 w-4 text-muted-foreground" />
+        <Card className="hover:shadow-md transition-all cursor-pointer bg-card/50 border-border/50">
+          <CardHeader className="flex flex-row items-center justify-between space-y-0 p-3 pb-0">
+            <CardTitle className="text-xs font-medium text-muted-foreground">Active Links</CardTitle>
+            <TrendingUp className="h-4 w-4 text-orange-500/80" />
           </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold">{stats.activeLinks}</div>
+          <CardContent className="p-3 pt-0">
+            <div className="text-xl font-bold text-foreground">{stats.activeLinks}</div>
             <p className="text-xs text-muted-foreground">
               Currently active
             </p>
           </CardContent>
         </Card>
         
-        <Card>
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Avg. Clicks/Link</CardTitle>
-            <BarChart3 className="h-4 w-4 text-muted-foreground" />
-          </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold">{stats.avgCTR.toFixed(1)}</div>
+        <Card className="hover:shadow-md transition-all cursor-pointer bg-card/50 border-border/50">
+          <CardHeader className="flex flex-row items-center justify-between space-y-0 p-3 pb-0">
+            <CardTitle className="text-xs font-medium text-muted-foreground">Avg. Clicks/Link</CardTitle>
+            <Users className="h-4 w-4 text-purple-500/80" />
+	          </CardHeader>
+          <CardContent className="p-3 pt-0">
+            <div className="text-xl font-bold text-foreground">{stats.avgCTR.toFixed(1)}</div>
             <p className="text-xs text-muted-foreground">
               Per link average
             </p>
@@ -437,7 +437,7 @@ const LinkShortener = () => {
       </div>
 
       {/* Search and Filter */}
-      <Card>
+      <Card className="hover:shadow-md transition-all cursor-pointer bg-card/50 border-border/50">
         <CardContent className="pt-6">
           <div className="flex flex-col sm:flex-row gap-4">
             <div className="flex-1">
@@ -466,14 +466,14 @@ const LinkShortener = () => {
       </Card>
 
       {/* Links List */}
-      <Card>
+      <Card className="hover:shadow-md transition-all cursor-pointer bg-card/50 border-border/50">
         <CardHeader>
           <CardTitle>Your Links</CardTitle>
           <CardDescription>
             Manage and track your shortened links
           </CardDescription>
         </CardHeader>
-        <CardContent>
+        <CardContent className="p-3 pt-0">
           <div className="space-y-4">
             {filteredLinks.map((link) => (
               <div key={link.id} className="border rounded-lg p-4">
@@ -556,7 +556,7 @@ const LinkShortener = () => {
             
             {filteredLinks.length === 0 && (
               <div className="text-center py-8">
-                <LinkIcon className="h-12 w-12 text-muted-foreground mx-auto mb-4" />
+               <LinkIcon className="h-6 w-6 text-muted-foreground mx-auto mb-4" />
                 <h3 className="text-lg font-medium mb-2">No links found</h3>
                 <p className="text-muted-foreground mb-4">
                   {searchTerm || filterStatus !== 'all' 
@@ -573,7 +573,7 @@ const LinkShortener = () => {
               </div>
             )}
           </div>
-        </CardContent>
+        <CardContent className="p-3 pt-0">>
       </Card>
     </div>
   )
