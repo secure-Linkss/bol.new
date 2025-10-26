@@ -386,7 +386,7 @@ const LinkShortener = () => {
         <Card className="hover:shadow-md transition-all cursor-pointer bg-card/50 border-border/50">
         <CardHeader className="flex flex-row items-center justify-between space-y-0 p-3 pb-0">
            <CardTitle className="text-xs font-medium text-muted-foreground">Total Clicks</CardTitle>
-            <LinkIcon className="h-4 w-4 text-blue-500/80" />},{all:true,find:
+            <LinkIcon className="h-4 w-4 text-blue-500/80" />
           </CardHeader>
           <CardContent className="p-3 pt-0">
             <div className="text-xl font-bold text-foreground">{stats.totalLinks}</div>
@@ -573,9 +573,9 @@ const LinkShortener = () => {
               </div>
             )}
           </div>
-        <CardContent className="p-3 pt-0">>
-      </Card>
-    </div>
+        </CardContent>
+	      </Card>
+	    </div>
   )
 }
 

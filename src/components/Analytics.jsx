@@ -144,7 +144,7 @@ const Analytics = () => {
       <div className="mb-8">
         <h1 className="text-3xl font-bold text-white mb-2">Advanced Analytics</h1>
         <p className="text-muted-foreground">Detailed performance insights and metrics</p>
-      </div>
+      </p>
 
       {/* Controls */}
       <div className="flex flex-col sm:flex-row gap-4 mb-8">
@@ -168,8 +168,8 @@ const Analytics = () => {
             <Download className="h-4 w-4 mr-2" />
             Export
           </Button>
-        </div>
-      </div>
+        </p>
+      </p>
 
       {/* Analytics Metric Cards - 3-Grid Layout - Mobile Responsive */}
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 mb-6">
@@ -180,11 +180,11 @@ const Analytics = () => {
                 <p className="text-xs font-medium text-muted-foreground mb-1">Total Clicks</p>
                 <p className="text-2xl font-bold text-foreground">{analytics.totalClicks.toLocaleString()}</p>
                 <p className="text-xs text-green-400 mt-1">+12% from last period</p>
-              </div>
+              </p>
               <div className="p-2 bg-blue-500/20 rounded-full">
                 <MousePointer className="h-5 w-5 text-blue-400" />
-              </div>
-            </div>
+              </p>
+            </p>
           </CardContent>
         </Card>
 
@@ -195,11 +195,11 @@ const Analytics = () => {
               <p className="text-xs font-medium text-muted-foreground mb-1">Unique Visitors</p>
                 <p className="text-2xl font-bold text-foreground">{analytics.uniqueVisitors.toLocaleString()}</p>
                 <p className="text-xs text-green-400 mt-1">+8% from last period</p>
-              </div>
+              </p>
               <div className="p-2 bg-green-500/20 rounded-full">
                 <Users className="h-5 w-5 text-green-400" />
-              </div>
-            </div>
+              </p>
+            </p>
           </CardContent>
         </Card>
 
@@ -210,14 +210,14 @@ const Analytics = () => {
                 <p className="text-xs font-medium text-muted-foreground mb-1">Conversion Rate</p>
                 <p className="text-2xl font-bold text-foreground">{analytics.conversionRate}%</p>
                 <p className="text-xs text-green-400 mt-1">+2.3% from last period</p>
-              </div>
+              </p>
               <div className="p-2 bg-purple-500/20 rounded-full">
                 <TrendingUp className="h-5 w-5 text-purple-400" />
-              </div>
-            </div>
+              </p>
+            </p>
           </CardContent>
         </Card>
-        </div>
+        </p>
 
       {/* Compact Metric Cards - 7 cards in one row - Mobile: 2 cols, Tablet: 4 cols, Desktop: 7 cols */}
       <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-7 gap-3 mb-6">
@@ -226,10 +226,10 @@ const Analytics = () => {
             <div className="flex items-center justify-between">
               <div>
               <p className="text-xs font-medium text-muted-foreground mb-1">Total Clicks</p>
-                <div className="text-xl font-bold text-foreground">{analytics.totalClicks.toLocaleString()}</div>
-              </div>
+                <div className="text-xl font-bold text-foreground">{analytics.totalClicks.toLocaleString()}</p>
+              </p>
               <MousePointer className="h-4 w-4 text-blue-500" />
-            </div>
+            </p>
           </CardContent>
         </Card>
 
@@ -238,10 +238,10 @@ const Analytics = () => {
             <div className="flex items-center justify-between">
               <div>
                 <p className="text-xs font-medium text-muted-foreground mb-1">Unique Visitors</p>
-                <div className="text-xl font-bold text-foreground">{analytics.uniqueVisitors.toLocaleString()}</div>
-              </div>
+                <div className="text-xl font-bold text-foreground">{analytics.uniqueVisitors.toLocaleString()}</p>
+              </p>
               <Users className="h-4 w-4 text-green-500" />
-	            </div>
+	            </p>
           </CardContent>
         </Card>
 
@@ -249,10 +249,10 @@ const Analytics = () => {
           <CardContent className="p-3">
             <div className="flex items-center justify-between">
               <div>
-                <p className="text-xs font-medium text-muted-foreground mb-1">Conversion Rate</p>               <div className="text-xl font-bold text-foreground">{analytics.conversionRate}%</div>
-              </div>
+                <p className="text-xs font-medium text-muted-foreground mb-1">Conversion Rate</p>               <div className="text-xl font-bold text-foreground">{analytics.conversionRate}%</p>
+              </p>
               <Target className="h-4 w-4 text-purple-500" />
-            </div>
+            </p>
           </CardContent>
         </Card>
 
@@ -261,10 +261,10 @@ const Analytics = () => {
             <div className="flex items-center justify-between">
               <div>
                 <p className="text-xs font-medium text-muted-foreground mb-1">Bounce Rate</p>
-                <div className="text-xl font-bold text-foreground">{analytics.bounceRate}%</div>
-              </div>
+                <div className="text-xl font-bold text-foreground">{analytics.bounceRate}%</p>
+              </p>
               <Activity className="h-4 w-4 text-orange-500" />
-            </div>
+            </p>
           </CardContent>
         </Card>
 
@@ -273,10 +273,10 @@ const Analytics = () => {
             <div className="flex items-center justify-between">
               <div>
                 <p className="text-xs font-medium text-muted-foreground mb-1">Captured Emails</p>
-                <div className="text-xl font-bold text-foreground">{analytics.capturedEmails}</div>
-              </div>
+                <div className="text-xl font-bold text-foreground">{analytics.capturedEmails}</p>
+              </p>
               <Mail className="h-4 w-4 text-teal-500" />
-            </div>
+            </p>
           </CardContent>
         </Card>
 
@@ -285,24 +285,24 @@ const Analytics = () => {
             <div className="flex items-center justify-between">
               <div>
                 <p className="text-xs font-medium text-muted-foreground mb-1">Active Links</p>
-                <div className="text-xl font-bold text-foreground">{analytics.activeLinks}</div>
-              </div>
+                <div className="text-xl font-bold text-foreground">{analytics.activeLinks}</p>
+              </p>
               <TrendingUp className="h-4 w-4 text-indigo-500" />
-            </div>
+            </p>
           </CardContent>
         </Card>
 
-        <<Card className="hover:shadow-md transition-all cursor-pointer bg-card/50 border-border/50">
+        <Card className="hover:shadow-md transition-all cursor-pointer bg-card/50 border-border/50">
           <CardContent className="p-3">
             <div className="flex items-center justify-between">
               <div>
-             <p className="text-xs font-medium text-muted-foreground mb-1">Avg. Session Duration</p>         <div className="text-xl font-bold text-foreground">{analytics.avgSessionDuration}m</div>
-              </div>
+             <p className="text-xs font-medium text-muted-foreground mb-1">Avg. Session Duration</p>         <div className="text-xl font-bold text-foreground">{analytics.avgSessionDuration}m</p>
+              </p>
             <Clock className="h-4 w-4 text-yellow-500" />
-            </div>
+            </p>
           </CardContent>
         </Card>
-      </div>
+      </p>
 
       {/* Charts Grid - Side by Side (2 columns) - Mobile: 1 col, Desktop: 2 cols */}
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 mb-6">
@@ -310,7 +310,7 @@ const Analytics = () => {
         <Card className="bg-card border-border hover:shadow-md transition-all">
           <CardHeader className="pb-2">
             <CardTitle className="text-base font-semibold text-foreground">Performance Trends</CardTitle>
-            <p className="text-xs text-muted-foreground">Clicks, visitors, and conversions over time</div>
+            <p className="text-xs text-muted-foreground">Clicks, visitors, and conversions over time</p>
           </CardHeader>
           <CardContent className="p-4">
             <ResponsiveContainer width="100%" height={280}>
@@ -380,7 +380,7 @@ const Analytics = () => {
         <Card className="bg-card border-border hover:shadow-md transition-all">
           <CardHeader className="pb-2">
             <CardTitle className="text-base font-semibold text-foreground">Device Distribution</CardTitle>
-            <p className="text-xs text-muted-foreground">Traffic breakdown by device type</div>
+            <p className="text-xs text-muted-foreground">Traffic breakdown by device type</p>
           </CardHeader>
           <CardContent className="p-4">
             <ResponsiveContainer width="100%" height={280}>
@@ -415,13 +415,13 @@ const Analytics = () => {
                   <div 
                     className="w-3 h-3 rounded-full" 
                     style={{ backgroundColor: item.color }}
-                  ></div>
+                  ></p>
                   <span className="text-xs text-muted-foreground">
                     {item.name} {item.percentage}%
                   </span>
-                </div>
+                </p>
               ))}
-            </div>
+            </p>
           </CardContent>
         </Card>
 
@@ -429,7 +429,7 @@ const Analytics = () => {
         <Card className="bg-card border-border hover:shadow-md transition-all">
           <CardHeader className="pb-2">
             <CardTitle className="text-base font-semibold text-foreground">Geographic Distribution</CardTitle>
-            <p className="text-xs text-muted-foreground">Top countries by traffic volume</div>
+            <p className="text-xs text-muted-foreground">Top countries by traffic volume</p>
           </CardHeader>
           <CardContent className="p-4">
             <ResponsiveContainer width="100%" height={280}>
@@ -500,7 +500,7 @@ const Analytics = () => {
             </ResponsiveContainer>
           </CardContent>
         </Card>
-      </div>
+      </p>
 
       {/* Detailed Tables - Mobile: 1 col, Desktop: 2 cols */}
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
@@ -519,15 +519,15 @@ const Analytics = () => {
                     <div>
                       <p className="font-medium text-sm text-foreground">{country.name}</p>
                       <p className="text-xs text-muted-foreground">{country.clicks.toLocaleString()} clicks</p>
-                    </div>
-                  </div>
+                    </p>
+                  </p>
                   <div className="text-right">
                     <p className="font-medium text-sm text-foreground">{country.percentage}%</p>
                     <Progress value={country.percentage} className="w-16 h-2" />
-                  </div>
-                </div>
+                  </p>
+                </p>
               ))}
-            </div>
+            </p>
           </CardContent>
         </Card>
 
@@ -544,26 +544,26 @@ const Analytics = () => {
                   <div className="flex items-center gap-3">
                     <div className="w-8 h-8 bg-gradient-to-br from-blue-500 to-purple-600 rounded-lg flex items-center justify-center">
                       <Target className="h-4 w-4 text-white" />
-                    </div>
+                    </p>
                     <div>
                       <p className="font-medium text-sm text-foreground">{campaign.name}</p>
 <p className="text-xs text-muted-foreground">
 	                        {campaign.clicks.toLocaleString()} clicks • {campaign.conversions} conversions
 	                      </p>
-                    </div>
-                  </div>
+                    </p>
+                  </p>
                   <div className="text-right">
                     <Badge variant={campaign.status === 'active' ? 'default' : 'secondary'}>
                       {campaign.rate}%
                     </Badge>
-                  </div>
-                </div>
+                  </p>
+                </p>
               ))}
-            </div>
+            </p>
           </CardContent>
         </Card>
-      </div>
-    </div>
+      </p>
+    </p>
   )
 }
 

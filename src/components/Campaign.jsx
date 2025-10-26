@@ -161,7 +161,7 @@ const Campaign = () => {
         <div>
           <h1 className="text-3xl font-bold text-white mb-2">Campaign Management</h1>
           <p className="text-slate-400">Create and manage your marketing campaigns</p>
-        </div>
+
         <Dialog open={isCreateModalOpen} onOpenChange={setIsCreateModalOpen}>
           <DialogTrigger asChild>
             <Button className="bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700">
@@ -186,7 +186,7 @@ const Campaign = () => {
                   className="bg-slate-700 border-slate-600 text-white"
                   placeholder="Enter campaign name"
                 />
-              </div>
+
               <div className="space-y-2">
                 <Label htmlFor="description" className="text-white">Description</Label>
                 <Textarea
@@ -197,7 +197,7 @@ const Campaign = () => {
                   placeholder="Describe your campaign"
                   rows={3}
                 />
-              </div>
+
               <div className="space-y-2">
                 <Label htmlFor="targetUrl" className="text-white">Target URL</Label>
                 <Input
@@ -208,8 +208,8 @@ const Campaign = () => {
                   className="bg-slate-700 border-slate-600 text-white"
                   placeholder="https://example.com"
                 />
-              </div>
-            </div>
+
+
             <DialogFooter>
               <Button variant="outline" onClick={() => setIsCreateModalOpen(false)} className="border-slate-600">
                 Cancel
@@ -220,7 +220,7 @@ const Campaign = () => {
             </DialogFooter>
           </DialogContent>
         </Dialog>
-      </div>
+
 
       {/* Controls */}
       <div className="flex gap-2 mb-6">

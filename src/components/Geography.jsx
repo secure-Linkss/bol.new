@@ -160,7 +160,7 @@ const GeographyComponent = () => {
           {/* World Map */}
           <Card className="lg:col-span-2 bg-card border-border">
             <CardHeader>
-              <CardTitle className="text-foreground">Global Visitor Distribution</CardTitle>},{all:true,find:
+              <CardTitle className="text-foreground">Global Visitor Distribution</CardTitle>
               <CardDescription className="text-slate-400">
                 Interactive map showing visitor traffic by country
               </CardDescription>
