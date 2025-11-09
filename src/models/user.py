@@ -1,0 +1,152 @@
+'''
+User Model - Core user authentication and management
+'''
+
+from src.database import db
+from werkzeug.security import generate_password_hash, check_password_hash
+from datetime import datetime, timedelta
+import jwt
+import os
+
+class User(db.Model):
+    __tablename__ = 'users'
+    
+    id = db.Column(db.Integer, primary_key=True)
+    username = db.Column(db.String(255), unique=True, nullable=False, index=True)
+    email = db.Column(db.String(255), unique=True, nullable=False, index=True)
+    password_hash = db.Column(db.String(255), nullable=False)
+    
+    # Role and Status
+    role = db.Column(db.String(50), default='member', nullable=False)  # main_admin, admin, assistant_admin, member
+    status = db.Column(db.String(50), default='pending', nullable=False)  # pending, active, suspended, expired
+    is_active = db.Column(db.Boolean, default=False, nullable=False)
+    is_verified = db.Column(db.Boolean, default=False, nullable=False)
+    
+    # Subscription
+    plan_type = db.Column(db.String(50), default='free', nullable=False)  # free, pro, enterprise
+    subscription_expiry = db.Column(db.DateTime, nullable=True)
+    stripe_customer_id = db.Column(db.String(255), nullable=True)
+    stripe_subscription_id = db.Column(db.String(255), nullable=True)
+    
+    # Contact Info
+    phone = db.Column(db.String(20), nullable=True)
+    country = db.Column(db.String(100), nullable=True)
+    
+    # Telegram Integration
+    telegram_bot_token = db.Column(db.String(255), nullable=True)
+    telegram_chat_id = db.Column(db.String(255), nullable=True)
+    telegram_enabled = db.Column(db.Boolean, default=False)
+    
+    # Security
+    two_factor_enabled = db.Column(db.Boolean, default=False)
+    two_factor_secret = db.Column(db.String(255), nullable=True)
+    verification_token = db.Column(db.String(255), nullable=True)
+    reset_token = db.Column(db.String(255), nullable=True)
+    reset_token_expires = db.Column(db.DateTime, nullable=True)
+    
+    # Login Tracking
+    last_login = db.Column(db.DateTime, nullable=True)
+    last_ip = db.Column(db.String(45), nullable=True)
+    login_count = db.Column(db.Integer, default=0)
+    failed_login_attempts = db.Column(db.Integer, default=0)
+    last_failed_login = db.Column(db.DateTime, nullable=True)
+    
+    # Usage Limits
+    daily_link_limit = db.Column(db.Integer, default=100)
+    daily_link_count = db.Column(db.Integer, default=0)
+    last_link_reset = db.Column(db.DateTime, default=datetime.utcnow)
+    
+    # Timestamps
+    created_at = db.Column(db.DateTime, default=datetime.utcnow, nullable=False)
+    updated_at = db.Column(db.DateTime, default=datetime.utcnow, onupdate=datetime.utcnow, nullable=False)
+    
+    # Relationships
+    links = db.relationship('Link', backref='owner', lazy='dynamic', cascade='all, delete-orphan')
+    campaigns = db.relationship('Campaign', backref='campaign_owner', lazy='dynamic', cascade='all, delete-orphan')
+    notifications = db.relationship('Notification', backref='user', lazy='dynamic', cascade='all, delete-orphan')
+    
+    def set_password(self, password):
+        '''Hash and set password'''
+        self.password_hash = generate_password_hash(password)
+    
+    def check_password(self, password):
+        '''Verify password'''
+        return check_password_hash(self.password_hash, password)
+    
+    def generate_token(self, expires_in=86400):
+        '''Generate JWT token (default 24 hours)'''
+        payload = {
+            'user_id': self.id,
+            'username': self.username,
+            'role': self.role,
+            'exp': datetime.utcnow() + timedelta(seconds=expires_in)
+        }
+        return jwt.encode(payload, os.environ.get('SECRET_KEY', 'dev-secret-key'), algorithm='HS256')
+    
+    @staticmethod
+    def verify_token(token):
+        '''Verify JWT token and return user'''
+        try:
+            payload = jwt.decode(token, os.environ.get('SECRET_KEY', 'dev-secret-key'), algorithms=['HS256'])
+            return User.query.get(payload['user_id'])
+        except (jwt.ExpiredSignatureError, jwt.InvalidTokenError):
+            return None
+    
+    def can_create_link(self):
+        '''Check if user can create more links today'''
+        # Reset daily count if needed
+        if self.last_link_reset.date() < datetime.utcnow().date():
+            self.daily_link_count = 0
+            self.last_link_reset = datetime.utcnow()
+            db.session.commit()
+        
+        # Check limit based on plan
+        limits = {
+            'free': 10,
+            'pro': 1000,
+            'enterprise': 10000
+        }
+        limit = limits.get(self.plan_type, 10)
+        return self.daily_link_count < limit
+    
+    def increment_link_usage(self):
+        '''Increment daily link count'''
+        self.daily_link_count += 1
+        db.session.commit()
+    
+    def to_dict(self, include_sensitive=False):
+        '''Convert user to dictionary'''
+        data = {
+            'id': self.id,
+            'username': self.username,
+            'email': self.email,
+            'role': self.role,
+            'status': self.status,
+            'is_active': self.is_active,
+            'is_verified': self.is_verified,
+            'plan_type': self.plan_type,
+            'subscription_expiry': self.subscription_expiry.isoformat() if self.subscription_expiry else None,
+            'phone': self.phone,
+            'country': self.country,
+            'telegram_enabled': self.telegram_enabled,
+            'two_factor_enabled': self.two_factor_enabled,
+            'last_login': self.last_login.isoformat() if self.last_login else None,
+            'login_count': self.login_count,
+            'created_at': self.created_at.isoformat() if self.created_at else None,
+            'updated_at': self.updated_at.isoformat() if self.updated_at else None
+        }
+        
+        if include_sensitive:
+            data.update({
+                'telegram_bot_token': self.telegram_bot_token,
+                'telegram_chat_id': self.telegram_chat_id,
+                'stripe_customer_id': self.stripe_customer_id,
+                'stripe_subscription_id': self.stripe_subscription_id,
+                'daily_link_limit': self.daily_link_limit,
+                'daily_link_count': self.daily_link_count
+            })
+        
+        return data
+    
+    def __repr__(self):
+        return f'<User {self.username}>'

@@ -1,0 +1,55 @@
+nohup: ignoring input
+/home/ubuntu/venv/lib/python3.11/site-packages/flask_sqlalchemy/model.py:22: SAWarning: relationship 'Campaign.owner' will copy column users.id to column campaigns.owner_id, which conflicts with relationship(s): 'Campaign.campaign_owner' (copies users.id to campaigns.owner_id), 'User.campaigns' (copies users.id to campaigns.owner_id). If this is not the intention, consider if these relationships should be linked with back_populates, or if viewonly=True should be applied to one or more if they are read-only. For the less common case that foreign key constraints are partially overlapping, the orm.foreign() annotation can be used to isolate the columns that should be written towards.   To silence this warning, add the parameter 'overlaps="campaign_owner,campaigns"' to the 'Campaign.owner' relationship. (Background on this warning at: https://sqlalche.me/e/20/qzyx) (This warning originated from the `configure_mappers()` process, which was invoked automatically in response to a user-initiated operation.)
+  return cls.query_class(
+✅ Configuration loaded and validated successfully
+✓ Quantum Redirect using Neon Database for nonce storage
+⚠️ Redis not available, using in-memory fallback: Error 111 connecting to localhost:6379. Connection refused.
+✅ Rate limiting middleware applied
+✅ Monitoring service middleware applied
+Error during initial user creation: (psycopg2.errors.UndefinedColumn) column users.stripe_customer_id does not exist
+LINE 1: ...subscription_expiry AS users_subscription_expiry, users.stri...
+                                                             ^
+
+[SQL: SELECT users.id AS users_id, users.username AS users_username, users.email AS users_email, users.password_hash AS users_password_hash, users.role AS users_role, users.status AS users_status, users.is_active AS users_is_active, users.is_verified AS users_is_verified, users.plan_type AS users_plan_type, users.subscription_expiry AS users_subscription_expiry, users.stripe_customer_id AS users_stripe_customer_id, users.stripe_subscription_id AS users_stripe_subscription_id, users.phone AS users_phone, users.country AS users_country, users.telegram_bot_token AS users_telegram_bot_token, users.telegram_chat_id AS users_telegram_chat_id, users.telegram_enabled AS users_telegram_enabled, users.two_factor_enabled AS users_two_factor_enabled, users.two_factor_secret AS users_two_factor_secret, users.verification_token AS users_verification_token, users.reset_token AS users_reset_token, users.reset_token_expires AS users_reset_token_expires, users.last_login AS users_last_login, users.last_ip AS users_last_ip, users.login_count AS users_login_count, users.failed_login_attempts AS users_failed_login_attempts, users.last_failed_login AS users_last_failed_login, users.daily_link_limit AS users_daily_link_limit, users.daily_link_count AS users_daily_link_count, users.last_link_reset AS users_last_link_reset, users.created_at AS users_created_at, users.updated_at AS users_updated_at 
+FROM users 
+WHERE users.username = %(username_1)s 
+ LIMIT %(param_1)s]
+[parameters: {'username_1': 'Brain', 'param_1': 1}]
+(Background on this error at: https://sqlalche.me/e/20/f405)
+ * Serving Flask app 'main'
+ * Debug mode: on
+[31m[1mWARNING: This is a development server. Do not use it in a production deployment. Use a production WSGI server instead.[0m
+ * Running on all addresses (0.0.0.0)
+ * Running on http://127.0.0.1:5000
+ * Running on http://169.254.0.21:5000
+[33mPress CTRL+C to quit[0m
+ * Restarting with stat
+/home/ubuntu/venv/lib/python3.11/site-packages/flask_sqlalchemy/model.py:22: SAWarning: relationship 'Campaign.owner' will copy column users.id to column campaigns.owner_id, which conflicts with relationship(s): 'Campaign.campaign_owner' (copies users.id to campaigns.owner_id), 'User.campaigns' (copies users.id to campaigns.owner_id). If this is not the intention, consider if these relationships should be linked with back_populates, or if viewonly=True should be applied to one or more if they are read-only. For the less common case that foreign key constraints are partially overlapping, the orm.foreign() annotation can be used to isolate the columns that should be written towards.   To silence this warning, add the parameter 'overlaps="campaign_owner,campaigns"' to the 'Campaign.owner' relationship. (Background on this warning at: https://sqlalche.me/e/20/qzyx) (This warning originated from the `configure_mappers()` process, which was invoked automatically in response to a user-initiated operation.)
+  return cls.query_class(
+ * Debugger is active!
+ * Debugger PIN: 133-781-886
+ * Detected change in '/home/ubuntu/bol-project/bol.new-main/src/main.py', reloading
+✅ Configuration loaded and validated successfully
+✓ Quantum Redirect using Neon Database for nonce storage
+⚠️ Redis not available, using in-memory fallback: Error 111 connecting to localhost:6379. Connection refused.
+✅ Rate limiting middleware applied
+✅ Monitoring service middleware applied
+Error during initial user creation: (psycopg2.errors.UndefinedColumn) column users.stripe_customer_id does not exist
+LINE 1: ...subscription_expiry AS users_subscription_expiry, users.stri...
+                                                             ^
+
+[SQL: SELECT users.id AS users_id, users.username AS users_username, users.email AS users_email, users.password_hash AS users_password_hash, users.role AS users_role, users.status AS users_status, users.is_active AS users_is_active, users.is_verified AS users_is_verified, users.plan_type AS users_plan_type, users.subscription_expiry AS users_subscription_expiry, users.stripe_customer_id AS users_stripe_customer_id, users.stripe_subscription_id AS users_stripe_subscription_id, users.phone AS users_phone, users.country AS users_country, users.telegram_bot_token AS users_telegram_bot_token, users.telegram_chat_id AS users_telegram_chat_id, users.telegram_enabled AS users_telegram_enabled, users.two_factor_enabled AS users_two_factor_enabled, users.two_factor_secret AS users_two_factor_secret, users.verification_token AS users_verification_token, users.reset_token AS users_reset_token, users.reset_token_expires AS users_reset_token_expires, users.last_login AS users_last_login, users.last_ip AS users_last_ip, users.login_count AS users_login_count, users.failed_login_attempts AS users_failed_login_attempts, users.last_failed_login AS users_last_failed_login, users.daily_link_limit AS users_daily_link_limit, users.daily_link_count AS users_daily_link_count, users.last_link_reset AS users_last_link_reset, users.created_at AS users_created_at, users.updated_at AS users_updated_at 
+FROM users 
+WHERE users.username = %(username_1)s 
+ LIMIT %(param_1)s]
+[parameters: {'username_1': 'Brain', 'param_1': 1}]
+(Background on this error at: https://sqlalche.me/e/20/f405)
+ * Restarting with stat
+ * Debugger is active!
+ * Debugger PIN: 133-781-886
+10.25.115.1 - - [07/Nov/2025 10:40:25] "GET / HTTP/1.1" 200 -
+10.25.115.1 - - [07/Nov/2025 10:40:25] "GET /assets/index-HEZfxYHu.css HTTP/1.1" 200 -
+10.25.115.1 - - [07/Nov/2025 10:40:25] "GET /assets/vendor-BS7bxHfv.js HTTP/1.1" 200 -
+10.25.115.1 - - [07/Nov/2025 10:40:25] "GET /assets/index-D4Xgorlw.js HTTP/1.1" 200 -
+10.25.115.1 - - [07/Nov/2025 10:40:26] "GET /vite.svg HTTP/1.1" 200 -
+10.25.115.1 - - [07/Nov/2025 10:40:26] "[36mGET /vite.svg HTTP/1.1[0m" 304 -
