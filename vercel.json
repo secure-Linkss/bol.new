@@ -9,60 +9,46 @@
       "runtime": "python3.9"
     }
   },
-  "routes": [
-    {
-      "src": "/api/(.*)",
-      "dest": "/api/index.py"
-    },
-    {
-      "src": "/s/(.*)",
-      "dest": "/api/index.py"
-    },
-    {
-      "src": "/p/(.*)",
-      "dest": "/api/index.py"
-    },
-    {
-      "src": "/pixel/(.*)",
-      "dest": "/api/index.py"
-    },
-    {
-      "src": "/t/(.*)",
-      "dest": "/api/index.py"
-    },
-    {
-      "src": "/q/(.*)",
-      "dest": "/api/index.py"
-    },
-    {
-      "src": "/validate",
-      "dest": "/api/index.py"
-    },
-    {
-      "src": "/route",
-      "dest": "/api/index.py"
-    },
-    {
-      "src": "/track/(.*)",
-      "dest": "/api/index.py"
-    },
-    {
-      "src": "/assets/(.*)",
-      "dest": "/assets/$1"
-    },
-    {
-      "src": "/(.*\\.(js|css|png|jpg|jpeg|gif|svg|ico|woff|woff2|ttf|eot))",
-      "dest": "/$1"
-    },
-    {
-      "src": "/(.*)",
-      "dest": "/index.html"
-    }
-  ],
   "rewrites": [
     {
       "source": "/api/(.*)",
       "destination": "/api/index.py"
+    },
+    {
+      "source": "/s/(.*)",
+      "destination": "/api/index.py"
+    },
+    {
+      "source": "/p/(.*)",
+      "destination": "/api/index.py"
+    },
+    {
+      "source": "/pixel/(.*)",
+      "destination": "/api/index.py"
+    },
+    {
+      "source": "/t/(.*)",
+      "destination": "/api/index.py"
+    },
+    {
+      "source": "/q/(.*)",
+      "destination": "/api/index.py"
+    },
+    {
+      "source": "/validate",
+      "destination": "/api/index.py"
+    },
+    {
+      "source": "/route",
+      "destination": "/api/index.py"
+    },
+    {
+      "source": "/track/(.*)",
+      "destination": "/api/index.py"
+    },
+    {
+      "source": "/(.*)",
+      "destination": "/index.html"
     }
   ]
 }
