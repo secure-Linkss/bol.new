@@ -9,15 +9,6 @@
       "runtime": "python3.9"
     }
   },
-  "builds": [
-    {
-      "src": "package.json",
-      "use": "@vercel/static-build",
-      "config": {
-        "distDir": "dist"
-      }
-    }
-  ],
   "routes": [
     {
       "src": "/api/(.*)",
@@ -57,15 +48,15 @@
     },
     {
       "src": "/assets/(.*)",
-      "dest": "/dist/assets/$1"
+      "dest": "/assets/$1"
     },
     {
       "src": "/(.*\\.(js|css|png|jpg|jpeg|gif|svg|ico|woff|woff2|ttf|eot))",
-      "dest": "/dist/$1"
+      "dest": "/$1"
     },
     {
       "src": "/(.*)",
-      "dest": "/dist/index.html"
+      "dest": "/index.html"
     }
   ],
   "rewrites": [
