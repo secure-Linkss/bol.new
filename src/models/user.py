@@ -7,6 +7,7 @@ from werkzeug.security import generate_password_hash, check_password_hash
 from datetime import datetime, timedelta
 import jwt
 import os
+import pyotp
 
 class User(db.Model):
     __tablename__ = 'users'
@@ -91,6 +92,20 @@ class User(db.Model):
             return User.query.get(payload['user_id'])
         except (jwt.ExpiredSignatureError, jwt.InvalidTokenError):
             return None
+    
+    def generate_2fa_secret(self):
+        '''Generate a new 2FA secret'''
+        secret = pyotp.random_base32()
+        self.two_factor_secret = secret
+        db.session.commit()
+        return secret
+    
+    def verify_2fa_token(self, token):
+        '''Verify a 2FA token'''
+        if not self.two_factor_secret:
+            return False
+        totp = pyotp.TOTP(self.two_factor_secret)
+        return totp.verify(token, valid_window=1)
     
     def can_create_link(self):
         '''Check if user can create more links today'''

@@ -27,3 +27,4 @@ python-telegram-bot
 gevent
 user-agents
 geoip2
+pyotp
